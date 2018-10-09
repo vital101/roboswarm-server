@@ -5,6 +5,7 @@ export enum Status {
     destroyed = "destroyed",
     new = "new",
     ready = "ready",
+    building = "building",
     active = "active"
 }
 

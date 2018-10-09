@@ -18,6 +18,7 @@ export interface Machine {
     file_transfer_complete: boolean;
     is_master: boolean;
     dependency_install_complete: boolean;
+    port_open_complete: boolean;
 }
 
 export interface NewMachine {
@@ -147,5 +148,11 @@ export async function updateIsMaster(id: number, is_master: boolean): Promise<vo
 export async function updateDependencyInstallComplete(id: number, dependency_install_complete: boolean): Promise<void> {
     await db("machine")
         .update({ dependency_install_complete })
+        .where("id", id);
+}
+
+export async function update(id: number, data: any): Promise<void> {
+    await db("machine")
+        .update(data)
         .where("id", id);
 }

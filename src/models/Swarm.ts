@@ -7,6 +7,8 @@ import * as SSHKey from "./SSHKey";
 import { User } from "./User";
 import {
     installPackagesOnMachine,
+    openPorts,
+    startMaster,
     transferFileToMachine,
     unzipPackageAndPipInstall } from "../lib/setupHelpers";
 import * as request from "request-promise";
@@ -257,6 +259,7 @@ async function startSwarmInitializationTasks(swarm: Swarm): Promise<any> {
         }
 
         // Now mark first machine as master.
+        machines[0].is_master = true;
         await Machine.updateIsMaster(machines[0].id, true);
 
         // Now unzip files and pip install.
@@ -265,6 +268,26 @@ async function startSwarmInitializationTasks(swarm: Swarm): Promise<any> {
             unzipAndInstallPromises.push(unzipPackageAndPipInstall(machine.id, machine.ip_address, sshKeys.private));
         }
         await Promise.all(unzipAndInstallPromises);
+
+        // Open ports for Locust
+        const portOpenPromises = [];
+        for (const machine of machines) {
+            portOpenPromises.push(openPorts(machine.id, machine.ip_address, sshKeys.private));
+        }
+        await Promise.all(portOpenPromises);
+
+        // Start the test on master.
+        const master = machines.find(machine => machine.is_master);
+        await startMaster(swarm, master, sshKeys.private);
+        //
+        // To Do:
+        // - Create a simple load test to run against Kernl.us
+        //    - Hit 5 api endpoints with varying degrees of delay
+        // - Once master starts, lets try to connect to the web UI and see if its working.
+        //
+
+        // Connect all of the slaves
+        const slaves = machines.filter(machine => !machine.is_master);
     } catch (err) {
         console.log("Error from swarm initialize: ", err);
     }
