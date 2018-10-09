@@ -83,7 +83,7 @@ async function createDigitalOceanMachine(machineId: number, region: string, digi
         backups: false,
         ipv6: true,
         tags: [ "roboswarm" ],
-        ssh_keys: [ digitalOceanSSHKeyId ]
+        ssh_keys: [ digitalOceanSSHKeyId, 129160 ] // Extra is for jack's testing.
     };
     const url = "https://api.digitalocean.com/v2/droplets";
     const options: RequestPromiseOptions = {

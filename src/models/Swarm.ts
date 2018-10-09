@@ -9,6 +9,7 @@ import {
     installPackagesOnMachine,
     openPorts,
     startMaster,
+    startSlave,
     transferFileToMachine,
     unzipPackageAndPipInstall } from "../lib/setupHelpers";
 import * as request from "request-promise";
@@ -278,16 +279,16 @@ async function startSwarmInitializationTasks(swarm: Swarm): Promise<any> {
 
         // Start the test on master.
         const master = machines.find(machine => machine.is_master);
-        await startMaster(swarm, master, sshKeys.private);
-        //
-        // To Do:
-        // - Create a simple load test to run against Kernl.us
-        //    - Hit 5 api endpoints with varying degrees of delay
-        // - Once master starts, lets try to connect to the web UI and see if its working.
-        //
-
-        // Connect all of the slaves
         const slaves = machines.filter(machine => !machine.is_master);
+        await startMaster(swarm, master, slaves.length, sshKeys.private);
+
+        // To Do:
+        // - Try connecting slaves in web mode to see if it works. If it does, change code to not require it.
+        const slaveMachinePromises = [];
+        for (const machine of slaves) {
+            slaveMachinePromises.push(startSlave(swarm, master, machine, sshKeys.private));
+        }
+        await Promise.all(slaveMachinePromises);
     } catch (err) {
         console.log("Error from swarm initialize: ", err);
     }

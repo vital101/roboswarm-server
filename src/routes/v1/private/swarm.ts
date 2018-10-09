@@ -50,6 +50,9 @@ router.route("/")
         res.json(swarms);
     })
     .post(async (req: NewSwarmRequest, res: RoboResponse) => {
+        // Always add one machine to the pool so it can be master.
+        req.body.machines.push({ region: req.body.machines[0].region });
+
         const willExceedDropletPoolSize = await Swarm.willExceedDropletPoolAvailability(req.body.machines.length);
         if (willExceedDropletPoolSize) {
             res.status(400);

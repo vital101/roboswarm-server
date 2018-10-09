@@ -102,12 +102,7 @@ export async function openPorts(machineId: number, machineIp: string, privateKey
             username: "root",
             privateKey,
         });
-        const commands: Array<string> = [
-            "ufw allow 5557",
-            "ufw allow 5558",
-            "ufw allow 8089",
-        ];
-        await ssh.execCommand(commands.join(" && "));
+        await ssh.execCommand("ufw allow 8000:65535/tcp");
         console.log(`Finished opening ports ${machineIp}`);
 
         await Machine.update(machineId, { port_open_complete: true });
@@ -119,7 +114,7 @@ export async function openPorts(machineId: number, machineIp: string, privateKey
     }
 }
 
-export async function startMaster(swarm: Swarm, machine: Machine.Machine, privateKey: string): Promise<boolean> {
+export async function startMaster(swarm: Swarm, machine: Machine.Machine, slaveCount: number, privateKey: string): Promise<boolean> {
     try {
         console.log(`Starting master at ${machine.ip_address}`);
         const ssh = new node_ssh();
@@ -132,21 +127,50 @@ export async function startMaster(swarm: Swarm, machine: Machine.Machine, privat
         const rate = swarm.spawn_rate;
         const runTime = `${swarm.duration}m`;
         const flags = [
-            `-c ${users}`,
-            `-r ${rate}`,
-            `--run-time ${runTime}`,
+            // `-c ${users}`,
+            // `-r ${rate}`,
+            // `--run-time ${runTime}`,
             `--host=${swarm.host_url}`,
-            "--no-web",
+            // "--no-web",
             "--master",
-            `--expect-slaves=${swarm.---- - NEED SLAVE COUNT HERE ---- - ; }`,
-            "&"
+            // `--expect-slaves=${slaveCount}`
         ];
-        await ssh.execCommand(`; locust; $; {flags.join(" "); }`);
+        const command = `nohup locust ${flags.join(" ")}`;
+        // Executing locust -c 50 -r 1 --host=https://kernl.us --master --expect-slaves=1 & on master at 165.227.123.149
+        console.log(`Executing ${command} on master at ${machine.ip_address} &`);
+        ssh.execCommand(command, { options: { pty: true } });
         await asyncSleep(30);
-        console.log(`; Finished; starting; master; at; $; {machine.ip_address; }`);
+        ssh.connection.end();
+        console.log(`Finished starting master at ${machine.ip_address}`);
         return true;
     } catch (err) {
-        console.log(`; Error; starting; master; on; $; {machine.ip_address; }: `, err);
+        console.log(`Error starting master on ${machine.ip_address}: `, err);
         return false;
     }
-};
+}
+
+export async function startSlave(swarm: Swarm, master: Machine.Machine, slave: Machine.Machine, privateKey: string): Promise<boolean> {
+    try {
+        console.log(`Starting slave at ${slave.ip_address}`);
+        const ssh = new node_ssh();
+        await ssh.connect({
+            host: slave.ip_address,
+            username: "root",
+            privateKey,
+        });
+        const flags = [
+            "--slave",
+            `--master-host=${master.ip_address}`
+        ];
+        const command = `locust ${flags.join(" ")} &`;
+        console.log(`Executing ${command} on slave at ${slave.ip_address}`);
+        ssh.execCommand(command);
+        await asyncSleep(15);
+        ssh.connection.end();
+        console.log(`Finished starting slave at ${slave.ip_address}`);
+        return true;
+    } catch (err) {
+        console.log(`Error starting slave on ${slave.ip_address}: `, err);
+        return false;
+    }
+}
