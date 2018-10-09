@@ -1,13 +1,14 @@
 import * as knex from "knex";
 
+const devDbConnection: any = {
+    host: process.env.DB_HOST || "10.0.2.2",
+    user: process.env.DB_USER || "postgres",
+    database: "roboswarm"
+  };
+
 const development = {
     client: "pg",
-    connection: {
-        host: "localhost",
-        user: "",
-        password: "",
-        database: "roboswarm"
-    }
+    connection: devDbConnection
 };
 
 const production = {
