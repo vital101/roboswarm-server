@@ -1,5 +1,6 @@
 const node_ssh = require("node-ssh");
 const sftp_client = require("ssh2-sftp-client");
+import { writeFileSync } from "fs";
 import { asyncSleep } from "../lib/lib";
 import * as Machine from "../models/Machine";
 import { Swarm } from "../models/Swarm";
@@ -150,6 +151,23 @@ export async function startMaster(swarm: Swarm, machine: Machine.Machine, slaveC
 }
 
 export async function startSlave(swarm: Swarm, master: Machine.Machine, slave: Machine.Machine, privateKey: string): Promise<boolean> {
+    // Create bash template and send to slave
+    console.log("Transferring template to slave at ", slave.ip_address);
+    const bashTemplate = `
+        #!/bin/bash
+        locust --slave --master-host=${master.ip_address} &
+    `;
+    const bashPath = `/tmp/${slave.id}.bash`;
+    writeFileSync(`/tmp/${slave.id}.bash`, bashTemplate);
+    const sftp = new sftp_client();
+    await sftp.connect({
+        host: slave.ip_address,
+        port: 22,
+        username: "root",
+        privateKey
+    });
+    await sftp.put(bashPath, "/root/start.sh");
+
     try {
         console.log(`Starting slave at ${slave.ip_address}`);
         const ssh = new node_ssh();
@@ -158,13 +176,10 @@ export async function startSlave(swarm: Swarm, master: Machine.Machine, slave: M
             username: "root",
             privateKey,
         });
-        const flags = [
-            "--slave",
-            `--master-host=${master.ip_address}`
-        ];
-        const command = `locust ${flags.join(" ")} &`;
+        await ssh.execCommand("chmod +xrw /root/start.sh");
+        const command = "/bin/bash /root/start/sh";
         console.log(`Executing ${command} on slave at ${slave.ip_address}`);
-        ssh.execCommand(command);
+        await ssh.execCommand(command, { options: { pty: true } });
         await asyncSleep(15);
         ssh.connection.end();
         console.log(`Finished starting slave at ${slave.ip_address}`);
