@@ -155,7 +155,7 @@ export async function startSlave(swarm: Swarm, master: Machine.Machine, slave: M
     console.log("Transferring template to slave at ", slave.ip_address);
     const bashTemplate = `
         #!/bin/bash
-        locust --slave --master-host=${master.ip_address} &
+        locust --slave --master-host=${master.ip_address} --logfile=/root/locustlog.log --loglevel=debug &
     `;
     const bashPath = `/tmp/${slave.id}.bash`;
     writeFileSync(`/tmp/${slave.id}.bash`, bashTemplate);
@@ -177,9 +177,19 @@ export async function startSlave(swarm: Swarm, master: Machine.Machine, slave: M
             privateKey,
         });
         await ssh.execCommand("chmod +xrw /root/start.sh");
-        const command = "/bin/bash /root/start/sh";
+        const command = "/bin/bash /root/start.sh";
         console.log(`Executing ${command} on slave at ${slave.ip_address}`);
-        await ssh.execCommand(command, { options: { pty: true } });
+        // await ssh.execCommand(command, { options: { pty: true } });
+        // With streaming stdout/stderr callbacks
+        ssh.exec(command, [], {
+            cwd: "/root",
+            onStdout(chunk: any) {
+                console.log("stdoutChunk", chunk.toString("utf8"));
+            },
+            onStderr(chunk: any) {
+                console.log("stderrChunk", chunk.toString("utf8"));
+            },
+        });
         await asyncSleep(15);
         ssh.connection.end();
         console.log(`Finished starting slave at ${slave.ip_address}`);
