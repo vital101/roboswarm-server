@@ -2,10 +2,11 @@ import * as request from "request-promise";
 import { RequestPromise, RequestPromiseOptions } from "request-promise";
 import { DropletResponse, Droplet } from "../interfaces/digitalOcean.interface";
 import { db } from "../lib/db";
-import { Status } from "../interfaces/shared.interface";
 import { Swarm } from "./Swarm";
 import * as SwarmMachine from "./SwarmMachine";
 import { SSHKey } from "./SSHKey";
+import { enqueue } from "../lib/events";
+import { MachineProvisionEvent, ProvisionEventType, MachineSetupStep } from "../interfaces/provisioning.interface";
 
 export interface Machine {
     id: number;
@@ -43,16 +44,39 @@ export async function create(machine: NewMachine, swarm: Swarm, key: SSHKey): Pr
     };
     await SwarmMachine.create(join);
 
+    // Create provision event push into work queue.
+    const machineProvisionEvent: MachineProvisionEvent = {
+        swarm,
+        stepToExecute: MachineSetupStep.CREATE,
+        steps: [
+            // MachineSetupStep.OPEN_PORTS,
+            // MachineSetupStep.PACKAGE_INSTALL,
+            // MachineSetupStep.TRANSFER_FILE,
+            // MachineSetupStep.UNZIP_AND_PIP_INSTALL
+        ],
+        sshKey: key,
+        machine: newMachine,
+        region: machine.region,
+        eventType: ProvisionEventType.MACHINE_PROVISION,
+        maxRetries: 3,
+        currentTry: 0,
+        lastActionTime: new Date(),
+        errors: []
+    };
+    await enqueue(machineProvisionEvent);
+
+    return newMachine;
+}
+
+export async function createExternalMachine(id: number, region: string, externalSshKeyId: number): Promise<void> {
     // Fire off an api request.
-   const DOMachine: DropletResponse = await createDigitalOceanMachine(newMachine.id, machine.region, key.external_id);
+   const DOMachine: DropletResponse = await createDigitalOceanMachine(id, region, externalSshKeyId);
 
     // Store the external id.
-    const updatedMachineList: Array<Machine> = await db("machine")
+    await db("machine")
         .update({ external_id: DOMachine.droplet.id })
-        .where("id", newMachine.id)
+        .where("id", id)
         .returning("*");
-
-    return updatedMachineList[0];
 }
 
 export async function checkStatus(machine: Machine): Promise<DropletResponse> {

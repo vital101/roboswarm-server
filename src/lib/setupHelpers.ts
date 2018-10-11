@@ -4,6 +4,68 @@ import { writeFileSync } from "fs";
 import { asyncSleep } from "../lib/lib";
 import * as Machine from "../models/Machine";
 import { Swarm } from "../models/Swarm";
+import { SwarmProvisionEvent, MachineProvisionEvent, MachineSetupStep } from "../interfaces/provisioning.interface";
+import { enqueue } from "./events";
+
+export async function nextStep(event: MachineProvisionEvent) {
+    if (event.steps.length > 0) {
+        const nextStep = event.steps.shift();
+        event.stepToExecute = nextStep;
+        event.currentTry = 0;
+        return enqueue(event);
+    }
+}
+
+export async function processSwarmProvisionEvent(event: SwarmProvisionEvent): Promise<void> {
+    console.log("processSwarmProvisionEvent() called.");
+    const promises = event.swarm.machines.map(machine => {
+        return Machine.create(machine, event.createdSwarm, event.sshKey);
+    });
+    await Promise.all(promises);
+}
+
+// TODO
+// Make queue reliable. If an event is there longer than 3 minutes, push it back into the queue to be
+// worked again. Need to figure out a way to handle issues with processing gracefully.
+
+export async function processMachineProvisionEvent(event: MachineProvisionEvent): Promise<void> {
+    console.log("processMachineProvisionEvent() called.");
+    if (event.currentTry < event.maxRetries) {
+        try {
+            switch (event.stepToExecute) {
+                case MachineSetupStep.CREATE: {
+                    await Machine.createExternalMachine(event.machine.id, event.region, event.sshKey.external_id);
+                    break;
+                }
+                case MachineSetupStep.OPEN_PORTS: {
+                    break;
+                }
+                case MachineSetupStep.PACKAGE_INSTALL: {
+                    break;
+                }
+                case MachineSetupStep.START_MASTER: {
+                    break;
+                }
+                case MachineSetupStep.START_SLAVE: {
+                    break;
+                }
+                case MachineSetupStep.TRANSFER_FILE: {
+                    break;
+                }
+                case MachineSetupStep.UNZIP_AND_PIP_INSTALL: {
+                    break;
+                }
+            }
+            await nextStep(event);
+        } catch (err) {
+            console.log("There was an error. Retrying.:", err);
+            event.currentTry += 1;
+            await enqueue(event);
+        }
+    } else {
+        console.log(`Dropping event after ${event.maxRetries} retries.`);
+    }
+}
 
 export function installPackagesOnMachine(machineIp: string, privateKey: string): Promise<boolean> {
     console.log(`Waiting to install packages on ${machineIp}...`);

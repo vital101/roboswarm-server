@@ -15,6 +15,8 @@ import {
 import * as request from "request-promise";
 import { RequestPromiseOptions } from "request-promise";
 import { asyncSleep } from "../lib/lib";
+import * as events from "../lib/events";
+import { ProvisionEventType, SwarmProvisionEvent } from "../interfaces/provisioning.interface";
 
 export interface Swarm {
     id: number;
@@ -76,16 +78,30 @@ export async function create(swarm: NewSwarm, userId: number, groupId: number): 
             duration: swarm.duration
         })
         .returning("*");
+
     const newSwarm = newSwarmResult[0];
     newSwarm.status = getStatus(newSwarm.created_at, newSwarm.ready_at, newSwarm.destroyed_at);
 
-    // Create the swarm machines.
-    const promises = [];
-    for (let i = 0; i < swarm.machines.length; i++) {
-        const machine = swarm.machines[i];
-        promises.push(Machine.create(machine, newSwarm, key));
-    }
-    await Promise.all(promises);
+    const startProvisionEvent: SwarmProvisionEvent = {
+        eventType: ProvisionEventType.SWARM_PROVISION,
+        createdSwarm: newSwarm,
+        swarm,
+        sshKey: key,
+        maxRetries: 3,
+        currentTry: 0,
+        lastActionTime: new Date(),
+        errors: []
+    };
+
+    await events.enqueue(startProvisionEvent);
+
+    // // Create the swarm machines.
+    // const promises = [];
+    // for (let i = 0; i < swarm.machines.length; i++) {
+    //     const machine = swarm.machines[i];
+    //     promises.push(Machine.create(machine, newSwarm, key));
+    // }
+    // await Promise.all(promises);
 
     // Worker to check the swarm status.
     setTimeout(() => { checkAndUpdateSwarmStatus(newSwarm); }, 5000);
@@ -224,7 +240,7 @@ async function checkAndUpdateSwarmStatus(swarm: Swarm): Promise<void> {
         console.log("Swarm is ready: ", readySwarm);
 
         console.log("Starting swarm initialization tasks");
-        await startSwarmInitializationTasks(swarm);
+        // await startSwarmInitializationTasks(swarm);
         console.log("Swarm initialization tasks complete");
     } else {
         // If not, setTimeout(5000) and do it again.
