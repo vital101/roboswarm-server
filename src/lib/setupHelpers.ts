@@ -83,6 +83,9 @@ export async function processMachineProvisionEvent(event: MachineProvisionEvent)
                     break;
                 }
                 case MachineSetupStep.START_MASTER: {
+                    // TODO, might have a seperate event type at the provision worker level for checking
+                    // every so often if the cluster is ready. Once it is ready, pick a machine and set it to
+                    // master. Then fire off events to start everything once master is ready
                     break;
                 }
                 case MachineSetupStep.START_SLAVE: {
