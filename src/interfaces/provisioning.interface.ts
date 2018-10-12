@@ -4,10 +4,12 @@ import { SSHKey } from "../models/SSHKey";
 
 export enum MachineSetupStep {
     CREATE,
+    MACHINE_READY,
+    DELAY,
+    OPEN_PORTS,
     PACKAGE_INSTALL,
     TRANSFER_FILE,
     UNZIP_AND_PIP_INSTALL,
-    OPEN_PORTS,
     START_MASTER,
     START_SLAVE
 }
@@ -22,6 +24,7 @@ export interface ProvisionEvent {
     eventType: ProvisionEventType;
     maxRetries: number;
     currentTry: number;
+    delayUntil?: Date;
     lastActionTime: Date;
     errors: any[];
 }

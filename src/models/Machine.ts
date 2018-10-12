@@ -49,16 +49,21 @@ export async function create(machine: NewMachine, swarm: Swarm, key: SSHKey): Pr
         swarm,
         stepToExecute: MachineSetupStep.CREATE,
         steps: [
-            // MachineSetupStep.OPEN_PORTS,
-            // MachineSetupStep.PACKAGE_INSTALL,
-            // MachineSetupStep.TRANSFER_FILE,
-            // MachineSetupStep.UNZIP_AND_PIP_INSTALL
+            MachineSetupStep.MACHINE_READY,
+            MachineSetupStep.DELAY,
+            MachineSetupStep.OPEN_PORTS,
+            MachineSetupStep.PACKAGE_INSTALL,
+            MachineSetupStep.TRANSFER_FILE,
+            MachineSetupStep.UNZIP_AND_PIP_INSTALL
+            // Next problem is how to set the "master" machine.
+            // After that, how does each machine know if its a slave or not.
+            // Probably an individual event that handles orchestration?
         ],
         sshKey: key,
         machine: newMachine,
         region: machine.region,
         eventType: ProvisionEventType.MACHINE_PROVISION,
-        maxRetries: 3,
+        maxRetries: 10,
         currentTry: 0,
         lastActionTime: new Date(),
         errors: []

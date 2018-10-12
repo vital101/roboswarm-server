@@ -95,14 +95,6 @@ export async function create(swarm: NewSwarm, userId: number, groupId: number): 
 
     await events.enqueue(startProvisionEvent);
 
-    // // Create the swarm machines.
-    // const promises = [];
-    // for (let i = 0; i < swarm.machines.length; i++) {
-    //     const machine = swarm.machines[i];
-    //     promises.push(Machine.create(machine, newSwarm, key));
-    // }
-    // await Promise.all(promises);
-
     // Worker to check the swarm status.
     setTimeout(() => { checkAndUpdateSwarmStatus(newSwarm); }, 5000);
 
@@ -209,6 +201,8 @@ export async function getSwarmSizeById(swarmId: number): Promise<number> {
     return row[0].count;
 }
 
+// This function needs work or should not even exist.
+// Or if it doesn't, just check out database for machine status, no DO.
 async function checkAndUpdateSwarmStatus(swarm: Swarm): Promise<void> {
     console.log("Starting swarm status check...");
     // Get all the droplets in the swarm. If they are ready,
@@ -218,19 +212,19 @@ async function checkAndUpdateSwarmStatus(swarm: Swarm): Promise<void> {
     for (let i = 0; i < machineIds.length; i++) {
         const m = await Machine.findById(machineIds[i]);
         if (m.ready_at === null) {
-            const response = await Machine.checkStatus(m);
-            if (response.droplet.status === "active") {
-                let ip_address = "test";
-                try {
-                    ip_address = response.droplet.networks.v4[0].ip_address;
-                    console.log("Machine IP info: ", response.droplet.networks);
-                } catch (err) {
-                    console.log("SOME SORT OF ERR with ip: ", err);
-                }
-                await Machine.setReadyAtAndIp(m, ip_address);
-            } else {
-                swarmReady = false;
-            }
+            // const response = await Machine.checkStatus(m);
+            // if (response.droplet.status === "active") {
+            //     let ip_address = "test";
+            //     try {
+            //         ip_address = response.droplet.networks.v4[0].ip_address;
+            //         console.log("Machine IP info: ", response.droplet.networks);
+            //     } catch (err) {
+            //         console.log("SOME SORT OF ERR with ip: ", err);
+            //     }
+            //     await Machine.setReadyAtAndIp(m, ip_address);
+            // } else {
+            swarmReady = false;
+            // }
         }
     }
 

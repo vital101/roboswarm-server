@@ -37,10 +37,49 @@ export async function processMachineProvisionEvent(event: MachineProvisionEvent)
                     await Machine.createExternalMachine(event.machine.id, event.region, event.sshKey.external_id);
                     break;
                 }
+                case MachineSetupStep.DELAY: {
+                    // Todo extract most of this into a function
+                    // Set the delay if we need to.
+                    if (event.delayUntil === undefined) {
+                        const delayTime = new Date();
+                        delayTime.setSeconds(delayTime.getSeconds() + 60);
+                        event.delayUntil = delayTime;
+                    }
+
+                    const now = new Date();
+                    const delayTime = new Date(event.delayUntil);
+                    if (now.getTime() < delayTime.getTime()) {
+                        console.log("Delay.....");
+                        event.steps.unshift(MachineSetupStep.DELAY);
+                    } else {
+                        event.delayUntil = undefined;
+                    }
+                    break;
+                }
                 case MachineSetupStep.OPEN_PORTS: {
+                    await openPorts(event.machine.id, event.machine.ip_address, event.sshKey.private);
+                    break;
+                }
+                case MachineSetupStep.MACHINE_READY: {
+                    const ready = await isMachineReady(event.machine.id);
+                    if (ready) {
+                        event.machine = await Machine.findById(event.machine.id);
+                    } else {
+                        await asyncSleep(5);
+                        event.steps.unshift(MachineSetupStep.MACHINE_READY);
+                    }
                     break;
                 }
                 case MachineSetupStep.PACKAGE_INSTALL: {
+                    await installPackagesOnMachine(event.machine.ip_address, event.sshKey.private);
+                    break;
+                }
+                case MachineSetupStep.TRANSFER_FILE: {
+                    await transferFileToMachine(event.machine.ip_address, event.swarm.file_path, event.sshKey.private);
+                    break;
+                }
+                case MachineSetupStep.UNZIP_AND_PIP_INSTALL: {
+                    await unzipPackageAndPipInstall(event.machine.id, event.machine.ip_address, event.sshKey.private);
                     break;
                 }
                 case MachineSetupStep.START_MASTER: {
@@ -49,16 +88,11 @@ export async function processMachineProvisionEvent(event: MachineProvisionEvent)
                 case MachineSetupStep.START_SLAVE: {
                     break;
                 }
-                case MachineSetupStep.TRANSFER_FILE: {
-                    break;
-                }
-                case MachineSetupStep.UNZIP_AND_PIP_INSTALL: {
-                    break;
-                }
             }
             await nextStep(event);
         } catch (err) {
             console.log("There was an error. Retrying.:", err);
+            await asyncSleep(3);
             event.currentTry += 1;
             await enqueue(event);
         }
@@ -67,114 +101,74 @@ export async function processMachineProvisionEvent(event: MachineProvisionEvent)
     }
 }
 
-export function installPackagesOnMachine(machineIp: string, privateKey: string): Promise<boolean> {
-    console.log(`Waiting to install packages on ${machineIp}...`);
-    return new Promise((resolve, reject) => {
-        setTimeout(async () => {
-            const ssh = new node_ssh();
-            try {
-                console.log(`Starting package install on ${machineIp}`);
-                await ssh.connect({
-                    host: machineIp,
-                    username: "root",
-                    privateKey,
-                });
-                const commands: Array<string> = [
-                    "apt-get update",
-                    "apt-get upgrade -y",
-                    "apt-get install -y python2.7 python-pip unzip"
-                ];
-                const result = await ssh.execCommand(commands.join(" && "));
-                console.log(`Finished package install on ${machineIp}`);
-                resolve(true);
-            } catch (err) {
-                console.log(`Error installing packages on ${machineIp}:`, err);
-                reject({
-                    type: "package",
-                    machineIp,
-                    privateKey
-                });
-            }
-        }, 60 * 1000);
-    });
-}
-
-export function transferFileToMachine(machineIp: string, filePath: string, privateKey: string): Promise<boolean> {
-    console.log(`Waiting: Transfer ${filePath} to ${machineIp} @ path /root/load_test_data.zip`);
-    return new Promise((resolve, reject) => {
-        setTimeout(async () => {
-            console.log(`Starting: Transfer ${filePath} to ${machineIp} @ path /root/load_test_data.zip`);
-            try {
-                const sftp = new sftp_client();
-                await sftp.connect({
-                    host: machineIp,
-                    port: 22,
-                    username: "root",
-                    privateKey
-                });
-                await sftp.put(filePath, "/root/load_test_data.zip");
-                console.log("Success transferring file " + filePath);
-                resolve(true);
-            } catch (err) {
-                console.log("Error transferring file: ", err);
-                reject({
-                    type: "fileTransfer",
-                    machineIp,
-                    privateKey,
-                    filePath
-                });
-            }
-        }, 60 * 1000); // 60 second wait to start transfer. Lets the box boot up completely.
-    });
-}
-
-export async function unzipPackageAndPipInstall(machineId: number, machineIp: string, privateKey: string): Promise<boolean> {
-    const randomStart = Math.floor(Math.random() * 6) + 1;
-    asyncSleep(randomStart);
+export async function installPackagesOnMachine(machineIp: string, privateKey: string): Promise<void> {
     const ssh = new node_ssh();
-    try {
-        console.log(`Starting pip install on ${machineIp}`);
-        await ssh.connect({
-            host: machineIp,
-            username: "root",
-            privateKey,
-        });
-        const commands: Array<string> = [
-            "unzip load_test_data.zip",
-            "pip install -r requirements.txt"
-        ];
-        await ssh.execCommand(commands.join(" && "));
-        console.log(`Finished pip install on ${machineIp}`);
-        await Machine.updateDependencyInstallComplete(machineId, true);
-        console.log(`Machine dependency_install_complete flag set ${machineIp}`);
-        return true;
-    } catch (err) {
-        console.log(`Error pip install on ${machineIp}:`, err);
-        return false;
-    }
+    console.log(`Starting package install on ${machineIp}`);
+    await ssh.connect({
+        host: machineIp,
+        username: "root",
+        privateKey,
+    });
+    const commands: Array<string> = [
+        "apt-get update",
+        "apt-get upgrade -y",
+        "apt-get install -y python2.7 python-pip unzip"
+    ];
+    await ssh.execCommand(commands.join(" && "));
+    ssh.connection.end();
+    console.log(`Finished package install on ${machineIp}`);
 }
 
-export async function openPorts(machineId: number, machineIp: string, privateKey: string): Promise<boolean> {
-    const randomStart = Math.floor(Math.random() * 6) + 1;
-    asyncSleep(randomStart);
-    const ssh = new node_ssh();
-    try {
-        console.log(`Opening ports on ${machineIp}`);
-        await ssh.connect({
-            host: machineIp,
-            username: "root",
-            privateKey,
-        });
-        await ssh.execCommand("ufw allow 8000:65535/tcp");
-        console.log(`Finished opening ports ${machineIp}`);
+export async function transferFileToMachine(machineIp: string, filePath: string, privateKey: string): Promise<void> {
+    console.log(`Starting: Transfer ${filePath} to ${machineIp} @ path /root/load_test_data.zip`);
+    const sftp = new sftp_client();
+    await sftp.connect({
+        host: machineIp,
+        port: 22,
+        username: "root",
+        privateKey
+    });
+    await sftp.put(filePath, "/root/load_test_data.zip");
+    console.log("Success transferring file " + filePath);
+}
 
-        await Machine.update(machineId, { port_open_complete: true });
-        console.log(`Machine port_open_complete flag set ${machineIp}`);
-        return true;
-    } catch (err) {
-        console.log(`Error opening ports on ${machineIp}:`, err);
-        return false;
-    }
+export async function unzipPackageAndPipInstall(machineId: number, machineIp: string, privateKey: string): Promise<void> {
+    const ssh = new node_ssh();
+    console.log(`Starting pip install on ${machineIp}`);
+    await ssh.connect({
+        host: machineIp,
+        username: "root",
+        privateKey,
+    });
+    const commands: Array<string> = [
+        "unzip load_test_data.zip",
+        "pip install -r requirements.txt"
+    ];
+    await ssh.execCommand(commands.join(" && "));
+    ssh.connection.end();
+    console.log(`Finished pip install on ${machineIp}`);
+    await Machine.updateDependencyInstallComplete(machineId, true);
+    console.log(`Machine dependency_install_complete flag set ${machineIp}`);
+}
+
+export async function openPorts(machineId: number, machineIp: string, privateKey: string): Promise<void> {
+    // Todo try large machine batches without random start. Might not need it.
+    const randomStart = Math.floor(Math.random() * 3) + 1;
+    asyncSleep(randomStart);
+
+    const ssh = new node_ssh();
+    console.log(`Opening ports on ${machineIp}`);
+    await ssh.connect({
+        host: machineIp,
+        username: "root",
+        privateKey,
+    });
+    await ssh.execCommand("ufw allow 8000:65535/tcp");
+    ssh.connection.end();
+    console.log(`Finished opening ports ${machineIp}`);
+
+    await Machine.update(machineId, { port_open_complete: true });
+    console.log(`Machine port_open_complete flag set ${machineIp}`);
 }
 
 export async function startMaster(swarm: Swarm, machine: Machine.Machine, slaveCount: number, privateKey: string): Promise<boolean> {
@@ -210,6 +204,21 @@ export async function startMaster(swarm: Swarm, machine: Machine.Machine, slaveC
         console.log(`Error starting master on ${machine.ip_address}: `, err);
         return false;
     }
+}
+
+export async function isMachineReady(machineId: number): Promise<boolean> {
+    console.log(`Checking machine ready: ${machineId}`);
+    const m = await Machine.findById(machineId);
+    if (m.ready_at === null) {
+        const response = await Machine.checkStatus(m);
+        if (response.droplet.status === "active") {
+            const ip_address = response.droplet.networks.v4[0].ip_address;
+            await Machine.setReadyAtAndIp(m, ip_address);
+            console.log(`Machine ready: ${machineId}`);
+            return true;
+        }
+    }
+    return false;
 }
 
 export async function startSlave(swarm: Swarm, master: Machine.Machine, slave: Machine.Machine, privateKey: string): Promise<boolean> {
