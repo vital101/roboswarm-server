@@ -21,14 +21,32 @@ export enum SwarmSetupStep {
     START_MASTER
 }
 
-export enum ProvisionEventType {
+export enum DeprovisionEventType {
+    MACHINE,
+    SSH_KEY
+}
+
+export enum WorkerEventType {
+    DEPROVISION,
     SWARM_PROVISION,
     MACHINE_PROVISION
 }
 
+
+export interface DeprovisionEvent {
+    id: number;
+    eventType: WorkerEventType;
+    deprovisionType: DeprovisionEventType;
+    maxRetries: number;
+    currentTry: number;
+    delayUntil?: Date;
+    lastActionTime: Date;
+    errors: any[];
+}
+
 export interface ProvisionEvent {
     sshKey: SSHKey;
-    eventType: ProvisionEventType;
+    eventType: WorkerEventType;
     maxRetries: number;
     currentTry: number;
     delayUntil?: Date;

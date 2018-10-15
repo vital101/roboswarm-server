@@ -3,11 +3,13 @@ const sftp_client = require("ssh2-sftp-client");
 import { writeFileSync } from "fs";
 import { asyncSleep } from "../lib/lib";
 import * as Machine from "../models/Machine";
+import * as SSHKey from "../models/SSHKey";
 import {
     Swarm,
     swarmReady,
+    setReadyAt,
     provision as provisionSwarm } from "../models/Swarm";
-import { SwarmProvisionEvent, MachineProvisionEvent, MachineSetupStep, SwarmSetupStep, ProvisionEventType } from "../interfaces/provisioning.interface";
+import { SwarmProvisionEvent, MachineProvisionEvent, MachineSetupStep, SwarmSetupStep, WorkerEventType, DeprovisionEvent, DeprovisionEventType } from "../interfaces/provisioning.interface";
 import { enqueue } from "./events";
 import { getSwarmMachineIds } from "../models/SwarmMachine";
 
@@ -20,8 +22,31 @@ export async function nextStep(event: MachineProvisionEvent|SwarmProvisionEvent)
     }
 }
 
+export async function processDeprovisionEvent(event: DeprovisionEvent): Promise<void> {
+    if (event.currentTry < event.maxRetries) {
+        try {
+            switch (event.deprovisionType) {
+                case DeprovisionEventType.MACHINE: {
+                    console.log(`Destroying machine: ${event.id}`);
+                    await Machine.destroy(event.id);
+                    break;
+                }
+                case DeprovisionEventType.SSH_KEY: {
+                    console.log(`Destroying SSH key: ${event.id}`);
+                    await SSHKey.destroy(event.id);
+                    break;
+                }
+            }
+        } catch (err) {
+            console.log("There was an error. Retrying.:", err);
+            await asyncSleep(3);
+            event.currentTry += 1;
+            await enqueue(event);
+        }
+    }
+}
+
 export async function processSwarmProvisionEvent(event: SwarmProvisionEvent): Promise<void> {
-    console.log("processSwarmProvisionEvent() called.");
     if (event.currentTry < event.maxRetries) {
         try {
             switch (event.stepToExecute) {
@@ -37,6 +62,8 @@ export async function processSwarmProvisionEvent(event: SwarmProvisionEvent): Pr
                         event.delayUntil = delayTime;
                         event.steps.unshift(SwarmSetupStep.READY);
                         event.steps.unshift(SwarmSetupStep.DELAY);
+                    } else {
+                        await setReadyAt(event.createdSwarm);
                     }
                     break;
                 }
@@ -44,7 +71,6 @@ export async function processSwarmProvisionEvent(event: SwarmProvisionEvent): Pr
                     const now = new Date();
                     const delayTime = new Date(event.delayUntil);
                     if (now.getTime() < delayTime.getTime()) {
-                        console.log("Delay.....");
                         event.steps.unshift(SwarmSetupStep.DELAY);
                     } else {
                         event.delayUntil = undefined;
@@ -57,7 +83,7 @@ export async function processSwarmProvisionEvent(event: SwarmProvisionEvent): Pr
                     const masterMachine = await Machine.findById(machineIds[0]);
                     const masterStartEvent: MachineProvisionEvent = {
                         sshKey: event.sshKey,
-                        eventType: ProvisionEventType.MACHINE_PROVISION,
+                        eventType: WorkerEventType.MACHINE_PROVISION,
                         maxRetries: 10,
                         currentTry: 0,
                         lastActionTime: new Date(),
@@ -87,7 +113,6 @@ export async function processSwarmProvisionEvent(event: SwarmProvisionEvent): Pr
 }
 
 export async function processMachineProvisionEvent(event: MachineProvisionEvent): Promise<void> {
-    console.log("processMachineProvisionEvent() called.");
     if (event.currentTry < event.maxRetries) {
         try {
             switch (event.stepToExecute) {
@@ -105,7 +130,6 @@ export async function processMachineProvisionEvent(event: MachineProvisionEvent)
                     const now = new Date();
                     const delayTime = new Date(event.delayUntil);
                     if (now.getTime() < delayTime.getTime()) {
-                        console.log("Delay.....");
                         event.steps.unshift(MachineSetupStep.DELAY);
                     } else {
                         event.delayUntil = undefined;
@@ -262,7 +286,7 @@ export async function startMaster(swarm: Swarm, machine: Machine.Machine, slaveC
         const slaveMachine = await Machine.findById(slaveMachineId);
         const slaveProvisionEvent: MachineProvisionEvent = {
             sshKey: { public: "", private: privateKey, created_at: new Date() },
-            eventType: ProvisionEventType.MACHINE_PROVISION,
+            eventType: WorkerEventType.MACHINE_PROVISION,
             maxRetries: 10,
             currentTry: 0,
             lastActionTime: new Date(),

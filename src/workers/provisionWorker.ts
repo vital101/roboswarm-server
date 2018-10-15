@@ -1,42 +1,49 @@
 // Environment variables
 require("dotenv").config();
 
-import { db } from "../lib/db";
 import { dequeue, enqueue } from "../lib/events";
-import { ProvisionEvent, ProvisionEventType, SwarmProvisionEvent, MachineProvisionEvent } from "../interfaces/provisioning.interface";
-import { processSwarmProvisionEvent, processMachineProvisionEvent } from "../lib/setupHelpers";
+import { ProvisionEvent, WorkerEventType, SwarmProvisionEvent, MachineProvisionEvent, DeprovisionEvent } from "../interfaces/provisioning.interface";
+import {
+    processDeprovisionEvent,
+    processSwarmProvisionEvent,
+    processMachineProvisionEvent
+} from "../lib/setupHelpers";
 
-console.log("Starting worker process...");
+
+console.log("Starting worker process with 10 threads...");
 (() => {
-    let working = false;
+    let threadPool = 10;
     const interval = setInterval(async () => {
         try {
-            if (!working) {
-                const workItem: ProvisionEvent = await dequeue();
+            if (threadPool > 0) {
+                threadPool -= 1;
+                const workItem: ProvisionEvent|DeprovisionEvent = await dequeue();
                 if (workItem) {
-                    console.log("Working on item.");
-                    working = true;
                     switch (workItem.eventType) {
-                        case ProvisionEventType.SWARM_PROVISION:
+                        case WorkerEventType.SWARM_PROVISION:
                             await processSwarmProvisionEvent(workItem as SwarmProvisionEvent);
                             break;
-                        case ProvisionEventType.MACHINE_PROVISION:
+                        case WorkerEventType.MACHINE_PROVISION:
                             await processMachineProvisionEvent(workItem as MachineProvisionEvent);
+                            break;
+                        case WorkerEventType.DEPROVISION:
+                            await processDeprovisionEvent(workItem as DeprovisionEvent);
                             break;
                         default:
                             console.log("Fell through, re-enqueuing...");
                             await enqueue(workItem);
                             break;
                     }
-                    working = false;
-                    console.log("Done working on item.");
+                    threadPool += 1;
+                } else {
+                    threadPool += 1;
                 }
             }
         } catch (err) {
             console.log("Error: ", err);
-            working = false;
+            threadPool += 1;
         }
-    }, 200);
+    }, 500);
 
     const stopProcess = () => {
         console.log("Stopping worker process...");

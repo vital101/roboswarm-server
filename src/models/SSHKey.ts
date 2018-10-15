@@ -96,7 +96,7 @@ export async function create(): Promise<SSHKey> {
     return newSSHKey[0];
 }
 
-export async function destroy(id: number): Promise<SSHKey> {
+export async function destroy(id: number): Promise<void> {
     // Mark as destroyed.
     const destroyedSSHKey: Array<SSHKey> = await db("ssh_key")
         .update({ destroyed_at: db.fn.now() })
@@ -116,8 +116,6 @@ export async function destroy(id: number): Promise<SSHKey> {
         json: true
     };
     await request.delete(url, options);
-
-    return destroyedSSHKey[0];
 }
 
 export async function getById(id: number): Promise<SSHKey> {

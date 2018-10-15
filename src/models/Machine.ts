@@ -6,7 +6,7 @@ import { Swarm } from "./Swarm";
 import * as SwarmMachine from "./SwarmMachine";
 import { SSHKey } from "./SSHKey";
 import { enqueue } from "../lib/events";
-import { MachineProvisionEvent, ProvisionEventType, MachineSetupStep } from "../interfaces/provisioning.interface";
+import { MachineProvisionEvent, WorkerEventType, MachineSetupStep } from "../interfaces/provisioning.interface";
 
 export interface Machine {
     id: number;
@@ -59,7 +59,7 @@ export async function create(machine: NewMachine, swarm: Swarm, key: SSHKey): Pr
         sshKey: key,
         machine: newMachine,
         region: machine.region,
-        eventType: ProvisionEventType.MACHINE_PROVISION,
+        eventType: WorkerEventType.MACHINE_PROVISION,
         maxRetries: 10,
         currentTry: 0,
         lastActionTime: new Date(),
@@ -125,7 +125,8 @@ async function createDigitalOceanMachine(machineId: number, region: string, digi
     }
 }
 
-export async function destroy(machine: Machine): Promise<Machine> {
+export async function destroy(machineId: number): Promise<void> {
+    const machine = await findById(machineId);
     const headers = {
         Authorization: `Bearer ${process.env.DIGITAL_OCEAN_TOKEN}`,
         "Content-Type": "application/json"
@@ -134,12 +135,11 @@ export async function destroy(machine: Machine): Promise<Machine> {
     const options: RequestPromiseOptions = {
         headers
     };
-    const result = await request.delete(url, options);
-    const updatedMachineList: Array<Machine> = await db("machine")
+    await request.delete(url, options);
+    await db("machine")
         .update({ destroyed_at: db.fn.now() })
         .where("id", machine.id)
         .returning("*");
-    return updatedMachineList[0];
 }
 
 export async function setReadyAtAndIp(machine: Machine, ip_address: string): Promise<Machine> {

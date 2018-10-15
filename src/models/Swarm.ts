@@ -1,10 +1,9 @@
 import { db } from "../lib/db";
 import { Status } from "../interfaces/shared.interface";
-import { DropletResponse, Droplet, DropletListResponse } from "../interfaces/digitalOcean.interface";
+import { DropletListResponse } from "../interfaces/digitalOcean.interface";
 import * as Machine from "./Machine";
 import { getSwarmMachineIds, getSwarmMachines } from "./SwarmMachine";
 import * as SSHKey from "./SSHKey";
-import { User } from "./User";
 import {
     installPackagesOnMachine,
     openPorts,
@@ -14,9 +13,8 @@ import {
     unzipPackageAndPipInstall } from "../lib/setupHelpers";
 import * as request from "request-promise";
 import { RequestPromiseOptions } from "request-promise";
-import { asyncSleep } from "../lib/lib";
 import * as events from "../lib/events";
-import { ProvisionEventType, SwarmProvisionEvent, SwarmSetupStep } from "../interfaces/provisioning.interface";
+import { WorkerEventType, SwarmProvisionEvent, SwarmSetupStep, DeprovisionEvent, DeprovisionEventType } from "../interfaces/provisioning.interface";
 
 export interface Swarm {
     id: number;
@@ -83,7 +81,7 @@ export async function create(swarm: NewSwarm, userId: number, groupId: number): 
     newSwarm.status = getStatus(newSwarm.created_at, newSwarm.ready_at, newSwarm.destroyed_at);
 
     const startProvisionEvent: SwarmProvisionEvent = {
-        eventType: ProvisionEventType.SWARM_PROVISION,
+        eventType: WorkerEventType.SWARM_PROVISION,
         createdSwarm: newSwarm,
         swarm,
         sshKey: key,
@@ -99,9 +97,6 @@ export async function create(swarm: NewSwarm, userId: number, groupId: number): 
     };
 
     await events.enqueue(startProvisionEvent);
-
-    // Worker to check the swarm status.
-    setTimeout(() => { checkAndUpdateSwarmStatus(newSwarm); }, 5000);
 
     return newSwarm;
 }
@@ -122,20 +117,32 @@ export async function destroyById(id: number, group_id: number): Promise<Swarm> 
         })
         .returning("*");
 
-    // Fetch all of the machines, run Machine.delete() on each of them.
+    // Fetch all of the machines and enqueue for deletion.
     const machines = await getSwarmMachines(id);
     for (let i = 0; i < machines.length; i++) {
-        try {
-            console.log("Destroying ", machines[i]);
-            await Machine.destroy(machines[i]);
-        } catch (err) {
-            console.log(err);
-            console.log("Error destroying machine...");
-        }
+        const machineDestroyEvent: DeprovisionEvent = {
+            id: machines[i].id,
+            eventType: WorkerEventType.DEPROVISION,
+            deprovisionType: DeprovisionEventType.MACHINE,
+            maxRetries: 10,
+            currentTry: 0,
+            lastActionTime: new Date(),
+            errors: []
+        };
+        await events.enqueue(machineDestroyEvent);
     }
 
-    // Delete the SSH keys.
-    await SSHKey.destroy(destroyedSwarm[0].ssh_key_id);
+    // Destroy SSH Key
+    const sshKeyDestroyEvent: DeprovisionEvent = {
+        id: destroyedSwarm[0].ssh_key_id,
+        eventType: WorkerEventType.DEPROVISION,
+        deprovisionType: DeprovisionEventType.SSH_KEY,
+        maxRetries: 10,
+        currentTry: 0,
+        lastActionTime: new Date(),
+        errors: []
+    };
+    await events.enqueue(sshKeyDestroyEvent);
 
     return destroyedSwarm[0];
 }
@@ -223,109 +230,6 @@ export async function swarmReady(swarmId: number): Promise<boolean> {
         }
     }
     return swarmReady;
-}
-
-// This function needs work or should not even exist.
-// Or if it doesn't, just check out database for machine status, no DO.
-async function checkAndUpdateSwarmStatus(swarm: Swarm): Promise<void> {
-    console.log("Starting swarm status check...");
-    // Get all the droplets in the swarm. If they are ready,
-    // set their status. If all are ready, set the swarm status.
-    let swarmReady = true;
-    const machineIds = await getSwarmMachineIds(swarm.id);
-    for (let i = 0; i < machineIds.length; i++) {
-        const m = await Machine.findById(machineIds[i]);
-        if (m.ready_at === null) {
-            // const response = await Machine.checkStatus(m);
-            // if (response.droplet.status === "active") {
-            //     let ip_address = "test";
-            //     try {
-            //         ip_address = response.droplet.networks.v4[0].ip_address;
-            //         console.log("Machine IP info: ", response.droplet.networks);
-            //     } catch (err) {
-            //         console.log("SOME SORT OF ERR with ip: ", err);
-            //     }
-            //     await Machine.setReadyAtAndIp(m, ip_address);
-            // } else {
-            swarmReady = false;
-            // }
-        }
-    }
-
-    // If all droplets are active and ready, set swarm status and return.
-    if (swarmReady) {
-        const readySwarm = await setReadyAt(swarm);
-        console.log("Swarm is ready: ", readySwarm);
-
-        console.log("Starting swarm initialization tasks");
-        // await startSwarmInitializationTasks(swarm);
-        console.log("Swarm initialization tasks complete");
-    } else {
-        // If not, setTimeout(5000) and do it again.
-        console.log("Swarm is not ready. Waiting 5 seconds...");
-        setTimeout(() => {
-            checkAndUpdateSwarmStatus(swarm);
-        }, 5000);
-    }
-}
-
-async function startSwarmInitializationTasks(swarm: Swarm): Promise<any> {
-    console.log("Starting to transfer files to machines...");
-    const sshKeys: SSHKey.SSHKey = await SSHKey.getById(swarm.ssh_key_id);
-    const machines = await getSwarmMachines(swarm.id);
-
-    try {
-        // Start file transfer && package installation
-        const machineActions: Array<Promise<any>> = [];
-        for (const machine of machines) {
-            await asyncSleep(1);
-            machineActions.push(transferFileToMachine(machine.ip_address, swarm.file_path, sshKeys.private));
-            await asyncSleep(1);
-            machineActions.push(installPackagesOnMachine(machine.ip_address, sshKeys.private));
-        }
-        await Promise.all(machineActions);
-
-        // When transfers and updates complete, mark as ready.
-        for (const machine of machines) {
-            await Promise.all([
-                Machine.updateFileTransferStatus(machine.id, true),
-                Machine.updateSetupCompleteStatus(machine.id, true)
-            ]);
-        }
-
-        // Now mark first machine as master.
-        machines[0].is_master = true;
-        await Machine.updateIsMaster(machines[0].id, true);
-
-        // Now unzip files and pip install.
-        const unzipAndInstallPromises = [];
-        for (const machine of machines) {
-            unzipAndInstallPromises.push(unzipPackageAndPipInstall(machine.id, machine.ip_address, sshKeys.private));
-        }
-        await Promise.all(unzipAndInstallPromises);
-
-        // Open ports for Locust
-        const portOpenPromises = [];
-        for (const machine of machines) {
-            portOpenPromises.push(openPorts(machine.id, machine.ip_address, sshKeys.private));
-        }
-        await Promise.all(portOpenPromises);
-
-        // Start the test on master.
-        const master = machines.find(machine => machine.is_master);
-        const slaves = machines.filter(machine => !machine.is_master);
-        await startMaster(swarm, master, slaves.length, sshKeys.private);
-
-        // To Do:
-        // - Try connecting slaves in web mode to see if it works. If it does, change code to not require it.
-        const slaveMachinePromises = [];
-        for (const machine of slaves) {
-            slaveMachinePromises.push(startSlave(swarm, master, machine, sshKeys.private));
-        }
-        await Promise.all(slaveMachinePromises);
-    } catch (err) {
-        console.log("Error from swarm initialize: ", err);
-    }
 }
 
 export async function setReadyAt(swarm: Swarm): Promise<Swarm> {
