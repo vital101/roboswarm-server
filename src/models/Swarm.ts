@@ -16,7 +16,7 @@ import * as request from "request-promise";
 import { RequestPromiseOptions } from "request-promise";
 import { asyncSleep } from "../lib/lib";
 import * as events from "../lib/events";
-import { ProvisionEventType, SwarmProvisionEvent } from "../interfaces/provisioning.interface";
+import { ProvisionEventType, SwarmProvisionEvent, SwarmSetupStep } from "../interfaces/provisioning.interface";
 
 export interface Swarm {
     id: number;
@@ -90,7 +90,12 @@ export async function create(swarm: NewSwarm, userId: number, groupId: number): 
         maxRetries: 3,
         currentTry: 0,
         lastActionTime: new Date(),
-        errors: []
+        errors: [],
+        stepToExecute: SwarmSetupStep.CREATE,
+        steps: [
+            SwarmSetupStep.READY,
+            SwarmSetupStep.START_MASTER
+        ]
     };
 
     await events.enqueue(startProvisionEvent);
@@ -99,6 +104,13 @@ export async function create(swarm: NewSwarm, userId: number, groupId: number): 
     setTimeout(() => { checkAndUpdateSwarmStatus(newSwarm); }, 5000);
 
     return newSwarm;
+}
+
+export function provision(event: SwarmProvisionEvent): Promise<Machine.Machine[]> {
+    const promises = event.swarm.machines.map(machine => {
+        return Machine.create(machine, event.createdSwarm, event.sshKey);
+    });
+    return Promise.all(promises);
 }
 
 export async function destroyById(id: number, group_id: number): Promise<Swarm> {
@@ -199,6 +211,18 @@ export async function getSwarmSizeById(swarmId: number): Promise<number> {
                         .count();
 
     return row[0].count;
+}
+
+export async function swarmReady(swarmId: number): Promise<boolean> {
+    let swarmReady = true;
+    const machineIds = await getSwarmMachineIds(swarmId);
+    for (let i = 0; i < machineIds.length; i++) {
+        const m = await Machine.findById(machineIds[i]);
+        if (!m.dependency_install_complete) {
+            swarmReady = false;
+        }
+    }
+    return swarmReady;
 }
 
 // This function needs work or should not even exist.

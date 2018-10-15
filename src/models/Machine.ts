@@ -55,9 +55,6 @@ export async function create(machine: NewMachine, swarm: Swarm, key: SSHKey): Pr
             MachineSetupStep.PACKAGE_INSTALL,
             MachineSetupStep.TRANSFER_FILE,
             MachineSetupStep.UNZIP_AND_PIP_INSTALL
-            // Next problem is how to set the "master" machine.
-            // After that, how does each machine know if its a slave or not.
-            // Probably an individual event that handles orchestration?
         ],
         sshKey: key,
         machine: newMachine,

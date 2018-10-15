@@ -14,6 +14,13 @@ export enum MachineSetupStep {
     START_SLAVE
 }
 
+export enum SwarmSetupStep {
+    CREATE,
+    DELAY,
+    READY,
+    START_MASTER
+}
+
 export enum ProvisionEventType {
     SWARM_PROVISION,
     MACHINE_PROVISION
@@ -31,13 +38,18 @@ export interface ProvisionEvent {
 
 export interface MachineProvisionEvent extends ProvisionEvent {
     swarm: Swarm;
+    master?: Machine;
     machine: Machine;
     region: string;
     stepToExecute: MachineSetupStep;
+    slaveCount?: number;
+    slaveIds?: number[];
     steps: MachineSetupStep[];
 }
 
 export interface SwarmProvisionEvent extends ProvisionEvent {
     swarm: NewSwarm;
     createdSwarm: Swarm;
+    stepToExecute: SwarmSetupStep;
+    steps: SwarmSetupStep[];
 }
