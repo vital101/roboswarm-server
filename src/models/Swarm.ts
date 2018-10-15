@@ -34,6 +34,7 @@ export interface Swarm {
     duration: number;
     setup_complete: boolean;
     file_transfer_complete: boolean;
+    swarm_ui_type: string;
 }
 
 export interface NewSwarm {
@@ -45,6 +46,7 @@ export interface NewSwarm {
     spawn_rate: number;
     machines: Array<Machine.NewMachine>;
     region: string;
+    swarm_ui_type: string;
 }
 
 function getStatus(created_at: Date, ready_at: Date, destroyed_at: Date): Status {
