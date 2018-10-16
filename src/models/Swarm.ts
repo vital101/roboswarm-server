@@ -35,6 +35,7 @@ export interface Swarm {
     setup_complete: boolean;
     file_transfer_complete: boolean;
     swarm_ui_type: string;
+    master_ip?: string;
 }
 
 export interface NewSwarm {
@@ -165,6 +166,7 @@ export async function getById(id: number, groupId: number): Promise<Swarm> {
     let file_transfer_complete = true;
     let setup_complete = true;
     machines.forEach(machine => {
+        if (machine.is_master) { data.master_ip = machine.ip_address; }
         if (!machine.file_transfer_complete) { file_transfer_complete = false; }
         if (!machine.setup_complete) { setup_complete = false; }
     });
