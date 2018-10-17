@@ -2,19 +2,13 @@ import { db } from "../lib/db";
 import { Status } from "../interfaces/shared.interface";
 import { DropletListResponse } from "../interfaces/digitalOcean.interface";
 import * as Machine from "./Machine";
-import { getSwarmMachineIds, getSwarmMachines } from "./SwarmMachine";
+import { getSwarmMachineIds, getSwarmMachines, getSwarmMaster } from "./SwarmMachine";
 import * as SSHKey from "./SSHKey";
-import {
-    installPackagesOnMachine,
-    openPorts,
-    startMaster,
-    startSlave,
-    transferFileToMachine,
-    unzipPackageAndPipInstall } from "../lib/setupHelpers";
 import * as request from "request-promise";
 import { RequestPromiseOptions } from "request-promise";
 import * as events from "../lib/events";
 import { WorkerEventType, SwarmProvisionEvent, SwarmSetupStep, DeprovisionEvent, DeprovisionEventType } from "../interfaces/provisioning.interface";
+const node_ssh = require("node-ssh");
 
 export interface Swarm {
     id: number;
@@ -259,4 +253,35 @@ export async function willExceedDropletPoolAvailability(newSwarmSize: number): P
     console.log("Available Droplets: ", availableDroplets);
     console.log("availableDroplets - newSwarmSize < 0", `${availableDroplets} - ${newSwarmSize} < 0 === ${availableDroplets - newSwarmSize < 0}`);
     return availableDroplets - newSwarmSize < 0;
+}
+
+export async function fetchLoadTestMetrics(swarm: Swarm): Promise<void> {
+    const sshKey: SSHKey.SSHKey = await SSHKey.getById(swarm.ssh_key_id);
+    const master: Machine.Machine = await getSwarmMaster(swarm.id);
+
+    const ssh = new node_ssh();
+    await ssh.connect({
+        host: master.ip_address,
+        username: "root",
+        privateKey: sshKey.private
+    });
+    console.log({ ip: master.ip_address });
+
+    let requests = await ssh.execCommand("cat /root/status_requests.csv");
+    requests = requests.stdout;
+
+    let distribution = await ssh.execCommand("cat /root/status_distribution.csv");
+    distribution = distribution.stdout;
+    ssh.connection.end();
+
+    console.log({
+        requests,
+        distribution
+    });
+    /*
+    { requests: '"Method","Name","# requests","# failures","Median response time","Average response time","Min response time","Max response time","Average Content Size","Requests/s"\n"GET","/",80,0,78,80,76,172,14146,0.12\n"GET","/api/v1/theme-updates/5552a51540e6512d5296fb06?license=c4417f5c-2106-440e-a524-4a84d3911ffc",840,0,80,85,77,371,192,1.22\n"GET","/api/v1/updates/5544bd7e5b8ae0fc1fa5e7a5?code=abc123&domain=www.re-cycledair.com",768,0,78,86,76,422,4559,1.11\n"None","Total",1688,0,79,85,78,422,2840,2.45' }
+    { distribution: '"Name","# requests","50%","66%","75%","80%","90%","95%","98%","99%","100%"\n"GET /",81,78,78,79,79,82,84,120,170,170\n"GET /api/v1/theme-updates/5552a51540e6512d5296fb06?license=c4417f5c-2106-440e-a524-4a84d3911ffc",842,80,80,81,81,83,98,140,300,370\n"GET /api/v1/updates/5544bd7e5b8ae0fc1fa5e7a5?code=abc123&domain=www.re-cycledair.com",769,78,79,79,79,81,140,270,300,420\n"Total",1692,79,80,80,80,83,100,160,300,420' }
+
+
+    */
 }

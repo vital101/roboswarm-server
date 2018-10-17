@@ -20,6 +20,20 @@ router.route("/file-upload")
             });
         });
 
+// Testing only
+router.route("/:id/load-test-metrics")
+    .get(async (req: RoboRequest, res: RoboResponse) => {
+        try {
+            const swarm: Swarm.Swarm = await Swarm.getById(req.params.id, req.user.groupId);
+            await Swarm.fetchLoadTestMetrics(swarm);
+            res.status(200);
+            res.send("ok");
+        } catch (err) {
+            res.status(500);
+            res.json(err);
+        }
+    });
+
 router.route("/:id")
     .delete(async (req: RoboRequest, res: RoboResponse) => {
         try {

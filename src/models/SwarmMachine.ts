@@ -30,3 +30,14 @@ export async function getSwarmMachineIds(swarmId: number): Promise<Array<number>
         return item.machine_id;
     });
 }
+
+export async function getSwarmMaster(swarmId: number): Promise<Machine> {
+    const query = db("swarm_machine")
+        .join("swarm", "swarm_machine.swarm_id", "swarm.id")
+        .join("machine", "swarm_machine.machine_id", "machine.id")
+        .select("machine.*")
+        .where("swarm.id", "=", swarmId)
+        .andWhere("machine.is_master", "=", true);
+    const result: Machine[] = await query;
+    return result[0];
+}
