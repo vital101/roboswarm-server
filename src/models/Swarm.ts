@@ -76,7 +76,8 @@ export async function create(swarm: NewSwarm, userId: number, groupId: number): 
             spawn_rate: swarm.spawn_rate,
             ssh_key_id: key.id,
             region: swarm.region,
-            duration: swarm.duration
+            duration: swarm.duration,
+            swarm_ui_type: swarm.swarm_ui_type
         })
         .returning("*");
 

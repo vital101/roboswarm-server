@@ -265,14 +265,17 @@ export async function startMaster(swarm: Swarm, machine: Machine.Machine, slaveC
     const rate = swarm.spawn_rate;
     const runTime = `${swarm.duration}m`;
     const flags = [
-        // `-c ${users}`,
-        // `-r ${rate}`,
-        // `--run-time ${runTime}`,
-        `--host=${swarm.host_url}`,
-        // "--no-web",
         "--master",
-        // `--expect-slaves=${slaveCount}`
+        `--host=${swarm.host_url}`,
+        "--csv=status"
     ];
+    if (swarm.swarm_ui_type === "headless") {
+        flags.push(`-c ${users}`);
+        flags.push(`-r ${rate}`);
+        flags.push(`--run-time ${runTime}`);
+        flags.push("--no-web");
+        flags.push(`--expect-slaves=${slaveCount}`);
+    }
     const command = `nohup locust ${flags.join(" ")}`;
     console.log(`Executing ${command} on master at ${machine.ip_address} &`);
     ssh.execCommand(command, { options: { pty: true } });
