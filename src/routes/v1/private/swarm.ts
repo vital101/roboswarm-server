@@ -1,6 +1,6 @@
 import { Router } from "express";
 import * as Swarm from "../../../models/Swarm";
-import { User } from "../../../models/User";
+import * as LoadTest from "../../../models/LoadTest";
 import { RoboRequest, RoboResponse } from "../../../interfaces/shared.interface";
 import * as multer from "multer";
 
@@ -20,14 +20,15 @@ router.route("/file-upload")
             });
         });
 
-// Testing only
-router.route("/:id/load-test-metrics")
+router.route("/:id/metrics")
     .get(async (req: RoboRequest, res: RoboResponse) => {
         try {
-            const swarm: Swarm.Swarm = await Swarm.getById(req.params.id, req.user.groupId);
-            await Swarm.fetchLoadTestMetrics(swarm);
+            const data = {
+                requests: await LoadTest.getLatestRequest(req.params.id),
+                distribution: await LoadTest.getLatestDistribution(req.params.id)
+            };
             res.status(200);
-            res.send("ok");
+            res.json(data);
         } catch (err) {
             res.status(500);
             res.json(err);
