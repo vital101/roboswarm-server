@@ -2,8 +2,9 @@
 require("dotenv").config();
 
 import { dequeue, enqueue } from "../lib/events";
-import { ProvisionEvent, WorkerEventType, SwarmProvisionEvent, MachineProvisionEvent, DeprovisionEvent } from "../interfaces/provisioning.interface";
+import { ProvisionEvent, WorkerEventType, SwarmProvisionEvent, MachineProvisionEvent, DeprovisionEvent, DataCaptureEvent } from "../interfaces/provisioning.interface";
 import {
+    processDataCaptureEvent,
     processDeprovisionEvent,
     processSwarmProvisionEvent,
     processMachineProvisionEvent
@@ -28,6 +29,9 @@ console.log("Starting worker process with 10 threads...");
                             break;
                         case WorkerEventType.DEPROVISION:
                             await processDeprovisionEvent(workItem as DeprovisionEvent);
+                            break;
+                        case WorkerEventType.DATA_CAPTURE:
+                            await processDataCaptureEvent(workItem as DataCaptureEvent);
                             break;
                         default:
                             console.log("Fell through, re-enqueuing...");

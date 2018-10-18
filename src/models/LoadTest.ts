@@ -1,9 +1,9 @@
 import { db } from "../lib/db";
 
-interface Request {
+export interface Request {
     id?: number;
     swarm_id: number;
-    created_ad: Date;
+    created_at: Date;
     requests: number;
     failures: number;
     median_response_time: number;
@@ -14,10 +14,25 @@ interface Request {
     requests_per_second: number;
 }
 
-interface Distribution {
+export interface Distribution {
     id?: number;
     swarm_id: number;
-    created_ad: Date;
+    created_at: Date;
     requests: number;
-    percentiles: Object;
+    percentiles: string;
+    percentilesObject?: Object;
+}
+
+export async function createRequest(request: Request): Promise<Request> {
+    const result: Request[] = await db("load_test_requests")
+        .insert(request)
+        .returning("*");
+    return result[0];
+}
+
+export async function createDistribution(distribution: Distribution): Promise<Distribution> {
+    const result: Distribution[] = await db("load_test_distribution")
+        .insert(distribution)
+        .returning("*");
+    return result[0];
 }

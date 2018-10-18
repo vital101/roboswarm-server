@@ -27,6 +27,7 @@ export enum DeprovisionEventType {
 }
 
 export enum WorkerEventType {
+    DATA_CAPTURE,
     DEPROVISION,
     SWARM_PROVISION,
     MACHINE_PROVISION
@@ -70,4 +71,8 @@ export interface SwarmProvisionEvent extends ProvisionEvent {
     createdSwarm: Swarm;
     stepToExecute: SwarmSetupStep;
     steps: SwarmSetupStep[];
+}
+
+export interface DataCaptureEvent extends ProvisionEvent {
+    swarm: Swarm;
 }

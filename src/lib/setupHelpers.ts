@@ -7,11 +7,14 @@ import * as SSHKey from "../models/SSHKey";
 import {
     Swarm,
     swarmReady,
+    fetchLoadTestMetrics,
     setReadyAt,
-    provision as provisionSwarm } from "../models/Swarm";
-import { SwarmProvisionEvent, MachineProvisionEvent, MachineSetupStep, SwarmSetupStep, WorkerEventType, DeprovisionEvent, DeprovisionEventType } from "../interfaces/provisioning.interface";
+    provision as provisionSwarm,
+    getById as getSwarmById } from "../models/Swarm";
+import { SwarmProvisionEvent, MachineProvisionEvent, MachineSetupStep, SwarmSetupStep, WorkerEventType, DeprovisionEvent, DeprovisionEventType, DataCaptureEvent } from "../interfaces/provisioning.interface";
 import { enqueue } from "./events";
 import { getSwarmMachineIds } from "../models/SwarmMachine";
+import { Status } from "../interfaces/shared.interface";
 
 export async function nextStep(event: MachineProvisionEvent|SwarmProvisionEvent) {
     if (event.steps.length > 0) {
@@ -19,6 +22,44 @@ export async function nextStep(event: MachineProvisionEvent|SwarmProvisionEvent)
         event.stepToExecute = nextStep;
         event.currentTry = 0;
         return enqueue(event);
+    }
+}
+
+export async function processDataCaptureEvent(event: DataCaptureEvent): Promise<void> {
+    if (event.currentTry < event.maxRetries) {
+        try {
+            let reEnqueue = true;
+            const swarm = await getSwarmById(event.swarm.id, event.swarm.group_id);
+            if (swarm.status === Status.destroyed) {
+                console.log("Swarm destroyed. Not re-enqueuing fetchLoadTestMetrics()");
+                reEnqueue = false;
+            } else {
+                if (!event.delayUntil) {
+                    const delayTime = new Date();
+                    delayTime.setSeconds(delayTime.getSeconds() + 5);
+                    event.delayUntil = delayTime;
+                    reEnqueue = true;
+                    console.log("No delay set. Re-enqueuing fetchLoadTestMetrics()");
+                } else {
+                    const now = new Date();
+                    const delayTime = new Date(event.delayUntil);
+                    reEnqueue = true;
+                    if (now.getTime() >= delayTime.getTime()) {
+                        await fetchLoadTestMetrics(event.swarm);
+                        const delayTime = new Date();
+                        delayTime.setSeconds(delayTime.getSeconds() + 5);
+                        event.delayUntil = delayTime;
+                        console.log("Load test metrics fetched. Re-enqueuing fetchLoadTestMetrics()");
+                    }
+                }
+            }
+            if (reEnqueue === true) { await enqueue(event); }
+        } catch (err) {
+            console.log("There was an error. Retrying.:", err);
+            await asyncSleep(3);
+            event.currentTry += 1;
+            await enqueue(event);
+        }
     }
 }
 
@@ -303,6 +344,19 @@ export async function startMaster(swarm: Swarm, machine: Machine.Machine, slaveC
         };
         promises.push(enqueue(slaveProvisionEvent));
     }
+
+    // Queue up periodic metrics capturing
+    const fetchMetricsEvent: DataCaptureEvent = {
+        sshKey: { public: "", private: privateKey, created_at: new Date() },
+        eventType: WorkerEventType.DATA_CAPTURE,
+        maxRetries: 3,
+        currentTry: 0,
+        lastActionTime: new Date(),
+        errors: [],
+        swarm
+    };
+    promises.push(enqueue(fetchMetricsEvent));
+
     await Promise.all(promises);
     console.log("Done enqueuing slave start events.");
 }

@@ -7,6 +7,7 @@ import * as SSHKey from "./SSHKey";
 import * as request from "request-promise";
 import { RequestPromiseOptions } from "request-promise";
 import * as events from "../lib/events";
+import * as LoadTest from "./LoadTest";
 import { WorkerEventType, SwarmProvisionEvent, SwarmSetupStep, DeprovisionEvent, DeprovisionEventType } from "../interfaces/provisioning.interface";
 const node_ssh = require("node-ssh");
 
@@ -250,9 +251,12 @@ export async function willExceedDropletPoolAvailability(newSwarmSize: number): P
     };
     const result: DropletListResponse = await request.get(url, options);
     const availableDroplets = parseInt(process.env.DROPLET_POOL_SIZE, 10) - result.meta.total;
-    console.log("Available Droplets: ", availableDroplets);
-    console.log("availableDroplets - newSwarmSize < 0", `${availableDroplets} - ${newSwarmSize} < 0 === ${availableDroplets - newSwarmSize < 0}`);
     return availableDroplets - newSwarmSize < 0;
+}
+
+interface SSHCommandResult {
+    stdout: string;
+    stderr: string;
 }
 
 export async function fetchLoadTestMetrics(swarm: Swarm): Promise<void> {
@@ -265,23 +269,44 @@ export async function fetchLoadTestMetrics(swarm: Swarm): Promise<void> {
         username: "root",
         privateKey: sshKey.private
     });
-    console.log({ ip: master.ip_address });
 
-    let requests = await ssh.execCommand("cat /root/status_requests.csv");
-    requests = requests.stdout;
+    const requests: SSHCommandResult = await ssh.execCommand("cat /root/status_requests.csv");
+    const requestRows = requests.stdout.split("\n");
+    const requestTotals = requestRows[requestRows.length - 1].split(",");
+    const requestTotalData: LoadTest.Request = {
+        swarm_id: swarm.id,
+        created_at: new Date(),
+        requests: parseInt(requestTotals[2], 10),
+        failures: parseInt(requestTotals[3], 10),
+        median_response_time: parseInt(requestTotals[4], 10),
+        average_response_time: parseInt(requestTotals[5], 10),
+        min_response_time: parseInt(requestTotals[6], 10),
+        max_response_time: parseInt(requestTotals[7], 10),
+        avg_content_size: parseInt(requestTotals[8], 10),
+        requests_per_second: Math.floor(parseFloat(requestTotals[9]))
+    };
+    await LoadTest.createRequest(requestTotalData);
 
-    let distribution = await ssh.execCommand("cat /root/status_distribution.csv");
-    distribution = distribution.stdout;
+    const distribution: SSHCommandResult = await ssh.execCommand("cat /root/status_distribution.csv");
+    const distributionRows = distribution.stdout.split("\n");
+    const distributionTotals = distributionRows[distributionRows.length - 1].split(",");
+    const distributionTotalData: LoadTest.Distribution = {
+        swarm_id: swarm.id,
+        created_at: new Date(),
+        requests: parseInt(distributionTotals[1], 10),
+        percentiles: JSON.stringify({
+            "50%": distributionTotals[2],
+            "66%": distributionTotals[3],
+            "75%": distributionTotals[4],
+            "80%": distributionTotals[5],
+            "90%": distributionTotals[6],
+            "95%": distributionTotals[7],
+            "98%": distributionTotals[8],
+            "99%": distributionTotals[9],
+            "100%": distributionTotals[10]
+        })
+    };
+    await LoadTest.createDistribution(distributionTotalData);
+
     ssh.connection.end();
-
-    console.log({
-        requests,
-        distribution
-    });
-    /*
-    { requests: '"Method","Name","# requests","# failures","Median response time","Average response time","Min response time","Max response time","Average Content Size","Requests/s"\n"GET","/",80,0,78,80,76,172,14146,0.12\n"GET","/api/v1/theme-updates/5552a51540e6512d5296fb06?license=c4417f5c-2106-440e-a524-4a84d3911ffc",840,0,80,85,77,371,192,1.22\n"GET","/api/v1/updates/5544bd7e5b8ae0fc1fa5e7a5?code=abc123&domain=www.re-cycledair.com",768,0,78,86,76,422,4559,1.11\n"None","Total",1688,0,79,85,78,422,2840,2.45' }
-    { distribution: '"Name","# requests","50%","66%","75%","80%","90%","95%","98%","99%","100%"\n"GET /",81,78,78,79,79,82,84,120,170,170\n"GET /api/v1/theme-updates/5552a51540e6512d5296fb06?license=c4417f5c-2106-440e-a524-4a84d3911ffc",842,80,80,81,81,83,98,140,300,370\n"GET /api/v1/updates/5544bd7e5b8ae0fc1fa5e7a5?code=abc123&domain=www.re-cycledair.com",769,78,79,79,79,81,140,270,300,420\n"Total",1692,79,80,80,80,83,100,160,300,420' }
-
-
-    */
 }
