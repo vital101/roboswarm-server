@@ -31,6 +31,7 @@ export interface Swarm {
     file_transfer_complete: boolean;
     swarm_ui_type: string;
     master_ip?: string;
+    size?: number;
 }
 
 export interface NewSwarm {
