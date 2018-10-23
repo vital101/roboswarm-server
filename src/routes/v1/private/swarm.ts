@@ -8,6 +8,24 @@ interface NewSwarmRequest extends RoboRequest {
     body: Swarm.NewSwarm;
 }
 
+interface LoadTestMetrics {
+    requests: LoadTest.Request[];
+    distribution: LoadTest.Distribution[];
+}
+
+interface LoadTestMetricsQuery {
+    lastDistributionId: number;
+    lastRequestId: number;
+}
+
+interface LoadTestMetricsResponse extends RoboResponse {
+    json: (metrics: LoadTestMetrics) => any;
+}
+
+interface LoadTestMetricsRequest extends RoboRequest {
+    body: LoadTestMetricsQuery;
+}
+
 const router = Router();
 
 const upload = multer({ dest: "uploads/" });
@@ -21,11 +39,11 @@ router.route("/file-upload")
         });
 
 router.route("/:id/metrics")
-    .get(async (req: RoboRequest, res: RoboResponse) => {
+    .post(async (req: LoadTestMetricsRequest, res: LoadTestMetricsResponse) => {
         try {
-            const data = {
-                requests: await LoadTest.getLatestRequest(req.params.id),
-                distribution: await LoadTest.getLatestDistribution(req.params.id)
+            const data: LoadTestMetrics = {
+                requests: await LoadTest.getRequestsInRange(req.params.id, req.body.lastRequestId),
+                distribution: await LoadTest.getDistributionsInRange(req.params.id, req.body.lastDistributionId)
             };
             res.status(200);
             res.json(data);

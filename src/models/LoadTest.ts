@@ -1,4 +1,5 @@
 import { db } from "../lib/db";
+import { start } from "repl";
 
 export interface Request {
     id?: number;
@@ -37,26 +38,20 @@ export async function createDistribution(distribution: Distribution): Promise<Di
     return result[0];
 }
 
-export async function getLatestRequest(swarm_id: number): Promise<Request> {
-    const result: Request[] = await db("load_test_requests")
-        .where({ swarm_id })
-        .orderBy("created_at", "DESC")
-        .limit(1);
-    if (result.length > 0) {
-        return result[0];
-    } else {
-        return undefined;
+export async function getRequestsInRange(swarm_id: number, startId?: number): Promise<Request[]> {
+    let query = db("load_test_requests").where({ swarm_id });
+    if (startId) {
+        query = query.andWhere("id", ">", startId);
     }
+    query = query.orderBy("created_at", "ASC");
+    const result: Request[] = await query;
+    return result;
 }
 
-export async function getLatestDistribution(swarm_id: number): Promise<Distribution> {
-    const result: Distribution[] = await db("load_test_distribution")
-        .where({ swarm_id })
-        .orderBy("created_at", "DESC")
-        .limit(1);
-    if (result.length > 0) {
-        return result[0];
-    } else {
-        return undefined;
-    }
+export async function getDistributionsInRange(swarm_id: number, startId?: number): Promise<Distribution[]> {
+    let query = db("load_test_distribution").where({ swarm_id });
+    if (startId) { query = query.andWhere("id", ">", startId); }
+    query = query.orderBy("created_at", "ASC");
+    const result: Distribution[] = await query;
+    return result;
 }
