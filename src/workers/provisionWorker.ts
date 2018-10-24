@@ -44,7 +44,6 @@ console.log("Starting worker process with 10 threads...");
                 }
             }
         } catch (err) {
-            console.log("Error: ", err);
             threadPool += 1;
         }
     }, 500);
