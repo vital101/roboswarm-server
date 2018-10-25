@@ -1,5 +1,4 @@
 import { db } from "../lib/db";
-import { start } from "repl";
 
 export interface Request {
     id?: number;
@@ -15,13 +14,22 @@ export interface Request {
     requests_per_second: number;
 }
 
+export interface RequestFinal extends Request {
+    method: string;
+    route: string;
+}
+
 export interface Distribution {
     id?: number;
     swarm_id: number;
     created_at: Date;
     requests: number;
     percentiles: string;
-    percentilesObject?: Object;
+}
+
+export interface DistributionFinal extends Distribution {
+    method: string;
+    route: string;
 }
 
 export async function createRequest(request: Request): Promise<Request> {
@@ -34,6 +42,20 @@ export async function createRequest(request: Request): Promise<Request> {
 export async function createDistribution(distribution: Distribution): Promise<Distribution> {
     const result: Distribution[] = await db("load_test_distribution")
         .insert(distribution)
+        .returning("*");
+    return result[0];
+}
+
+export async function createRequestFinal(requestFinal: RequestFinal): Promise<RequestFinal> {
+    const result: RequestFinal[] = await db("load_test_requests_final")
+        .insert(requestFinal)
+        .returning("*");
+    return result[0];
+}
+
+export async function createDistributionFinal(distributionFinal: DistributionFinal): Promise<DistributionFinal> {
+    const result: DistributionFinal[] = await db("load_test_distribution_final")
+        .insert(distributionFinal)
         .returning("*");
     return result[0];
 }

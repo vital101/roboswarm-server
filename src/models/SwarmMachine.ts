@@ -41,3 +41,8 @@ export async function getSwarmMaster(swarmId: number): Promise<Machine> {
     const result: Machine[] = await query;
     return result[0];
 }
+
+export async function getSwarmIdByMachineId(machineId: number): Promise<number> {
+    const result: SwarmMachine[] = await db("swarm_machine").where({ machine_id: machineId });
+    return result[0].swarm_id;
+}

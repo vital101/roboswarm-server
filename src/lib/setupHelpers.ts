@@ -12,7 +12,8 @@ import {
     destroyById as destroySwarmById,
     provision as provisionSwarm,
     getById as getSwarmById,
-    shouldStop } from "../models/Swarm";
+    shouldStop,
+    getByMachineId } from "../models/Swarm";
 import { SwarmProvisionEvent, MachineProvisionEvent, MachineSetupStep, SwarmSetupStep, WorkerEventType, DeprovisionEvent, DeprovisionEventType, DataCaptureEvent } from "../interfaces/provisioning.interface";
 import { enqueue } from "./events";
 import { getSwarmMachineIds } from "../models/SwarmMachine";
@@ -31,7 +32,7 @@ export async function processDataCaptureEvent(event: DataCaptureEvent): Promise<
     if (event.currentTry < event.maxRetries) {
         try {
             let reEnqueue = true;
-            const swarm = await getSwarmById(event.swarm.id, event.swarm.group_id);
+            const swarm = await getSwarmById(event.swarm.id);
             if (swarm.status === Status.destroyed) {
                 console.log("Swarm destroyed. Not re-enqueuing fetchLoadTestMetrics()");
                 reEnqueue = false;
@@ -70,12 +71,6 @@ export async function processDeprovisionEvent(event: DeprovisionEvent): Promise<
         try {
             switch (event.deprovisionType) {
                 case DeprovisionEventType.MACHINE: {
-                    console.log(`Destroying machine: ${event.id}`);
-                    // Todo
-                    //
-                    // get swarm by machine id.
-                    // fetchLoadTestMetrics(swarm, isFinal=true);
-                    //
                     await Machine.destroy(event.id);
                     break;
                 }
@@ -148,13 +143,13 @@ export async function processSwarmProvisionEvent(event: SwarmProvisionEvent): Pr
                     break;
                 }
                 case SwarmSetupStep.STOP_SWARM: {
-                    console.log("Should stop swarm...");
-                    const swarm: Swarm = await getSwarmById(event.createdSwarm.id, event.createdSwarm.group_id);
+                    const swarm: Swarm = await getSwarmById(event.createdSwarm.id);
                     const shouldStopSwarm: boolean = await shouldStop(swarm);
                     if (shouldStopSwarm) {
                         console.log("Stopping swarm: ", event.createdSwarm.name);
                         await destroySwarmById(event.createdSwarm.id, event.createdSwarm.group_id);
                     } else {
+                        console.log("Not stopping swarm. Trying again in 10 seconds.");
                         // Delay for 10 seconds, try again.
                         const delayTime = new Date();
                         delayTime.setSeconds(delayTime.getSeconds() + 10);

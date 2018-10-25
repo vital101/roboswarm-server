@@ -2,7 +2,7 @@ import { db } from "../lib/db";
 import { Status } from "../interfaces/shared.interface";
 import { DropletListResponse } from "../interfaces/digitalOcean.interface";
 import * as Machine from "./Machine";
-import { getSwarmMachineIds, getSwarmMachines, getSwarmMaster } from "./SwarmMachine";
+import { getSwarmMachineIds, getSwarmMachines, getSwarmMaster, getSwarmIdByMachineId } from "./SwarmMachine";
 import * as SSHKey from "./SSHKey";
 import * as request from "request-promise";
 import { RequestPromiseOptions } from "request-promise";
@@ -55,6 +55,11 @@ function getStatus(created_at: Date, ready_at: Date, destroyed_at: Date): Status
     } else {
         return Status.new;
     }
+}
+
+export async function getByMachineId(machineId: number): Promise<Swarm> {
+    const swarmId: number = await getSwarmIdByMachineId(machineId);
+    return await getById(swarmId);
 }
 
 export async function create(swarm: NewSwarm, userId: number, groupId: number): Promise<Swarm> {
@@ -119,6 +124,10 @@ export async function destroyById(id: number, group_id: number): Promise<Swarm> 
         })
         .returning("*");
 
+
+    // Fetch the final load test metrics.
+    await fetchLoadTestMetrics(destroyedSwarm[0], true);
+
     // Fetch all of the machines and enqueue for deletion.
     const machines = await getSwarmMachines(id);
     for (let i = 0; i < machines.length; i++) {
@@ -151,10 +160,9 @@ export async function destroyById(id: number, group_id: number): Promise<Swarm> 
     return destroyedSwarm[0];
 }
 
-export async function getById(id: number, groupId: number): Promise<Swarm> {
+export async function getById(id: number): Promise<Swarm> {
     const data: Swarm = await db("swarm")
                                 .where("id", id)
-                                .where("group_id", groupId)
                                 .first();
     data.status = getStatus(
         data.created_at,
@@ -281,12 +289,30 @@ export async function fetchLoadTestMetrics(swarm: Swarm, isFinal?: boolean): Pro
     if (isFinal) {
         // For the final request, we store the route path information. Regular JSON object should be fine.
         if (requestRows.length > 2) {
-            requestRows.unshift();
+            requestRows.shift();
             requestRows.pop();
-            requestRows.map(row => {
-                return row.split(",");
-            });
-            console.log({ requestRows });
+            for (const row of requestRows) {
+                try {
+                    const splitRow = row.split(",");
+                    const data: LoadTest.RequestFinal = {
+                        swarm_id: swarm.id,
+                        created_at: new Date(),
+                        method: splitRow[0],
+                        route: splitRow[1],
+                        requests: parseInt(splitRow[2], 10),
+                        failures: parseInt(splitRow[3], 10),
+                        median_response_time: parseInt(splitRow[4], 10),
+                        average_response_time: parseInt(splitRow[5], 10),
+                        min_response_time: parseInt(splitRow[6], 10),
+                        max_response_time: parseInt(splitRow[7], 10),
+                        avg_content_size: parseInt(splitRow[8], 10),
+                        requests_per_second: Math.floor(parseFloat(splitRow[9]))
+                    };
+                    await LoadTest.createRequestFinal(data);
+                } catch (err) {
+                    console.log("Request row final error: ", err);
+                }
+            }
         }
     } else {
         const requestTotals = requestRows[requestRows.length - 1].split(",");
@@ -311,12 +337,35 @@ export async function fetchLoadTestMetrics(swarm: Swarm, isFinal?: boolean): Pro
     if (isFinal) {
         // For the final request, we store the route path information. Regular JSON object should be fine.
         if (distributionRows.length > 2) {
-            distributionRows.unshift();
+            distributionRows.shift();
             distributionRows.pop();
-            distributionRows.map(row => {
-                return row.split(",");
-            });
-            console.log({ distributionRows });
+            for (const row of distributionRows) {
+                try {
+                    const splitRow = row.split(",");
+                    const methodRoute = splitRow[0].split(" ");
+                    const data: LoadTest.DistributionFinal = {
+                        swarm_id: swarm.id,
+                        created_at: new Date(),
+                        method: methodRoute[0],
+                        route: methodRoute[1],
+                        requests: parseInt(splitRow[1], 10),
+                        percentiles: JSON.stringify({
+                            "50%": splitRow[2],
+                            "66%": splitRow[3],
+                            "75%": splitRow[4],
+                            "80%": splitRow[5],
+                            "90%": splitRow[6],
+                            "95%": splitRow[7],
+                            "98%": splitRow[8],
+                            "99%": splitRow[9],
+                            "100%": splitRow[10]
+                        })
+                    };
+                    await LoadTest.createDistributionFinal(data);
+                } catch (err) {
+                    console.log("DistributionFinal Error: ", err);
+                }
+            }
         }
     } else {
         const distributionTotals = distributionRows[distributionRows.length - 1].split(",");
@@ -347,6 +396,5 @@ export async function shouldStop(swarm: Swarm): Promise<boolean> {
     const swarmDuration: number = swarm.duration; // minutes;
     const endTime: Date = moment(swarmStartTime).add(swarmDuration, "m").toDate();
     const now = new Date();
-    console.log({ now, endTime });
     return moment(now).isAfter(endTime);
 }

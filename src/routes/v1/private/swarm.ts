@@ -66,7 +66,7 @@ router.route("/:id")
     })
     .get(async (req: RoboRequest, res: RoboResponse) => {
         try {
-            const swarm: Swarm.Swarm = await Swarm.getById(req.params.id, req.user.groupId);
+            const swarm: Swarm.Swarm = await Swarm.getById(req.params.id);
             res.status(200);
             res.json(swarm);
         } catch (err) {
