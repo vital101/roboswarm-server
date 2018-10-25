@@ -9,8 +9,10 @@ import {
     swarmReady,
     fetchLoadTestMetrics,
     setReadyAt,
+    destroyById as destroySwarmById,
     provision as provisionSwarm,
-    getById as getSwarmById } from "../models/Swarm";
+    getById as getSwarmById,
+    shouldStop } from "../models/Swarm";
 import { SwarmProvisionEvent, MachineProvisionEvent, MachineSetupStep, SwarmSetupStep, WorkerEventType, DeprovisionEvent, DeprovisionEventType, DataCaptureEvent } from "../interfaces/provisioning.interface";
 import { enqueue } from "./events";
 import { getSwarmMachineIds } from "../models/SwarmMachine";
@@ -69,6 +71,11 @@ export async function processDeprovisionEvent(event: DeprovisionEvent): Promise<
             switch (event.deprovisionType) {
                 case DeprovisionEventType.MACHINE: {
                     console.log(`Destroying machine: ${event.id}`);
+                    // Todo
+                    //
+                    // get swarm by machine id.
+                    // fetchLoadTestMetrics(swarm, isFinal=true);
+                    //
                     await Machine.destroy(event.id);
                     break;
                 }
@@ -138,6 +145,24 @@ export async function processSwarmProvisionEvent(event: SwarmProvisionEvent): Pr
                         steps: []
                     };
                     await enqueue(masterStartEvent);
+                    break;
+                }
+                case SwarmSetupStep.STOP_SWARM: {
+                    console.log("Should stop swarm...");
+                    const swarm: Swarm = await getSwarmById(event.createdSwarm.id, event.createdSwarm.group_id);
+                    const shouldStopSwarm: boolean = await shouldStop(swarm);
+                    if (shouldStopSwarm) {
+                        console.log("Stopping swarm: ", event.createdSwarm.name);
+                        await destroySwarmById(event.createdSwarm.id, event.createdSwarm.group_id);
+                    } else {
+                        // Delay for 10 seconds, try again.
+                        const delayTime = new Date();
+                        delayTime.setSeconds(delayTime.getSeconds() + 10);
+                        event.delayUntil = delayTime;
+                        event.steps.unshift(SwarmSetupStep.STOP_SWARM);
+                        event.steps.unshift(SwarmSetupStep.DELAY);
+                        break;
+                    }
                     break;
                 }
             }
@@ -320,7 +345,7 @@ export async function startMaster(swarm: Swarm, machine: Machine.Machine, slaveC
     const command = `nohup locust ${flags.join(" ")}`;
     console.log(`Executing ${command} on master at ${machine.ip_address} &`);
     ssh.execCommand(command, { options: { pty: true } });
-    await asyncSleep(30);
+    await asyncSleep(10);
     ssh.connection.end();
     console.log(`Finished starting master at ${machine.ip_address}`);
 

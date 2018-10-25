@@ -4,7 +4,8 @@ require("dotenv").config();
 const devDbConnection = {
   host: process.env.DB_HOST || '10.0.2.2',
   user: process.env.DB_USER || 'postgres',
-  database: 'roboswarm'
+  database: 'roboswarm',
+  timezone: 'utc'
 };
 
 module.exports = {
@@ -26,7 +27,8 @@ module.exports = {
     connection: {
       database: 'roboswarm',
       user: 'roboswarm',
-      password: 'DontSwarmMeBro'
+      password: 'DontSwarmMeBro',
+      timezone: 'utc'
     },
     pool: {
       min: 2,

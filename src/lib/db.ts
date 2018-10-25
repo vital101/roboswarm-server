@@ -3,7 +3,8 @@ import * as knex from "knex";
 const devDbConnection: any = {
     host: process.env.DB_HOST || "10.0.2.2",
     user: process.env.DB_USER || "postgres",
-    database: "roboswarm"
+    database: "roboswarm",
+    timezone: "utc"
   };
 
 const development = {
@@ -16,7 +17,8 @@ const production = {
     connection: {
         database: "roboswarm",
         user: "roboswarm",
-        password: "DontSwarmMeBro"
+        password: "DontSwarmMeBro",
+        timezone: "utc"
     },
     pool: {
         min: 2,

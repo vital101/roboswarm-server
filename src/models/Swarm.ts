@@ -8,6 +8,7 @@ import * as request from "request-promise";
 import { RequestPromiseOptions } from "request-promise";
 import * as events from "../lib/events";
 import * as LoadTest from "./LoadTest";
+import * as moment from "moment";
 import { WorkerEventType, SwarmProvisionEvent, SwarmSetupStep, DeprovisionEvent, DeprovisionEventType } from "../interfaces/provisioning.interface";
 const node_ssh = require("node-ssh");
 
@@ -92,7 +93,8 @@ export async function create(swarm: NewSwarm, userId: number, groupId: number): 
         stepToExecute: SwarmSetupStep.CREATE,
         steps: [
             SwarmSetupStep.READY,
-            SwarmSetupStep.START_MASTER
+            SwarmSetupStep.START_MASTER,
+            SwarmSetupStep.STOP_SWARM
         ]
     };
 
@@ -120,16 +122,18 @@ export async function destroyById(id: number, group_id: number): Promise<Swarm> 
     // Fetch all of the machines and enqueue for deletion.
     const machines = await getSwarmMachines(id);
     for (let i = 0; i < machines.length; i++) {
-        const machineDestroyEvent: DeprovisionEvent = {
-            id: machines[i].id,
-            eventType: WorkerEventType.DEPROVISION,
-            deprovisionType: DeprovisionEventType.MACHINE,
-            maxRetries: 10,
-            currentTry: 0,
-            lastActionTime: new Date(),
-            errors: []
-        };
-        await events.enqueue(machineDestroyEvent);
+        if (!machines[i].destroyed_at) {
+            const machineDestroyEvent: DeprovisionEvent = {
+                id: machines[i].id,
+                eventType: WorkerEventType.DEPROVISION,
+                deprovisionType: DeprovisionEventType.MACHINE,
+                maxRetries: 10,
+                currentTry: 0,
+                lastActionTime: new Date(),
+                errors: []
+            };
+            await events.enqueue(machineDestroyEvent);
+        }
     }
 
     // Destroy SSH Key
@@ -260,7 +264,7 @@ interface SSHCommandResult {
     stderr: string;
 }
 
-export async function fetchLoadTestMetrics(swarm: Swarm): Promise<void> {
+export async function fetchLoadTestMetrics(swarm: Swarm, isFinal?: boolean): Promise<void> {
     const sshKey: SSHKey.SSHKey = await SSHKey.getById(swarm.ssh_key_id);
     const master: Machine.Machine = await getSwarmMaster(swarm.id);
 
@@ -273,41 +277,76 @@ export async function fetchLoadTestMetrics(swarm: Swarm): Promise<void> {
 
     const requests: SSHCommandResult = await ssh.execCommand("cat /root/status_requests.csv");
     const requestRows = requests.stdout.split("\n");
-    const requestTotals = requestRows[requestRows.length - 1].split(",");
-    const requestTotalData: LoadTest.Request = {
-        swarm_id: swarm.id,
-        created_at: new Date(),
-        requests: parseInt(requestTotals[2], 10),
-        failures: parseInt(requestTotals[3], 10),
-        median_response_time: parseInt(requestTotals[4], 10),
-        average_response_time: parseInt(requestTotals[5], 10),
-        min_response_time: parseInt(requestTotals[6], 10),
-        max_response_time: parseInt(requestTotals[7], 10),
-        avg_content_size: parseInt(requestTotals[8], 10),
-        requests_per_second: Math.floor(parseFloat(requestTotals[9]))
-    };
-    await LoadTest.createRequest(requestTotalData);
+
+    if (isFinal) {
+        // For the final request, we store the route path information. Regular JSON object should be fine.
+        if (requestRows.length > 2) {
+            requestRows.unshift();
+            requestRows.pop();
+            requestRows.map(row => {
+                return row.split(",");
+            });
+            console.log({ requestRows });
+        }
+    } else {
+        const requestTotals = requestRows[requestRows.length - 1].split(",");
+        const requestTotalData: LoadTest.Request = {
+            swarm_id: swarm.id,
+            created_at: new Date(),
+            requests: parseInt(requestTotals[2], 10),
+            failures: parseInt(requestTotals[3], 10),
+            median_response_time: parseInt(requestTotals[4], 10),
+            average_response_time: parseInt(requestTotals[5], 10),
+            min_response_time: parseInt(requestTotals[6], 10),
+            max_response_time: parseInt(requestTotals[7], 10),
+            avg_content_size: parseInt(requestTotals[8], 10),
+            requests_per_second: Math.floor(parseFloat(requestTotals[9]))
+        };
+        await LoadTest.createRequest(requestTotalData);
+    }
 
     const distribution: SSHCommandResult = await ssh.execCommand("cat /root/status_distribution.csv");
     const distributionRows = distribution.stdout.split("\n");
-    const distributionTotals = distributionRows[distributionRows.length - 1].split(",");
-    const distributionTotalData: LoadTest.Distribution = {
-        swarm_id: swarm.id,
-        created_at: new Date(),
-        requests: parseInt(distributionTotals[1], 10),
-        percentiles: JSON.stringify({
-            "50%": distributionTotals[2],
-            "66%": distributionTotals[3],
-            "75%": distributionTotals[4],
-            "80%": distributionTotals[5],
-            "90%": distributionTotals[6],
-            "95%": distributionTotals[7],
-            "98%": distributionTotals[8],
-            "99%": distributionTotals[9],
-            "100%": distributionTotals[10]
-        })
-    };
-    await LoadTest.createDistribution(distributionTotalData);
+
+    if (isFinal) {
+        // For the final request, we store the route path information. Regular JSON object should be fine.
+        if (distributionRows.length > 2) {
+            distributionRows.unshift();
+            distributionRows.pop();
+            distributionRows.map(row => {
+                return row.split(",");
+            });
+            console.log({ distributionRows });
+        }
+    } else {
+        const distributionTotals = distributionRows[distributionRows.length - 1].split(",");
+        const distributionTotalData: LoadTest.Distribution = {
+            swarm_id: swarm.id,
+            created_at: new Date(),
+            requests: parseInt(distributionTotals[1], 10),
+            percentiles: JSON.stringify({
+                "50%": distributionTotals[2],
+                "66%": distributionTotals[3],
+                "75%": distributionTotals[4],
+                "80%": distributionTotals[5],
+                "90%": distributionTotals[6],
+                "95%": distributionTotals[7],
+                "98%": distributionTotals[8],
+                "99%": distributionTotals[9],
+                "100%": distributionTotals[10]
+            })
+        };
+        await LoadTest.createDistribution(distributionTotalData);
+    }
 
     ssh.connection.end();
+}
+
+export async function shouldStop(swarm: Swarm): Promise<boolean> {
+    const swarmStartTime: Date = swarm.ready_at;
+    const swarmDuration: number = swarm.duration; // minutes;
+    const endTime: Date = moment(swarmStartTime).add(swarmDuration, "m").toDate();
+    const now = new Date();
+    console.log({ now, endTime });
+    return moment(now).isAfter(endTime);
 }

@@ -18,7 +18,8 @@ export enum SwarmSetupStep {
     CREATE,
     DELAY,
     READY,
-    START_MASTER
+    START_MASTER,
+    STOP_SWARM
 }
 
 export enum DeprovisionEventType {
