@@ -347,8 +347,8 @@ export async function fetchLoadTestMetrics(swarm: Swarm, isFinal?: boolean): Pro
                     const data: LoadTest.DistributionFinal = {
                         swarm_id: swarm.id,
                         created_at: new Date(),
-                        method: methodRoute[0],
-                        route: methodRoute[1],
+                        method: methodRoute[0].replace(/\"/g, ""),
+                        route: methodRoute[1].replace(/\"/g, ""),
                         requests: parseInt(splitRow[1], 10),
                         percentiles: JSON.stringify({
                             "50%": splitRow[2],
