@@ -181,6 +181,7 @@ export async function getById(id: number): Promise<Swarm> {
     });
     data.file_transfer_complete = file_transfer_complete;
     data.setup_complete = setup_complete;
+    data.size = machines.length;
 
     return data;
 }

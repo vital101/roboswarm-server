@@ -144,6 +144,10 @@ export async function processSwarmProvisionEvent(event: SwarmProvisionEvent): Pr
                 }
                 case SwarmSetupStep.STOP_SWARM: {
                     const swarm: Swarm = await getSwarmById(event.createdSwarm.id);
+                    if (swarm.status === Status.destroyed) {
+                        console.log("Swarm already destroy. Dropping STOP SWARM event.");
+                        return;
+                    }
                     const shouldStopSwarm: boolean = await shouldStop(swarm);
                     if (shouldStopSwarm) {
                         console.log("Stopping swarm: ", event.createdSwarm.name);

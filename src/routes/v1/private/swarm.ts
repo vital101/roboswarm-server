@@ -13,6 +13,11 @@ interface LoadTestMetrics {
     distribution: LoadTest.Distribution[];
 }
 
+interface LoadTestMetricsFinal {
+    requests: LoadTest.RequestFinal[];
+    distribution: LoadTest.DistributionFinal[];
+}
+
 interface LoadTestMetricsQuery {
     lastDistributionId: number;
     lastRequestId: number;
@@ -37,6 +42,16 @@ router.route("/file-upload")
                 filePath: req.file.path
             });
         });
+
+router.route("/:id/metrics/final")
+    .get(async (req: RoboRequest, res: RoboResponse) => {
+        const finalData: LoadTestMetricsFinal = {
+            requests: await LoadTest.getRequestsFinal(req.params.id),
+            distribution: await LoadTest.getDistributionFinal(req.params.id)
+        };
+        res.status(200);
+        res.json(finalData);
+    });
 
 router.route("/:id/metrics")
     .post(async (req: LoadTestMetricsRequest, res: LoadTestMetricsResponse) => {

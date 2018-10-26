@@ -77,3 +77,13 @@ export async function getDistributionsInRange(swarm_id: number, startId?: number
     const result: Distribution[] = await query;
     return result;
 }
+
+export async function getRequestsFinal(swarm_id: number): Promise<RequestFinal[]> {
+    const result: RequestFinal[] = await db("load_test_requests_final").where({ swarm_id });
+    return result;
+}
+
+export async function getDistributionFinal(swarm_id: number): Promise<DistributionFinal[]> {
+    const result: DistributionFinal[] = await db("load_test_distribution_final").where({ swarm_id });
+    return result;
+}
