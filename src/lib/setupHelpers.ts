@@ -12,9 +12,16 @@ import {
     destroyById as destroySwarmById,
     provision as provisionSwarm,
     getById as getSwarmById,
-    shouldStop,
-    getByMachineId } from "../models/Swarm";
-import { SwarmProvisionEvent, MachineProvisionEvent, MachineSetupStep, SwarmSetupStep, WorkerEventType, DeprovisionEvent, DeprovisionEventType, DataCaptureEvent } from "../interfaces/provisioning.interface";
+    shouldStop } from "../models/Swarm";
+import {
+    SwarmProvisionEvent,
+    MachineProvisionEvent,
+    MachineSetupStep,
+    SwarmSetupStep,
+    WorkerEventType,
+    DeprovisionEvent,
+    DeprovisionEventType,
+    DataCaptureEvent } from "../interfaces/provisioning.interface";
 import { enqueue } from "./events";
 import { getSwarmMachineIds } from "../models/SwarmMachine";
 import { Status } from "../interfaces/shared.interface";
@@ -59,8 +66,7 @@ export async function processDataCaptureEvent(event: DataCaptureEvent): Promise<
             if (reEnqueue === true) { await enqueue(event); }
         } catch (err) {
             console.log("There was an error. Retrying.:", err);
-            await asyncSleep(3);
-            event.currentTry += 1;
+            await asyncSleep(1);
             await enqueue(event);
         }
     }
@@ -173,7 +179,8 @@ export async function processSwarmProvisionEvent(event: SwarmProvisionEvent): Pr
             await enqueue(event);
         }
     } else {
-        console.log(`Dropping SwarmProvisionEvent after ${event.maxRetries}.`);
+        console.log(`Dropping SwarmProvisionEvent after ${event.maxRetries}. Executing cleanup.`);
+        await cleanUpSwarmProvisionEvent(event);
     }
 }
 
@@ -439,4 +446,64 @@ export async function isMachineReady(machineId: number): Promise<boolean> {
         }
     }
     return false;
+}
+
+export async function cleanUpSwarmProvisionEvent(event: SwarmProvisionEvent): Promise<void> {
+    switch (event.stepToExecute) {
+        case SwarmSetupStep.CREATE: {
+            // No-op. If the create step failed, the db wasn't available to begin with.
+            break;
+        }
+        case SwarmSetupStep.READY: {
+            event.currentTry = 0;
+            event.steps = [];
+            event.stepToExecute = SwarmSetupStep.STOP_SWARM;
+            await enqueue(event);
+            break;
+        }
+        case SwarmSetupStep.DELAY: {
+            // No-op. We shouldn't get here.
+            break;
+        }
+        case SwarmSetupStep.START_MASTER: {
+            // We should see if the swarm exists in the db. If so, enqueue stop swarm.
+            if (event.createdSwarm && event.createdSwarm.id) {
+                event.currentTry = 0;
+                event.steps = [];
+                event.stepToExecute = SwarmSetupStep.STOP_SWARM;
+                await enqueue(event);
+            }
+            break;
+        }
+        case SwarmSetupStep.STOP_SWARM: {
+            // Set the swarm and destroyed. Rely on the cleanup daemon to kill the machines.
+            try {
+                await destroySwarmById(event.createdSwarm.id, event.createdSwarm.group_id);
+            } catch (err) { }
+            break;
+        }
+    }
+}
+
+export async function cleanUpMachineProvisionEvent(event: MachineProvisionEvent): Promise<void> {
+    switch (event.stepToExecute) {
+        case MachineSetupStep.START_MASTER: {
+            // De-provision swarm.
+            await destroySwarmById(event.swarm.id, event.swarm.group_id);
+            break;
+        }
+        default: {
+            // De-provision machine.
+            const machineDestroyEvent: DeprovisionEvent = {
+                id: event.machine.id,
+                eventType: WorkerEventType.DEPROVISION,
+                deprovisionType: DeprovisionEventType.MACHINE,
+                maxRetries: 10,
+                currentTry: 0,
+                lastActionTime: new Date(),
+                errors: []
+            };
+            await enqueue(machineDestroyEvent);
+        }
+    }
 }

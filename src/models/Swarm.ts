@@ -125,8 +125,10 @@ export async function destroyById(id: number, group_id: number): Promise<Swarm> 
         .returning("*");
 
 
-    // Fetch the final load test metrics.
-    await fetchLoadTestMetrics(destroyedSwarm[0], true);
+    try {
+        // Fetch the final load test metrics.
+        await fetchLoadTestMetrics(destroyedSwarm[0], true);
+    } catch (err) { }
 
     // Fetch all of the machines and enqueue for deletion.
     const machines = await getSwarmMachines(id);

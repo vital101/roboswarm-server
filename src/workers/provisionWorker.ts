@@ -53,7 +53,7 @@ console.log("Starting worker process with 10 threads...");
         clearInterval(interval);
         setTimeout(() => {
             process.exit();
-        }, 9000);
+        }, 9000); // 9 seconds because Heroku shoots the process in the head at 10.
     };
     process.on("SIGINT", stopProcess);
     process.on("SIGTERM", stopProcess);
