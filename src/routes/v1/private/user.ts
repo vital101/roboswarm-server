@@ -19,9 +19,14 @@ const router = Router();
 
 router.route("/me/plan")
     .post(async (req: SetPlanRequest, res: RoboResponse) => {
-        await Stripe.setStripePlan(req.user.id, req.body.planName);
-        res.status(200);
-        res.send("ok");
+        try {
+            await Stripe.setStripePlan(req.user.id, req.body.planName);
+            res.status(200);
+            res.send("ok");
+        } catch (err) {
+            res.status(500);
+            res.send(err.toString());
+        }
     });
 
 router.route("/me")
