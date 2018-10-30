@@ -9,6 +9,7 @@ import * as cors from "cors";
 
 // Private routes
 import _swarmRoutes from "./routes/v1/private/swarm";
+import _userRoutes from "./routes/v1/private/user";
 
 // Public Routes
 import userRoutes from "./routes/v1/public/user";
@@ -32,6 +33,7 @@ app.use("/api/v1/public/user", userRoutes);
 
 // Private API
 app.use("/api/v1/swarm", jwt(jwtConfig), _swarmRoutes);
+app.use("/api/v1/user", jwt(jwtConfig), _userRoutes);
 
 // Error handler
 // app.use((req: any, res: any, next: any) => {

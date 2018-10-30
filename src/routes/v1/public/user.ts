@@ -1,5 +1,6 @@
 import * as express from "express";
 import * as User from "../../../models/User";
+import * as Stripe from "../../../lib/stripe";
 import {
     getUserToken,
     isValidAuthBody,
@@ -24,12 +25,14 @@ router.route("/")
         }
 
         try {
-            const newUser = await User.createUser(req.body);
+            const newUser: User.User = await User.createUser(req.body);
             const tokenUser: TokenizedUser = {
                 id: newUser.id,
                 groupId: newUser.group.id,
                 email: newUser.email
             };
+            await Stripe.createStripeCustomer(newUser);
+            await Stripe.setStripePlan(newUser.id, "free");
             res.status(201);
             res.json({
                 token: getUserToken(tokenUser),

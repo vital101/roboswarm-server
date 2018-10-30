@@ -43,6 +43,7 @@
   },
   "dependencies": {
     "@types/cors": "^2.8.3",
+    "@types/stripe": "^6.0.3",
     "bcrypt": "^2.0.0",
     "body-parser": "^1.18.2",
     "cors": "^2.8.4",
@@ -61,6 +62,7 @@
     "shelljs": "^0.8.1",
     "ssh2": "^0.6.1",
     "ssh2-sftp-client": "^3.1.0",
+    "stripe": "^6.12.1",
     "uuid": "^3.2.1"
   },
   "devDependencies": {

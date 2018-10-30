@@ -7,6 +7,9 @@ export interface User {
     password?: string;
     first_name: string;
     last_name: string;
+    stripe_id?: string;
+    stripe_plan_id: string;
+    stripe_plan_description: string;
     created_at?: Date;
     group?: Group;
 }
@@ -66,4 +69,20 @@ export async function getByEmail(email: string): Promise<User> {
     user.password = undefined;
     user.group = foundGroup[0];
     return user;
+}
+
+export async function getById(id: number): Promise<User> {
+    const foundUser: Array<User> = await db("user").where({ id });
+    const foundUserGroup: Array<UserGroup> = await db("usergroup").where({ user_id: foundUser[0].id });
+    const foundGroup: Array<Group> = await db("group").where({ id: foundUserGroup[0].group_id });
+    const user = foundUser[0];
+    user.password = undefined;
+    user.group = foundGroup[0];
+    return user;
+}
+
+export async function updateById(id: number, fields: any): Promise<User> {
+    await db("user").update(fields).where("id", id);
+    const foundUser: Array<User> = await db("user").where("id", id);
+    return foundUser[0];
 }
