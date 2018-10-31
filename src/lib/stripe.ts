@@ -40,13 +40,13 @@ export async function setStripePlan(userId: number, planName: string): Promise<v
     const subscriptions: Stripe.IList<Stripe.subscriptions.ISubscription> = await stripe.subscriptions.list(subscriptionListOptions);
 
     // User has an existing plan. Update it.
-    if (subscriptions.total_count > 0) {
+    if (subscriptions.data.length > 0) {
         const subscription: Stripe.subscriptions.ISubscription = await stripe.subscriptions.retrieve(subscriptions.data[0].id);
         const updateOptions: Stripe.subscriptions.ISubscriptionUpdateOptions = {
             cancel_at_period_end: false,
             items: [{
-            id: subscription.items.data[0].id,
-            plan: getPlanId(planName)
+                id: subscription.items.data[0].id,
+                plan: getPlanId(planName)
             }]
         };
         await stripe.subscriptions.update(subscription.id, updateOptions);
