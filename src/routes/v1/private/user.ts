@@ -12,8 +12,8 @@ interface SetPlanBody {
 }
 
 interface UpdateCardBody {
-    cardId: string;
     token: string;
+    cardId: string;
 }
 
 interface SetPlanRequest extends RoboRequest {

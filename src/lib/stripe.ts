@@ -69,11 +69,7 @@ export async function setStripePlan(userId: number, planName: string): Promise<v
 
 export async function addCardToCustomer(userId: number, token: string, cardId: string): Promise<void> {
     const user: User.User = await User.getById(userId);
-    const options: Stripe.customers.ICustomerUpdateOptions = {
-        source: token
-    };
-    await stripe.customers.updateSource(user.stripe_id, cardId, options);
-    await User.updateById(userId, {
-        stripe_card_id: cardId
-    });
+    const options: Stripe.customers.ICustomerUpdateOptions = { source: token };
+    await stripe.customers.update(user.stripe_id, options);
+    await User.updateById(userId, { stripe_card_id: cardId });
 }
