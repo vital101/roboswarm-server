@@ -8,8 +8,9 @@ export interface User {
     first_name: string;
     last_name: string;
     stripe_id?: string;
-    stripe_plan_id: string;
-    stripe_plan_description: string;
+    stripe_plan_id?: string;
+    stripe_plan_description?: string;
+    stripe_card_id?: string;
     created_at?: Date;
     group?: Group;
 }

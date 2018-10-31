@@ -32,7 +32,6 @@ export async function createStripeCustomer(user: User.User): Promise<void> {
     await User.updateById(user.id, { stripe_id: newCustomer.id });
 }
 
-// New function to associate user with a stripe plan and update subscription
 export async function setStripePlan(userId: number, planName: string): Promise<void> {
     const user: User.User = await User.getById(userId);
     const subscriptionListOptions: Stripe.subscriptions.ISubscriptionListOptions = {
@@ -65,5 +64,16 @@ export async function setStripePlan(userId: number, planName: string): Promise<v
     await User.updateById(user.id, {
         stripe_plan_id: getPlanId(planName),
         stripe_plan_description: planName
+    });
+}
+
+export async function addCardToCustomer(userId: number, token: string, cardId: string): Promise<void> {
+    const user: User.User = await User.getById(userId);
+    const options: Stripe.customers.ICustomerUpdateOptions = {
+        source: token
+    };
+    await stripe.customers.updateSource(user.stripe_id, cardId, options);
+    await User.updateById(userId, {
+        stripe_card_id: cardId
     });
 }

@@ -11,11 +11,27 @@ interface SetPlanBody {
     planName: string;
 }
 
+interface UpdateCardBody {
+    cardId: string;
+    token: string;
+}
+
 interface SetPlanRequest extends RoboRequest {
     body: SetPlanBody;
 }
 
+interface UpdateCardRequest extends RoboRequest {
+    body: UpdateCardBody;
+}
+
 const router = Router();
+
+router.route("/me/card")
+    .post(async (req: UpdateCardRequest, res: RoboResponse) => {
+        await Stripe.addCardToCustomer(req.user.id, req.body.token, req.body.cardId);
+        res.status(200);
+        res.send("ok");
+    });
 
 router.route("/me/plan")
     .post(async (req: SetPlanRequest, res: RoboResponse) => {
