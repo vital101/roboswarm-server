@@ -73,3 +73,8 @@ export async function addCardToCustomer(userId: number, token: string, cardId: s
     await stripe.customers.update(user.stripe_id, options);
     await User.updateById(userId, { stripe_card_id: cardId });
 }
+
+export async function getCustomer(userId: number): Promise<Stripe.customers.ICustomer> {
+    const user: User.User = await User.getById(userId);
+    return await stripe.customers.retrieve(user.stripe_id);
+}

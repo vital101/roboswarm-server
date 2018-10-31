@@ -12,6 +12,7 @@ export interface User {
     stripe_plan_description?: string;
     stripe_card_id?: string;
     created_at?: Date;
+    is_delinquent: boolean;
     group?: Group;
 }
 
@@ -86,4 +87,9 @@ export async function updateById(id: number, fields: any): Promise<User> {
     await db("user").update(fields).where("id", id);
     const foundUser: Array<User> = await db("user").where("id", id);
     return foundUser[0];
+}
+
+export async function getAll(): Promise<User[]> {
+    const users: User[] = await db("user").where({});
+    return users;
 }
