@@ -401,3 +401,13 @@ export async function shouldStop(swarm: Swarm): Promise<boolean> {
     const now = new Date();
     return moment(now).isAfter(endTime);
 }
+
+export async function totalTestDurationInPeriod(start: Date, end: Date, group_id: number): Promise<number> {
+    const result = await db("swarm")
+        .where("created_at", ">=", start)
+        .where("created_at", "<=", end)
+        .where("group_id", group_id);
+        // for each swarm, take different in seconds between created_at and destroyed.
+        // sum them up.
+        // return them
+}

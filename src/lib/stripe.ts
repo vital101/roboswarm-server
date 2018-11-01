@@ -32,6 +32,14 @@ export async function createStripeCustomer(user: User.User): Promise<void> {
     await User.updateById(user.id, { stripe_id: newCustomer.id });
 }
 
+export async function getUserSubscription(user: User.User): Promise<Stripe.subscriptions.ISubscription> {
+    const subscriptionListOptions: Stripe.subscriptions.ISubscriptionListOptions = {
+        customer: user.stripe_id
+    };
+    const subscriptions: Stripe.IList<Stripe.subscriptions.ISubscription> = await stripe.subscriptions.list(subscriptionListOptions);
+    return subscriptions.data[0];
+}
+
 export async function setStripePlan(userId: number, planName: string): Promise<void> {
     const user: User.User = await User.getById(userId);
     const subscriptionListOptions: Stripe.subscriptions.ISubscriptionListOptions = {

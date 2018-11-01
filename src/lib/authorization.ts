@@ -1,13 +1,24 @@
+import * as moment from "moment";
+import { User } from "../models/User";
+import * as stripeHelpers from "./stripe";
+import * as Stripe from "stripe";
+
+export interface DateRange {
+    start: Date;
+    end: Date;
+}
+
 export async function getAuthorizationDateRange(user: User): Promise<DateRange> {
-    // Returns { StartDate, endDate } for authorization checks.
-    // Should be a month window.
-    // Based on user's last invoice date, Stripe should be able to tell use what range we should use.
-    // WE can then use this range to query for all the authz stuff.
+    const subscription: Stripe.subscriptions.ISubscription = await stripeHelpers.getUserSubscription(user);
+    return {
+        start: moment.unix(subscription.current_period_start).toDate(),
+        end: moment.unix(subscription.current_period_end).toDate()
+    };
 }
 
 export async function verifyLoadTestDuration(user: User, testDurationInMinutes: number): Promise<boolean> {
-    // See above function.
-    // Query for actual swarm duration within timeframe.
-    // Check to see what works.
-
+    const queryDateRange: DateRange = await getAuthorizationDateRange(user);
+    // Get all swarms created within DateRange.
+    // Add up their durations (sum maybe? in SQL)
+    // if duration + testDurationINMinutes exceeds, fail.
 }
