@@ -7,6 +7,7 @@ import {
     isValidUserBody
 } from "../../../lib/userHelpers";
 import { TokenizedUser } from "../../../interfaces/shared.interface";
+import { sendEmail } from "../../../lib/email";
 
 const router = express.Router();
 
@@ -33,6 +34,12 @@ router.route("/")
             };
             await Stripe.createStripeCustomer(newUser);
             await Stripe.setStripePlan(newUser.id, "free");
+            sendEmail({
+                to: "jack@kernl.us",
+                from: "jack@kernl.us",
+                subject: `A new RoboSwarm user has signed up: ${newUser.email}`,
+                text: `${newUser.first_name} ${newUser.last_name} (${newUser.email})`
+            });
             res.status(201);
             res.json({
                 token: getUserToken(tokenUser),
