@@ -402,12 +402,32 @@ export async function shouldStop(swarm: Swarm): Promise<boolean> {
     return moment(now).isAfter(endTime);
 }
 
-export async function totalTestDurationInPeriod(start: Date, end: Date, group_id: number): Promise<number> {
-    const result = await db("swarm")
+export async function totalMachineSecondsInPeriod(start: Date, end: Date, group_id: number): Promise<number> {
+    const swarms: Swarm[] = await db("swarm")
         .where("created_at", ">=", start)
         .where("created_at", "<=", end)
         .where("group_id", group_id);
-        // for each swarm, take different in seconds between created_at and destroyed.
-        // sum them up.
-        // return them
+
+    let totalSeconds = 0;
+    for (const swarm of swarms) {
+        const machines: Machine.Machine[] = await getSwarmMachines(swarm.id);
+        machines.forEach(machine => {
+            if (machine.created_at && machine.destroyed_at) {
+                const created = moment(machine.created_at);
+                const destroyed = moment(machine.destroyed_at);
+                totalSeconds += moment.duration(created.diff(destroyed)).asSeconds();
+            } else {
+                totalSeconds += swarm.duration * 60;
+            }
+        });
+    }
+    return totalSeconds;
+}
+
+export async function getSwarmsInDateRange(start: Date, end: Date, group_id: number): Promise<number> {
+    const swarms: Swarm[] = await db("swarm")
+        .where("created_at", ">=", start)
+        .where("created_at", "<=", end)
+        .where("group_id", group_id);
+    return swarms.length;
 }

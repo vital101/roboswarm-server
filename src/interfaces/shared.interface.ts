@@ -21,3 +21,8 @@ export interface TokenizedUser {
     groupId: number;
     email: string;
 }
+
+export interface RoboError {
+    err: string;
+    status: number;
+}

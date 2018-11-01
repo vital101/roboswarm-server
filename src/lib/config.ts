@@ -1,3 +1,5 @@
+import { User } from "../models/User";
+
 interface Plan {
     maxMachineHours: number;
     maxLoadTests: number;
@@ -9,6 +11,19 @@ interface Settings {
     free: Plan;
     startup: Plan;
     enterprise: Plan;
+}
+
+export function getPlan(user: User): Plan {
+    switch (user.stripe_plan_description) {
+        case "free":
+        return settings.free;
+        case "startup":
+        return settings.startup;
+        case "enterprise":
+        return settings.enterprise;
+        default:
+        return settings.free;
+    }
 }
 
 export const settings: Settings = {

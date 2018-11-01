@@ -1,7 +1,9 @@
 import { Router } from "express";
 import * as Swarm from "../../../models/Swarm";
 import * as LoadTest from "../../../models/LoadTest";
-import { RoboRequest, RoboResponse } from "../../../interfaces/shared.interface";
+import * as User from "../../../models/User";
+import { RoboRequest, RoboResponse, RoboError } from "../../../interfaces/shared.interface";
+import { canCreateSwarm } from "../../../lib/authorization";
 import * as multer from "multer";
 
 interface NewSwarmRequest extends RoboRequest {
@@ -100,11 +102,12 @@ router.route("/")
     .post(async (req: NewSwarmRequest, res: RoboResponse) => {
         // Always add one machine to the pool so it can be master.
         req.body.machines.push({ region: req.body.machines[0].region });
-
-        const willExceedDropletPoolSize = await Swarm.willExceedDropletPoolAvailability(req.body.machines.length);
-        if (willExceedDropletPoolSize) {
-            res.status(400);
-            res.send("This request will exceed the available pool size.");
+        const user: User.User = await User.getById(req.user.id);
+        const canProceed: boolean|RoboError = await canCreateSwarm(user, req.body);
+        if (canProceed !== true) {
+            const err = canProceed as RoboError;
+            res.status(err.status);
+            res.send(err.err);
         } else {
             try {
                 const mySwarm: Swarm.Swarm = await Swarm.create(req.body, req.user.id, req.user.groupId);

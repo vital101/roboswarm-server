@@ -2,6 +2,9 @@ import * as moment from "moment";
 import { User } from "../models/User";
 import * as stripeHelpers from "./stripe";
 import * as Stripe from "stripe";
+import * as Swarm from "../models/Swarm";
+import { getPlan } from "./config";
+import { RoboError } from "../interfaces/shared.interface";
 
 export interface DateRange {
     start: Date;
@@ -16,9 +19,43 @@ export async function getAuthorizationDateRange(user: User): Promise<DateRange> 
     };
 }
 
-export async function verifyLoadTestDuration(user: User, testDurationInMinutes: number): Promise<boolean> {
+export async function willExceedMaxMachineHours(user: User, testDurationInMinutes: number): Promise<boolean> {
     const queryDateRange: DateRange = await getAuthorizationDateRange(user);
-    // Get all swarms created within DateRange.
-    // Add up their durations (sum maybe? in SQL)
-    // if duration + testDurationINMinutes exceeds, fail.
+    const total: number = await Swarm.totalMachineSecondsInPeriod(queryDateRange.start, queryDateRange.end, user.group.id);
+    const maxAllowedMachineSeconds: number = getPlan(user).maxMachineHours * 60 * 60;
+    const testDurationInSeconds = testDurationInMinutes * 60;
+    return ((total + testDurationInSeconds) > maxAllowedMachineSeconds) ? false : true;
+}
+
+export async function willExceedMaxLoadTests(user: User): Promise<boolean> {
+    const queryDateRange: DateRange = await getAuthorizationDateRange(user);
+    const swarmsInRange: number = await Swarm.getSwarmsInDateRange(queryDateRange.start, queryDateRange.end, user.group.id);
+    const maxLoadTests: number = getPlan(user).maxLoadTests;
+    return swarmsInRange < maxLoadTests ? false : true;
+}
+
+export async function canCreateSwarm(user: User, swarm: Swarm.NewSwarm): Promise<RoboError|boolean> {
+    if (await Swarm.willExceedDropletPoolAvailability(swarm.machines.length)) {
+        return {
+            err: "This request will exceed the resources that RoboSwarm has available. Our team has been notified.",
+            status: 500
+        };
+    }
+
+    const swarmMachineMinutes: number = swarm.duration * swarm.machines.length;
+    if (await willExceedMaxMachineHours(user, swarmMachineMinutes)) {
+        return {
+            err: "This request will exceed the number of hours you have left on your plan before your next billing cycle. Try a smaller swarm size.",
+            status: 403
+        };
+    }
+
+    if (await willExceedMaxLoadTests(user)) {
+        return {
+            err: "This request will exceed the maximum number of load tests that your plan allows",
+            status: 403
+        };
+    }
+
+    return true;
 }
