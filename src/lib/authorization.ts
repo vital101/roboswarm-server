@@ -24,13 +24,24 @@ export async function willExceedMaxMachineHours(user: User, testDurationInMinute
     const total: number = await Swarm.totalMachineSecondsInPeriod(queryDateRange.start, queryDateRange.end, user.group.id);
     const maxAllowedMachineSeconds: number = getPlan(user).maxMachineHours * 60 * 60;
     const testDurationInSeconds = testDurationInMinutes * 60;
-    return ((total + testDurationInSeconds) > maxAllowedMachineSeconds) ? false : true;
+    console.log({
+        queryDateRange,
+        total,
+        maxAllowedMachineSeconds,
+        testDurationInSeconds
+    });
+    return ((total + testDurationInSeconds) > maxAllowedMachineSeconds);
 }
 
 export async function willExceedMaxLoadTests(user: User): Promise<boolean> {
     const queryDateRange: DateRange = await getAuthorizationDateRange(user);
     const swarmsInRange: number = await Swarm.getSwarmsInDateRange(queryDateRange.start, queryDateRange.end, user.group.id);
     const maxLoadTests: number = getPlan(user).maxLoadTests;
+    console.log({
+        queryDateRange,
+        swarmsInRange,
+        maxLoadTests
+    });
     return swarmsInRange < maxLoadTests ? false : true;
 }
 
@@ -54,6 +65,13 @@ export async function canCreateSwarm(user: User, swarm: Swarm.NewSwarm): Promise
         return {
             err: "This request will exceed the maximum number of load tests that your plan allows",
             status: 403
+        };
+    }
+
+    if (user.is_delinquent) {
+        return {
+            err: "This account is past due. You cannot create swarms while your account is past due.",
+            status: 402
         };
     }
 

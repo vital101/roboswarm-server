@@ -22,7 +22,8 @@
     "migrate": "TZ=utc knex migrate:latest",
     "make-migration": "TZ=utc knex migrate:make",
     "rollback": "TZ=utc knex migrate:rollback",
-    "check-user-delinquency": "TZ=utc node dist/cron/check_user_delinquency.js"
+    "check-user-delinquency": "TZ=utc node dist/cron/check_user_delinquency.js",
+    "swarm-cleanup": "TZ=utc node dist/cron/swarm_cleanup.js"
   },
   "jest": {
     "globals": {

@@ -1,13 +1,13 @@
 import { User } from "../models/User";
 
-interface Plan {
+export interface Plan {
     maxMachineHours: number;
     maxLoadTests: number;
     maxLoadTestDurationMinutes: number;
     dataRetentionDays: number;
 }
 
-interface Settings {
+export interface Settings {
     free: Plan;
     startup: Plan;
     enterprise: Plan;
@@ -26,7 +26,7 @@ export function getPlan(user: User): Plan {
     }
 }
 
-export const settings: Settings = {
+const settings: Settings = {
     free: {
         maxMachineHours: 5,
         maxLoadTests: 2,

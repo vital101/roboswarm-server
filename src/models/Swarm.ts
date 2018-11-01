@@ -431,3 +431,8 @@ export async function getSwarmsInDateRange(start: Date, end: Date, group_id: num
         .where("group_id", group_id);
     return swarms.length;
 }
+
+export async function getActiveSwarms(): Promise<Swarm[]> {
+    const swarms: Swarm[] = await db("swarm").whereNull("destroyed_at");
+    return swarms;
+}
