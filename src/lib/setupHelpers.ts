@@ -265,7 +265,6 @@ export async function installPackagesOnMachine(machineIp: string, privateKey: st
     });
     const commands: Array<string> = [
         "apt-get update",
-        "apt-get upgrade -y",
         "apt-get install -y python2.7 python-pip unzip"
     ];
     await ssh.execCommand(commands.join(" && "));
