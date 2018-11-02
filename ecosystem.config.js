@@ -3,7 +3,8 @@ const postDeployCommands = [
   'npm install',
   'npm run migrate',
   'npm run build',
-  'pm2 reload ecosystem.config.js --env production'
+  'pm2 reload ecosystem.config.js --env production',
+  'pm2 save'
 ];
 module.exports = {
   apps : [{
