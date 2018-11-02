@@ -1,5 +1,5 @@
 const postDeployCommands = [
-  'apt-get install build-essential',
+  'apt-get install -y build-essential',
   'npm install',
   'npm run migrate',
   'pm2 reload ecosystem.config.js --env production'
