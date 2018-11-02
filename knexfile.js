@@ -1,6 +1,11 @@
 // Environment variables
 require("dotenv").config();
 
+console.log({
+  host: process.env.DB_HOST,
+  user: process.env.DB_USER,
+  password: process.env.DB_PASSWORD
+});
 const devDbConnection = {
   host: process.env.DB_HOST || '10.0.2.2',
   user: process.env.DB_USER || 'postgres',
