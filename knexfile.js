@@ -6,7 +6,7 @@ console.log({
   user: process.env.DB_USER,
   password: process.env.DB_PASSWORD
 });
-const devDbConnection = {
+const dbConnection = {
   host: process.env.DB_HOST || '10.0.2.2',
   user: process.env.DB_USER || 'postgres',
   password: process.env.DB_PASSWORD || undefined,
@@ -18,7 +18,7 @@ module.exports = {
 
   development: {
     client: 'pg',
-    connection: devDbConnection,
+    connection: dbConnection,
     pool: {
       min: 2,
       max: 10
@@ -30,12 +30,7 @@ module.exports = {
 
   production: {
     client: 'pg',
-    connection: {
-      database: 'roboswarm',
-      user: 'roboswarm',
-      password: 'DontSwarmMeBro',
-      timezone: 'utc'
-    },
+    connection: dbConnection,
     pool: {
       min: 2,
       max: 10
