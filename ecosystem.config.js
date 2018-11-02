@@ -16,6 +16,16 @@ module.exports = {
     max_memory_restart: '256M',
     env: { },
     env_production: { }
+  },
+  {
+    name: 'RoboSwarm Workers',
+    script: 'dist/workers/provisionWorker.js',
+    instances: 3,
+    autorestart: true,
+    watch: false,
+    max_memory_restart: '100M',
+    env: { },
+    env_production: { }
   }],
 
   deploy : {
