@@ -1,3 +1,9 @@
+const postDeployCommands = [
+  'apt-get install build-essential',
+  'npm install',
+  'npm run migrate',
+  'pm2 reload ecosystem.config.js --env production'
+];
 module.exports = {
   apps : [{
     name: 'RoboSwarm API',
@@ -23,8 +29,7 @@ module.exports = {
       ref  : 'origin/master',
       repo : 'git@bitbucket.org:roboswarm/roboswarm-server.git',
       path : '/var/www/roboswarm',
-      'pre-setup' : 'apt-get install build-essential',
-      'post-deploy' : 'npm install && npm run migrate && pm2 reload ecosystem.config.js --env production'
+      'post-deploy' : postDeployCommands.join(" && ")
     }
   }
 };
