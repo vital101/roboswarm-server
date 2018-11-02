@@ -4,6 +4,7 @@ require("dotenv").config();
 const devDbConnection = {
   host: process.env.DB_HOST || '10.0.2.2',
   user: process.env.DB_USER || 'postgres',
+  password: process.env.DB_PASSWORD || undefined,
   database: 'roboswarm',
   timezone: 'utc'
 };

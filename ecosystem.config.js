@@ -2,6 +2,7 @@ const postDeployCommands = [
   'apt-get install -y build-essential',
   'npm install',
   'npm run migrate',
+  'npm run build',
   'pm2 reload ecosystem.config.js --env production'
 ];
 module.exports = {
@@ -12,20 +13,14 @@ module.exports = {
     autorestart: true,
     watch: false,
     max_memory_restart: '256MB',
-    env: {
-      NODE_ENV: 'development',
-      TZ: 'utc'
-    },
-    env_production: {
-      NODE_ENV: 'production',
-      TZ: 'utc'
-    }
+    env: { },
+    env_production: { }
   }],
 
   deploy : {
     production : {
       user : 'root',
-      host : '159.89.184.163',
+      host : '45.55.43.188',
       ref  : 'origin/master',
       repo : 'git@bitbucket.org:roboswarm/roboswarm-server.git',
       path : '/var/www/roboswarm',
@@ -33,3 +28,4 @@ module.exports = {
     }
   }
 };
+
