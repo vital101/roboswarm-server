@@ -1,5 +1,4 @@
 const postDeployCommands = [
-  'apt-get install -y build-essential',
   'npm config set -g production false',
   'npm install',
   'npm run migrate',
@@ -35,6 +34,7 @@ module.exports = {
       ref  : 'origin/master',
       repo : 'git@bitbucket.org:roboswarm/roboswarm-server.git',
       path : '/var/www/roboswarm',
+      'pre-setup': 'apt-get install -y build-essential',
       'post-deploy' : postDeployCommands.join(" && ")
     }
   }
