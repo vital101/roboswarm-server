@@ -73,7 +73,7 @@ router.route("/:id/metrics")
 router.route("/:id")
     .delete(async (req: RoboRequest, res: RoboResponse) => {
         try {
-            const swarm: Swarm.Swarm = await Swarm.destroyById(req.params.id, req.user.groupId);
+            await Swarm.destroyById(req.params.id, req.user.groupId);
             res.status(204);
             res.send("ok");
         } catch (err) {

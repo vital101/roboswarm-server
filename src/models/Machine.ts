@@ -1,6 +1,6 @@
 import * as request from "request-promise";
 import { RequestPromise, RequestPromiseOptions } from "request-promise";
-import { DropletResponse, Droplet } from "../interfaces/digitalOcean.interface";
+import { DropletResponse } from "../interfaces/digitalOcean.interface";
 import { db } from "../lib/db";
 import { Swarm } from "./Swarm";
 import * as SwarmMachine from "./SwarmMachine";
