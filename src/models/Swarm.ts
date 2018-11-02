@@ -9,6 +9,7 @@ import { RequestPromiseOptions } from "request-promise";
 import * as events from "../lib/events";
 import * as LoadTest from "./LoadTest";
 import * as moment from "moment";
+import { sendEmail } from "../lib/email";
 import { WorkerEventType, SwarmProvisionEvent, SwarmSetupStep, DeprovisionEvent, DeprovisionEventType } from "../interfaces/provisioning.interface";
 const node_ssh = require("node-ssh");
 
@@ -267,6 +268,14 @@ export async function willExceedDropletPoolAvailability(newSwarmSize: number): P
     };
     const result: DropletListResponse = await request.get(url, options);
     const availableDroplets = parseInt(process.env.DROPLET_POOL_SIZE, 10) - result.meta.total;
+    if (availableDroplets - newSwarmSize < 10) {
+        sendEmail({
+            to: "jack@kernl.us",
+            from: "jack@kernl.us",
+            subject: `RoboSwarm Droplet Pool Availability: ${availableDroplets} - ${newSwarmSize}`,
+            text: `A swarm with ${newSwarmSize} droplets wasn't created. There were only ${availableDroplets} droplets available at the time.`
+        });
+    }
     return availableDroplets - newSwarmSize < 0;
 }
 
