@@ -22,7 +22,7 @@ module.exports = {
     instances: 3,
     autorestart: true,
     watch: false,
-    max_memory_restart: '100M',
+    max_memory_restart: '200M',
     env: { },
     env_production: { }
   }],
