@@ -1,5 +1,6 @@
 const postDeployCommands = [
   'apt-get install -y build-essential',
+  'npm config set -g production false',
   'npm install',
   'npm run migrate',
   'npm run build',
