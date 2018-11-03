@@ -12,6 +12,7 @@ import _swarmRoutes from "./routes/v1/private/swarm";
 import _userRoutes from "./routes/v1/private/user";
 
 // Public Routes
+import appRoutes from "./routes/v1/public/app";
 import userRoutes from "./routes/v1/public/user";
 
 // JWT Config
@@ -27,6 +28,9 @@ app.use(bodyParser.urlencoded({ extended: true }));
 
 // Enable CORS
 app.use(cors());
+
+// Application
+app.use("/app", appRoutes);
 
 // Public API
 app.use("/api/v1/public/user", userRoutes);
