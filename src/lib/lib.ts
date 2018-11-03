@@ -13,7 +13,7 @@ export function getIndexPath(): string {
         const directories: string[] = getDirectories("/var/www/roboswarm-static");
         const timestamps: number[] = directories.map(d => parseInt(d, 10));
         const timestampsDescending: number[] = timestamps.sort().reverse();
-        return `/var/www/roboswarm-static/${timestampsDescending[0]}/index.html`;
+        return `/var/www/roboswarm-static/${timestampsDescending[0]}/dist/index.html`;
     } else {
         return "";
     }
