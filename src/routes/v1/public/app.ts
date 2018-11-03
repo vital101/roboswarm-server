@@ -7,6 +7,7 @@ const indexPath: string = getIndexPath();
 
 router.route("/")
     .get(async (req: express.Request, res: express.Response) => {
+        console.log("Index path: ", indexPath);
         res.status(200);
         res.sendFile(indexPath);
     });
