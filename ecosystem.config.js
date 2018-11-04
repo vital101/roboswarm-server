@@ -12,6 +12,7 @@ module.exports = {
     script: 'dist/server.js',
     instances: 2,
     autorestart: true,
+    exec_mode: 'cluster',
     watch: false,
     max_memory_restart: '256M',
     env: { },
@@ -24,6 +25,7 @@ module.exports = {
     autorestart: true,
     watch: false,
     max_memory_restart: '200M',
+    kill_timeout: 60000,
     env: { },
     env_production: { }
   }],
