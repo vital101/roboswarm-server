@@ -1,25 +1,21 @@
 import * as knex from "knex";
 
-const devDbConnection: any = {
+const connection: any = {
     host: process.env.DB_HOST || "10.0.2.2",
     user: process.env.DB_USER || "postgres",
+    password: process.env.DB_PASSWORD || undefined,
     database: "roboswarm",
     timezone: "utc"
   };
 
 const development = {
     client: "pg",
-    connection: devDbConnection
+    connection
 };
 
 const production = {
     client: "pg",
-    connection: {
-        database: "roboswarm",
-        user: "roboswarm",
-        password: "DontSwarmMeBro",
-        timezone: "utc"
-    },
+    connection,
     pool: {
         min: 2,
         max: 10
