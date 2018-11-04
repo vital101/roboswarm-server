@@ -65,6 +65,7 @@ export async function setStripePlan(userId: number, planName: string): Promise<v
             customer: user.stripe_id,
             items: [{ plan: getPlanId(planName) }]
         };
+        console.log({ createOptions });
         await stripe.subscriptions.create(createOptions);
     }
 
