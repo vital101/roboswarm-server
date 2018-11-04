@@ -35,7 +35,9 @@ interface LoadTestMetricsRequest extends RoboRequest {
 
 const router = Router();
 
-const upload = multer({ dest: "uploads/" });
+const upload = multer({
+    dest: process.env.FILE_UPLOAD_PATH || "uploads/"
+});
 router.route("/file-upload")
     .post(upload.single("loadTestData"),
         (req: RoboRequest, res: RoboResponse) => {
