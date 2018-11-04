@@ -77,6 +77,7 @@ export async function processDeprovisionEvent(event: DeprovisionEvent): Promise<
         try {
             switch (event.deprovisionType) {
                 case DeprovisionEventType.MACHINE: {
+                    console.log(`Deprovisioning machine: ${event.id}`);
                     await Machine.destroy(event.id);
                     break;
                 }
