@@ -68,6 +68,10 @@ export async function canCreateSwarm(user: User, swarm: Swarm.NewSwarm): Promise
         };
     }
 
+    //
+    // Todo: willExceedMaxLoadTestDuration(user)
+    //
+
     if (user.is_delinquent) {
         return {
             err: "This account is past due. You cannot create swarms while your account is past due.",
