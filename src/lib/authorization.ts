@@ -45,6 +45,11 @@ export async function willExceedMaxLoadTests(user: User): Promise<boolean> {
     return swarmsInRange < maxLoadTests ? false : true;
 }
 
+export function willExceedMaxLoadTestDuration(user: User, proposedSwarmDuration: number): boolean {
+    const plan = getPlan(user);
+    return proposedSwarmDuration > plan.maxLoadTestDurationMinutes;
+}
+
 export async function canCreateSwarm(user: User, swarm: Swarm.NewSwarm): Promise<RoboError|boolean> {
     if (await Swarm.willExceedDropletPoolAvailability(swarm.machines.length)) {
         return {
@@ -63,14 +68,17 @@ export async function canCreateSwarm(user: User, swarm: Swarm.NewSwarm): Promise
 
     if (await willExceedMaxLoadTests(user)) {
         return {
-            err: "This request will exceed the maximum number of load tests that your plan allows",
+            err: "This request will exceed the maximum number of load tests that your plan allows.",
             status: 403
         };
     }
 
-    //
-    // Todo: willExceedMaxLoadTestDuration(user)
-    //
+    if (await willExceedMaxLoadTestDuration(user, swarm.duration)) {
+        return {
+            err: "This request will exceed the maximum load test duration for your account. Please try again with a shorter duration.",
+            status: 403
+        };
+    }
 
     if (user.is_delinquent) {
         return {
