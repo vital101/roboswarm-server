@@ -10,7 +10,6 @@ module.exports = {
   apps : [{
     name: 'RoboSwarm API',
     script: 'dist/server.js',
-    exec_mode: 'cluster',
     instances: 2,
     autorestart: true,
     watch: false,
