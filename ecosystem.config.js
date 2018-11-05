@@ -20,7 +20,7 @@ module.exports = {
   {
     name: 'RoboSwarm Workers',
     script: 'dist/workers/provisionWorker.js',
-    instances: 3,
+    instances: 5,
     autorestart: true,
     watch: false,
     max_memory_restart: '200M',

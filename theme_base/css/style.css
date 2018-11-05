@@ -1,0 +1,828 @@
+/*  Theme Name: Xaino - Responsive Bootstrap 4 Landing Template
+    Author: Saptavarana
+    Version: 1.0.0
+    Created:October 2018
+    File Description:Main Css file of the template
+*/
+
+
+/***************
+
+1.BASIC
+2.HELPER
+3.NAVBAR
+4.HOME
+5.SERVICES
+6.CTA
+7.FEATURES
+8.WORK PROCESS
+9.TESTIMONIAL
+10.OUR TEAM
+11.COUNTER
+12.PRICING PLAN
+13.FAQ
+14.GREAT PEOPLE
+15.CONTACT US
+16.FOOTER 
+17.RESPONSIVE
+
+*****************/
+
+@import url('https://fonts.googleapis.com/css?family=Nunito:400,600,700|Quattrocento+Sans:400,700');
+
+/*=================
+    01.BASIC
+===================*/
+
+body {
+    font-family: 'Nunito', sans-serif;
+    overflow-x: hidden;
+}
+
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
+    font-family: 'Quattrocento Sans', sans-serif;
+}
+
+h1.font-weight-bold,
+h2.font-weight-bold,
+h3.font-weight-bold,
+h4.font-weight-bold,
+h5.font-weight-bold,
+h6.font-weight-bold {
+    font-weight: 700 !important;
+}
+
+a,
+a:hover,
+a:focus,
+button {
+    text-decoration: none !important;
+    outline: none !important;
+}
+
+
+/*==================
+    02.HELPER
+====================*/
+
+.bg_overlay_cover_on {
+    background-color: rgba(27, 31, 37, 0.6);
+    position: absolute;
+    top: 0;
+    right: 0;
+    width: 100%;
+    height: 100%;
+}
+
+.bg_overlay_section {
+    background: rgba(28, 28, 31, 0.8);
+    position: absolute;
+    top: 0;
+    right: 0;
+    width: 100%;
+    height: 100%;
+}
+
+.text_custom {
+    color: #15ccbe;
+}
+
+.btn {
+    padding: 15px 32px;
+    font-size: 14px;
+    transition: all 0.5s;
+    letter-spacing: 0.6px;
+    color: #fff;
+    box-shadow: none !important;
+    text-transform: uppercase;
+    outline: none !important;
+}
+
+.btn_custom {
+    border: 1px solid #15ccbe;
+    background-color: #15ccbe;
+    border-radius: 0px;
+}
+
+.btn_custom:hover,
+.btn_custom:focus,
+.btn_custom:active,
+.btn_custom.active,
+.btn_custom.focus,
+.btn_custom:active,
+.btn_custom:focus,
+.btn_custom:hover,
+.open > .dropdown-toggle.btn_custom {
+    color: #f3f3f3;
+    background-color: #20dbcc;
+    border-color: #20dbcc;
+}
+
+.btn_outline_custom {
+    /*  border: 2px solid #f5f5f5;*/
+    background-color: #ffffff;
+    color: #15ccbe;
+}
+
+.btn_outline_custom:hover,
+.btn_outline_custom:focus,
+.btn_outline_custom:active,
+.btn_outline_custom.active,
+.btn_outline_custom.focus,
+.btn_outline_custom:active,
+.btn_outline_custom:focus,
+.btn_outline_custom:hover,
+.open > .dropdown-toggle.btn_outline_custom {
+    color: #15ccbe;
+    background-color: #fff;
+    border-color: #fff;
+}
+
+.full_height_100vh {
+    height: 100vh;
+}
+
+.vertical_content_manage {
+    display: -webkit-flex;
+    display: -moz-flex;
+    display: -ms-flexbox;
+    display: flex;
+    align-items: center;
+    -webkit-align-items: center;
+    justify-content: center;
+    -webkit-justify-content: center;
+    flex-direction: row;
+    -webkit-flex-direction: row;
+}
+
+.section_all {
+    position: relative;
+    padding-top: 80px;
+    padding-bottom: 80px;
+    background-color: #ffffff;
+}
+
+.section-title {
+    font-weight: 700;
+    text-transform: capitalize;
+    letter-spacing: 1px;
+}
+
+.section-subtitle {
+    letter-spacing: 0.4px;
+    line-height: 28px;
+    max-width: 550px;
+}
+
+.section-title-border {
+    background-color: #000;
+    height: 1 3px;
+    width: 44px;
+}
+
+.section-title-border-white {
+    background-color: #fff;
+    height: 2px;
+    width: 100px;
+}
+
+.btn_small {
+    padding: 7px 14px;
+}
+
+.navbar-brand img {
+    height: 34px;
+}
+
+.btn-rounded {
+    border-radius: 35px;
+}
+
+/*======================
+    03  NAVBAR
+=======================*/
+
+.custom_nav_menu {
+    padding: 15px 0px;
+    width: 100%;
+    border-radius: 0px;
+    z-index: 999;
+    margin-bottom: 0px;
+    transition: all 0.5s ease-in-out;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.07);
+}
+
+.custom_nav_menu .social_menu .list-inline-item:not(:last-child) {
+    margin-right: 8px;
+}
+
+.custom_nav_menu .navbar-nav li a {
+    color: #fff;
+    font-size: 15px;
+    background-color: transparent !important;
+    padding: 15px 0;
+    margin: 0 7px;
+    transition: all 0.4s;
+}
+
+.navbar-toggler {
+    font-size: 24px;
+    margin-top: 5px;
+    margin-bottom: 0px;
+    color: #ffffff;
+}
+
+.stickyadd .navbar-nav {
+    margin-top: 0px;
+}
+
+.stickyadd.custom_nav_menu .navbar-nav li a {
+    color: rgba(0, 0, 0, 0.75);
+}
+
+.custom_nav_menu .navbar-brand.logo img {
+    height: 26px;
+}
+
+.stickyadd.custom_nav_menu {
+    margin-top: 0px;
+    padding: 8px 0px;
+    background-color: #fff;
+    border-bottom: 1px solid #fff;
+    box-shadow: 0px 0px 18px 1px rgba(0, 0, 0, 0.1);
+}
+
+.custom_nav_menu .navbar-nav li.active a,
+.custom_nav_menu .navbar-nav li a:hover,
+.custom_nav_menu .navbar-nav li a:active {
+    color: #15ccbe !important;
+}
+
+.navbar-toggle {
+    font-size: 24px;
+    margin-top: 5px;
+    margin-bottom: 0px;
+    color: #ffffff;
+}
+
+.custom_nav_menu .btn-custom {
+    margin-top: 5px;
+    margin-bottom: 5px;
+}
+
+.nav .open>a,
+.nav .open>a:focus,
+.nav .open>a:hover {
+    background-color: transparent;
+    border-color: #337ab7;
+}
+
+.logo .logo-light {
+    display: inline-block;
+}
+
+.stickyadd .logo .logo-dark {
+    display: inline-block;
+}
+
+.stickyadd .logo .logo-light {
+    display: none;
+}
+
+.logo .logo-dark {
+    display: none;
+}
+
+/*================
+    04.HOME
+==================*/
+
+.bg_home_landing {
+    background-image: url(../images/bg_home-1.jpg);
+    position: relative;
+    background-size: cover;
+    background-position: center center;
+    background-attachment: fixed;
+}
+
+.home_title {
+    font-size: 50px;
+    line-height: 1.2;
+    max-width: 800px;
+}
+
+.home_subtitle {
+    color: #dadada;
+    max-width: 600px;
+    line-height: 1.8;
+}
+
+.home_tag {
+    color: #15ccbe;
+}
+
+.home_table_cell_center {
+    display: table-cell;
+    vertical-align: middle;
+}
+
+.home_table_cell {
+    display: table;
+    width: 100%;
+    height: 100%;
+}
+
+.full_height_100vh_home {
+    height: 100vh;
+}
+
+.scroll_down {
+    position: absolute;
+    bottom: 5vh;
+    width: 100%;
+    text-align: center;
+    color: #fff;
+    font-size: 13px;
+    z-index: 8;
+}
+
+.scroll_down i {
+    position: relative;
+    -webkit-animation: bounce 2s infinite;
+    animation: bounce 2s infinite;
+    border-radius: 30px;
+    display: inline-block;
+    color: #fff;
+    font-size: 28px;
+}
+
+.scroll_down i:after {
+    content: "";
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    border-radius: 50%;
+    z-index: -1;
+    transition: all .2s;
+}
+
+/*-----------------
+    HOME - 2
+------------------*/
+
+.home_half_cover {
+    padding: 175px 0px;
+}
+
+/*-------------------
+    HOME - 7
+--------------------*/
+
+.up-index {
+    z-index: 2;
+}
+
+/*====================
+   0.5 SERVICES
+=====================*/
+
+.services_box .service_icon i {
+    font-size: 42px;
+    color: #15ccbe;
+    text-align: center;
+}
+
+.services_box a {
+    color: #000;
+    outline: none !important;
+    transition: all 0.5s;
+}
+
+.services_box a:hover {
+    color: #15ccbe;
+}
+
+/*===================
+    0.6  CTA
+====================*/
+
+.cta_details {
+    max-width: 635px;
+    line-height: 2.0;
+}
+
+.bg-video {
+    background-image: url(../images/video_bg.jpg);
+    background-size: cover;
+    background-attachment: fixed;
+}
+
+.video-subtitle {
+    max-width: 600px;
+    text-align: center;
+}
+
+.video-btn-white a {
+    padding: 4px 15px 4px 5px;
+    border-radius: 58px;
+    color: #fff !important;
+    display: inline-block;
+}
+
+.play-btn-white i {
+    background: #15ccbe;
+    border: 8px solid rgba(255, 255, 255, 0.71);
+    height: 70px;
+    width: 70px;
+    line-height: 56px;
+    border-radius: 50%;
+    font-size: 26px;
+    display: inline-block;
+    text-align: center;
+    margin-right: 15px;
+}
+
+.video-btn-white a span {
+    position: relative;
+    top: -5px;
+}
+
+/*====================
+  07.  Features
+====================*/
+
+.features_box_title_top {
+    max-width: 400px;
+    line-height: 1.4;
+}
+
+.features_box_subtitle {
+    line-height: 1.8;
+}
+
+.features_border_top {
+    height: 4px;
+    background: #33d085;
+    width: 60px;
+    margin-bottom: 15px;
+    margin-top: 15px;
+}
+
+.feauters-box-right i {
+    float: left;
+}
+
+.feauters-box i {
+    display: inline-block;
+    font-size: 26px;
+    width: 55px;
+    height: 55px;
+    text-align: center;
+    line-height: 55px;
+    color: #fff;
+    margin: 2px 0;
+    overflow: hidden;
+    border-radius: 50%;
+    background: #15ccbe;
+}
+
+.feauters-content {
+    overflow: hidden;
+    padding-left: 26px;
+}
+
+.feauters-subtitle {
+    line-height: 1.6;
+}
+
+/*=========================
+  0.8 HOW TO WORK PROCESS
+==========================*/
+
+.bg_work_process {
+    background-image: url('../images/bg_pettern.jpg');
+    background-position: center center;
+    background-attachment: fixed;
+}
+
+.how_it_work_box h5 {
+    color: #222;
+}
+
+.how_it_work_box .process_icon i {
+    font-size: 32px;
+    height: 65px;
+    width: 65px;
+    line-height: 65px;
+    display: inline-block;
+    background: #fff;
+    border-radius: 35px;
+    box-shadow: 0 8px 20px -2px rgba(158, 152, 153, 0.5);
+}
+
+/*=====================
+   0.9 TESTIMONIAL
+======================*/
+
+.testi_content_main {
+    max-width: 700px;
+}
+
+.all_testi_content .all_testi_details {
+    font-size: 20px;
+    line-height: 1.6;
+}
+
+.all_testi_content span,
+.all_testi_details {
+    font-size: 14px;
+}
+
+.all_testi_content .testi_img img {
+    max-width: 110px;
+}
+
+.owl-theme .owl-controls .owl-page span {
+    display: block;
+    width: 12px;
+    height: 7px;
+    margin: 20px 5px;
+    border: 1px solid #15ccbe;
+    background-color: #15ccbe;
+    opacity: 0.4;
+}
+
+/*====================
+  10. OUR TEAM
+=====================*/
+.team_section h5 {
+    font-size: 18px;
+}
+
+.team_section .team_work {
+    font-size: 14px;
+}
+
+.team_section .team_social_icon li a {
+    border: 2px solid #e8e7e7;
+    color: #000;
+    height: 35px;
+    width: 35px;
+    display: inline-block;
+    line-height: 32px;
+    border-radius: 50%;
+    transition: all 0.5s;
+    text-align: center;
+}
+
+.team_section .team_social_icon li:hover a {
+    border-color: #15ccbe;
+    background: #15ccbe;
+    color: #fff;
+}
+
+/*==================
+  11. COUNTER
+===================*/
+
+.bg_counter {
+    background-image: url(../images/bg_counter.jpg);
+    position: relative;
+    background-size: cover;
+    background-position: center center;
+    background-attachment: fixed;
+}
+
+.counter_box .info_name {
+    font-size: 16px;
+}
+
+.counter_box .counter_icon {
+    font-size: 38px;
+}
+
+/*====================
+  12. PRICING PLAN
+=====================*/
+
+.pricing_plan_box {
+    padding: 40px;
+    border-radius: 10px;
+    box-shadow: 0 3px 14px -3px rgba(158, 152, 153, 0.5);
+}
+
+.list_price_features {
+    padding: 20px 40px;
+}
+
+.list_price_features p {
+    margin-bottom: 10px;
+}
+
+.price_tag_heading span {
+    font-size: 14px;
+    font-weight: normal;
+}
+
+.price_tag_heading h2 {
+    font-size: 52px;
+}
+
+.price_tag_heading sup {
+    font-size: 34px;
+}
+
+.divider_line {
+    width: 30%;
+    height: 3px;
+    border-radius: 35px;
+    background: #15ccbe;
+    margin: 10px 0px;
+}
+
+/*===================
+   13. FAQ
+====================*/
+
+.testi-desc {
+    padding: 30px;
+    border: 1px solid #ddd;
+    border-radius: 15px;
+}
+
+.testi-desc p {
+    font-size: 16px;
+    line-height: 30px;
+}
+
+.user-work {
+    font-weight: 600;
+}
+
+/*====================
+  14. GREAT PEOPLE
+====================*/
+
+.logo_img img {
+    max-height: 100px;
+    width: auto !important;
+}
+
+/*=====================
+    15. CONTACT US
+======================*/
+
+.corp_form_custom .form-control {
+    height: 50px;
+    font-size: 16px;
+    border-color: #eae7e7;
+}
+
+textarea.form-control {
+    height: auto !important;
+}
+
+.corp_form_custom .form-control:focus {
+    border-color: #15ccbe !important;
+    box-shadow: none;
+    outline: 0;
+}
+
+.corp_form_custom {
+    box-shadow: 0 0 35px 1px #efefef;
+    padding: 40px;
+}
+
+.com_logo_here img {
+    max-width: 125px;
+}
+
+.contact_details .mail a {
+    color: #000;
+}
+
+/*==================
+    16.FOOTER
+====================*/
+
+.footer_background {
+    background-color: #222225;
+}
+
+.footer_detail ul.footer_menu_list li a:hover {
+    color: #fff;
+    transition: all 0.3s;
+}
+
+.footer_detail ul.footer_menu_list li a {
+    color: rgba(255, 255, 255, 0.5);
+    display: inline-block;
+    padding: 4px 0;
+    text-decoration: none !important;
+}
+
+.footer_detail .copy-rights {
+    color: rgba(255, 255, 255, 0.5);
+}
+
+.footer_detail .fot_bor {
+    height: 2px;
+    background: #2f2f2f;
+    width: 100%;
+}
+
+.contact_us_info p,
+a {
+    color: rgba(255, 255, 255, 0.5);
+}
+
+.icon_social_footer ul li a {
+    border: 2px solid rgba(255, 255, 255, 0.5);
+    color: rgba(255, 255, 255, 0.5);
+    height: 45px;
+    width: 45px;
+    display: inline-block;
+    line-height: 43px;
+    border-radius: 50%;
+    transition: all 0.5s;
+    text-align: center;
+    font-size: 16px;
+}
+
+.icon_social_footer ul li a:hover {
+    border: 2px solid #15ccbe;
+    color: #FFF;
+}
+
+/*=====================
+    17. RESPONSIVE
+=======================*/
+
+@media (max-width: 768px) {
+    .custom_nav_menu {
+        margin-top: 0px;
+        padding: 10px 0px !important;
+        background-color: #fff !important;
+    }
+    .vertical_content_manage {
+        display: inherit;
+    }
+    .home_title {
+        font-size: 34px;
+    }
+    .section_main_box h3 {
+        font-size: 24px;
+    }
+    .custom_nav_menu .navbar-nav li a {
+        margin: 0 0px;
+        padding: 6px 0;
+        color: rgba(0, 0, 0, 0.55) !important;
+    }
+    .custom_nav_menu .navbar-nav li.active a {
+        color: #15ccbe !important;
+    }
+    .custom_nav_menu>.container {
+        width: 90%;
+    }
+    .custom_nav_menu .logo .logo-dark {
+        display: inline-block;
+    }
+    .custom_nav_menu .logo .logo-light {
+        display: none;
+    }
+    .custom_nav_menu .navbar-brand.logo img {
+        height: 26px;
+    }
+    .navbar-nav {
+        margin-top: 0px;
+    }
+    .navbar-toggler {
+        font-size: 28px;
+        margin-top: 0px;
+        margin-bottom: 0px;
+        color: #000;
+    }
+    .h-100vh,
+    .full_height_100vh_home {
+        height: auto;
+    }
+    .full_height_100vh_home {
+        padding: 125px 0px;
+    }
+    .pricing_plan_box {
+        padding: 18px;
+    }
+    .float_none {
+        float: none !important;
+    }
+    .home_half_cover {
+        padding: 125px 0 130px 0;
+    }
+}
