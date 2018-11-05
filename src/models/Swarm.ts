@@ -80,7 +80,8 @@ export async function create(swarm: NewSwarm, userId: number, groupId: number): 
             ssh_key_id: key.id,
             region: swarm.region,
             duration: swarm.duration,
-            swarm_ui_type: swarm.swarm_ui_type
+            swarm_ui_type: swarm.swarm_ui_type,
+            size: swarm.machines.length - 1
         })
         .returning("*");
 
@@ -184,16 +185,12 @@ export async function getById(id: number): Promise<Swarm> {
     });
     data.file_transfer_complete = file_transfer_complete;
     data.setup_complete = setup_complete;
-    data.size = machines.length;
 
     return data;
 }
 
-export async function getByGroupId(groupId: number, limit?: number): Promise<Array<Swarm>> {
-    let swarmQuery = db("swarm").where("group_id", groupId).orderBy("created_at", "DESC");
-    if (limit) {
-        swarmQuery = swarmQuery.limit(limit);
-    }
+export async function getByGroupId(groupId: number): Promise<Array<Swarm>> {
+    const swarmQuery = db("swarm").where("group_id", groupId).orderBy("created_at", "DESC");
     const swarms: Array<Swarm> = await swarmQuery;
     const swarmSizes: any = {};
     const swarmStatus: any = {};

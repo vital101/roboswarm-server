@@ -96,8 +96,7 @@ router.route("/:id")
 
 router.route("/")
     .get(async (req: RoboRequest, res: RoboResponse) => {
-        const limit = 10;
-        const swarms: Array<Swarm.Swarm> = await Swarm.getByGroupId(req.user.groupId, limit);
+        const swarms: Array<Swarm.Swarm> = await Swarm.getByGroupId(req.user.groupId);
         res.status(200);
         res.json(swarms);
     })
