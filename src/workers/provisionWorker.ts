@@ -53,7 +53,7 @@ console.log("Starting worker process with 10 threads...");
         clearInterval(interval);
         setTimeout(() => {
             process.exit();
-        }, 55); // 55 seconds because PM2 will shoot it in the head at 60 seconds.
+        }, 55000); // 55 seconds because PM2 will shoot it in the head at 60 seconds.
     };
     process.on("SIGINT", stopProcess);
     process.on("SIGTERM", stopProcess);
