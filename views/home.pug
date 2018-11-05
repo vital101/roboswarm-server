@@ -1,0 +1,692 @@
+doctype html
+head
+  meta(charset='utf-8')
+  meta(name='viewport' content='width=device-width, initial-scale=1')
+  title  Xaino - Responsive Bootstrap 4 Landing Template
+  meta(name='description' content='')
+  meta(name='keywords' content='')
+  meta(name='author' content='Saptavarana')
+  link(rel='shortcut icon' href='images/favicon.ico')
+  // Magnific-popup
+  link(rel='stylesheet' href='/static/css/magnific-popup.css')
+  // Slider Css
+  link(href='/static/css/owl.carousel.css' rel='stylesheet')
+  link(href='/static/css/owl.theme.css' rel='stylesheet')
+  link(href='/static/css/owl.transitions.css' rel='stylesheet')
+  // Icon
+  link(href='/static/css/mobiriseicons.css' rel='stylesheet')
+  link(rel='stylesheet' type='text/css' href='/static/css/materialdesignicons.min.css')
+  link(rel='stylesheet' href='/static/css/animate.min.css')
+  // bootstrap Css
+  link(rel='stylesheet' type='text/css' href='/static/css/bootstrap.min.css')
+  // Custom styles for this template
+  link(href='/static/css/style.css' rel='stylesheet')
+// START NAVBAR
+nav.navbar.navbar-expand-lg.fixed-top.custom_nav_menu.sticky
+  .container
+    // LOGO
+    a.navbar-brand.logo(href='index-2.html')
+      img.img-fluid.logo-light(src='/static/images/logo-2.png' alt='')
+      img.img-fluid.logo-dark(src='/static/images/logo-dark.png' alt='')
+    button.navbar-toggler(type='button' data-toggle='collapse' data-target='#navbarCollapse' aria-controls='navbarCollapse' aria-expanded='false' aria-label='Toggle navigation')
+      i.mdi.mdi-menu
+    #navbarCollapse.collapse.navbar-collapse
+      ul.navbar-nav.ml-auto
+        li.nav-item.active
+          a.nav-link(href='#home') Home
+        li.nav-item
+          a.nav-link(href='#services') Services
+        li.nav-item
+          a.nav-link(href='#features') Features
+        li.nav-item
+          a.nav-link(href='#client') Client&apos;s
+        li.nav-item
+          a.nav-link(href='#team') Team
+        li.nav-item
+          a.nav-link(href='#pricing') Pricing
+        li.nav-item
+          a.nav-link(href='#faq') Faq
+        li.nav-item
+          a.nav-link(href='#contact') Contact
+// END NAVBAR
+// Home Section Start
+section#home.bg_home_landing.home_half_cover
+  .bg_overlay_section
+  .home_table_cell
+    .home_table_cell_center
+      .container
+        .row
+          .col-lg-12
+            .text-center
+              h1.home_title.text-white.mx-auto.text-capitalize.mb-0
+                | We Are 
+                span.home_tag.font-italic.font-weight-bold  Fresh 
+                |  Landing Page Template.
+              .home_text_details
+                p.home_subtitle.mt-4.mx-auto.mb-0
+                  | It is a long established fact that a reader will be distracted by the readable content of a page when looking at its layout readable English.
+              .home_btn_manage.mt-4.pt-3
+                a.btn.btn_custom.mr-3(href='#') Get Started
+  .scroll_down
+    a.scroll(href='#services')
+      i.mdi.mdi-chevron-double-down.text-white
+// Home Section End
+// Services Start
+section#services.section_all
+  .container
+    .row
+      .col-lg-12.text-center
+        h4.section-title
+          | Our Best 
+          span.text_custom Service
+        .section-title-border.mx-auto  
+        p.text-muted.pt-2.section-subtitle.mx-auto
+          | Lorem ipsum dolor sit amet, consectetur adipisicing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.
+        .section_subtitle_border.mx-auto
+    .row.mt-5
+      .col-lg-4
+        .services_box.p-4.mt-3
+          .service_icon
+            i.mdi.mdi-camera-iris
+          .service_content.mt-3
+            h5.font-weight-bold Graphic Design
+            p.mt-3.text-muted.mb-0
+              | There is now an abundance of readable dummy texts. These are usually used required purely.
+      .col-lg-4
+        .services_box.p-4.mt-3
+          .service_icon
+            i.mdi.mdi-cellphone-link
+          .service_content.mt-3
+            h5.font-weight-bold Web Development
+            p.mt-3.text-muted.mb-0
+              | There is now an abundance of readable dummy texts. These are usually used required purely.
+      .col-lg-4
+        .services_box.p-4.mt-3
+          .service_icon
+            i.mdi.mdi-creation
+          .service_content.mt-3
+            h5.font-weight-bold Media Marketing
+            p.mt-3.text-muted.mb-0
+              | There is now an abundance of readable dummy texts. These are usually used required purely.
+    .row.mt-3
+      .col-lg-4
+        .services_box.p-4.mt-3
+          .service_icon
+            i.mdi.mdi-palette
+          .service_content.mt-3
+            h5.font-weight-bold Unlimited Color
+            p.mt-3.text-muted.mb-0
+              | There is now an abundance of readable dummy texts. These are usually used required purely.
+      .col-lg-4
+        .services_box.p-4.mt-3
+          .service_icon
+            i.mdi.mdi-headset
+          .service_content.mt-3
+            h5.font-weight-bold Easy to customize
+            p.mt-3.text-muted.mb-0
+              | There is now an abundance of readable dummy texts. These are usually used required purely.
+      .col-lg-4
+        .services_box.p-4.mt-3
+          .service_icon
+            i.mdi.mdi-responsive
+          .service_content.mt-3
+            h5.font-weight-bold Responsive Design
+            p.mt-3.text-muted.mb-0
+              | There is now an abundance of readable dummy texts. These are usually used required purely.
+// Services Us End
+// Start Cta
+section.section_all.bg-light
+  .container
+    .row
+      .col-lg-12
+        .text-center
+          h2.font-weight-normal Are You Ready To Enjoy? Get This Perfect Theme Now!
+          p.mx-auto.cta_details.mt-4.pt-2.text-muted
+            | It is a long established fact that a reader will be distracted by the readable content of a page when looking at its layout.
+          .mt-4.pt-3
+            a.btn.btn_custom(href='#') Contact Us
+// End Cta
+// Features Start
+section#features.section_all
+  .container
+    .row
+      .col-lg-12.text-center
+        h4.section-title
+          | Our Some Of 
+          span.text_custom Features
+        .section-title-border.mx-auto  
+        p.text-muted.pt-2.section-subtitle.mx-auto
+          | Lorem ipsum dolor sit amet, consectetur adipisicing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.
+        .section_subtitle_border.mx-auto
+    .row.mt-5.vertical_content_manage
+      .col-lg-6
+        .features_box_content.mt-3
+          h4.font-weight-bold.text-capitalize.features_box_title_top  Corporate &amp; Small businesses collaboration Project.
+          .text-left.feauters-box.feauters-box-right.mt-4
+            i.mdi.mdi-airplay
+            .feauters-content
+              h5.text-dark.font-weight-bold Improve Your Marketing business.
+              p.feauters-subtitle.text-muted
+                | It is a long established fact that a reader will be distracted by the readable content of a page when looking at its layout. The point of using Lorem Ipsum.
+          .text-left.feauters-box.feauters-box-right.mt-4
+            i.mdi.mdi-cards-variant
+            .feauters-content
+              h5.text-dark.font-weight-bold  All types element&apos;s of from morder design.
+              p.feauters-subtitle.text-muted
+                | It is a long established fact that a reader will be distracted by the readable content of a page when looking at its layout. The point of using Lorem Ipsum.
+      .col-lg-6
+        .mt-3
+          img.img-fluid.mx-auto.d-block(src='/static/images/features-1.png' alt='' title='features-1')
+    .row.mt-5.vertical_content_manage
+      .col-lg-6
+        .mt-3
+          img.img-fluid.mx-auto.d-block(src='/static/images/features-2.png' alt='' title='features-2')
+      .col-lg-6
+        .features_box_content.mt-3
+          h4.font-weight-bold.text-capitalize.features_box_title_top  Manage all Those comic Corporate &amp; Small businesses Features.
+          .text-left.feauters-box.feauters-box-right.mt-4
+            i.mdi.mdi-chart-bar
+            .feauters-content
+              h5.text-dark.font-weight-bold Improve Your Marketing business Strategy.
+              p.feauters-subtitle.text-muted
+                | It is a long established fact that a reader will be distracted by the readable content of a page when looking at its layout. The point of using Lorem Ipsum.
+          .text-left.feauters-box.feauters-box-right.mt-4
+            i.mdi.mdi-chart-bubble
+            .feauters-content
+              h5.text-dark.font-weight-bold Increase Your Marketing Performance.
+              p.feauters-subtitle.text-muted
+                | It is a long established fact that a reader will be distracted by the readable content of a page when looking at its layout. The point of using Lorem Ipsum.
+// Features End
+// Work Process
+section.section_all.bg-light
+  .container
+    .row
+      .col-lg-12.text-center
+        h4.section-title
+          | Get to know the best
+          span.text_custom  our work Process 
+        .section-title-border.mx-auto  
+        p.text-muted.pt-2.section-subtitle.mx-auto
+          | Lorem ipsum dolor sit amet, consectetur adipisicing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.
+    .row.mt-5
+      .col-lg-4
+        .how_it_work_box.p-4.mt-3
+          .process_icon.text-center
+            i.text_custom.mdi.mdi-apps
+          .text-center.pt-3
+            h5.text-capitalize.font-weight-bold Build You Product
+            p.text-muted.pt-2
+              | It is a long established fact that a reader will be the at its layout. Made for had second likeness days.
+      .col-lg-4
+        .how_it_work_box.p-4.mt-3
+          .process_icon.text-center
+            i.text_custom.mdi.mdi-buffer
+          .text-center.pt-3
+            h5.text-capitalize.font-weight-bold Testing Product
+            p.text-muted.pt-2
+              | It is a long established fact that a reader will be the at its layout. Made for had second likeness days.
+      .col-lg-4
+        .how_it_work_box.p-4.mt-3
+          .process_icon.text-center
+            i.text_custom.mdi.mdi-rocket
+          .text-center.pt-3
+            h5.text-capitalize.font-weight-bold Publish Project
+            p.text-muted.pt-2
+              | It is a long established fact that a reader will be the at its layout. Made for had second likeness days.
+// Work Process End
+// Start Video
+section.section_all.bg-video
+  .bg_overlay_section
+  .container
+    .row
+      .col-lg-12
+        .text-center
+          h3.text-capitalize.text-white Watch The Video
+          .section-title-border.bg-white.mx-auto  
+          p.text-white.video-subtitle.mx-auto.mt-2
+            | It is a long established fact that a reader will be distracted by the readable content of a page when looking at its layout.
+    .row.mt-5
+      .col-lg-12
+        .video-btn-white.text-center
+          a.play-btn-white.features_video.mx-auto(href='http://vimeo.com/99025203')
+            i.mdi.mdi-play
+            // <span>Watch Video</span>
+// End Video
+// testimonial Start
+section#client.section_all.bg-light
+  .bg-overlay
+  .container
+    .row
+      .col-lg-12.text-center
+        h4.section-title
+          | What Our Client&apos;s
+          span.text_custom  Saying 
+        .section-title-border.mx-auto  
+        p.text-muted.pt-2.section-subtitle.mx-auto
+          | Lorem ipsum dolor sit amet, consectetur adipisicing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.
+    .row.mt-5
+      .col-lg-12
+        #owl-demo.owl-carousel.owl-theme.mt-3.testi_content_main.mx-auto
+          .item
+            .all_testi_content.text-center
+              .testi_img
+                img.img-fluid.rounded-circle.mx-auto.d-block(src='/static/images/client/client-1.jpg' alt='')
+              p.all_testi_details.pt-3
+                | &quot; It&apos;s easy to be creative and enthusiastic about your work when you&apos;re a part of such a supportive enviorment &quot;.
+              p.text-capitalize.mb-0 Cassie Huff
+              span.text-capitalize preocess manager
+          .item
+            .all_testi_content.text-center
+              .testi_img
+                img.img-fluid.rounded-circle.mx-auto.d-block(src='/static/images/client/client-2.jpg' alt='')
+              p.all_testi_details.pt-3
+                | &quot; Sed ut perspiciatis unde omnis iste natus error sit voluptatem accusantium doloremque laudantium, totam rem aperiam &quot;.
+              p.text-capitalize.mb-0 Mickey Smith
+              span.text-capitalize preocess manager
+          .item
+            .all_testi_content.text-center
+              .testi_img
+                img.img-fluid.rounded-circle.mx-auto.d-block(src='/static/images/client/client-3.jpg' alt='')
+              p.all_testi_details.pt-3
+                | &quot;Here is now an abundance dummy texts. These are usually used when a text is required purely to fill a space &quot;.
+              p.text-capitalize.mb-0  Stephen Hartman
+              span.text-capitalize Marketing Manager
+// testimonial end
+// our team
+section#team.section_all
+  .container
+    .row
+      .col-lg-12.text-center
+        h4.section-title
+          | Our Genius 
+          span.text_custom Team
+        .section-title-border.mx-auto  
+        p.text-muted.pt-2.section-subtitle.mx-auto
+          | Lorem ipsum dolor sit amet, consectetur adipisicing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.
+    .row.mt-5
+      .col-lg-3
+        .team_section.bg-white.text-center.mt-3.p-4
+          img.img-fluid.mx-auto.d-block(src='/static/images/team/team-1.jpg' alt='')
+          .mt-3
+            h5.font-weight-bold.text_custom Reginald Schwarz
+            p.mb-0.text-muted.team_work CEO/Founder
+            .mt-3
+              ul.list-inline.team_social_icon.mb-0.text-center
+                li.list-inline-item
+                  a(href='#')
+                    i.mdi.mdi-facebook
+                li.list-inline-item
+                  a(href='#')
+                    i.mdi.mdi-google
+                li.list-inline-item
+                  a(href='#')
+                    i.mdi.mdi-twitter
+                li.list-inline-item
+                  a(href='#')
+                    i.mdi.mdi-instagram
+      .col-lg-3
+        .team_section.bg-white.text-center.mt-3.p-4
+          img.img-fluid.mx-auto.d-block(src='/static/images/team/team-4.jpg' alt='')
+          .mt-3
+            h5.font-weight-bold.text_custom Chris Davis
+            p.mb-0.text-muted.team_work Founder/Directore
+            .mt-3
+              ul.list-inline.team_social_icon.mb-0.text-center
+                li.list-inline-item
+                  a(href='#')
+                    i.mdi.mdi-facebook
+                li.list-inline-item
+                  a(href='#')
+                    i.mdi.mdi-google
+                li.list-inline-item
+                  a(href='#')
+                    i.mdi.mdi-twitter
+                li.list-inline-item
+                  a(href='#')
+                    i.mdi.mdi-instagram
+      .col-lg-3
+        .team_section.bg-white.text-center.mt-3.p-4
+          img.img-fluid.mx-auto.d-block(src='/static/images/team/team-3.jpg' alt='')
+          .mt-3
+            h5.font-weight-bold.text_custom Krista Bovee
+            p.mb-0.text-muted.team_work Sr. UI/UX Designer
+            .mt-3
+              ul.list-inline.team_social_icon.mb-0.text-center
+                li.list-inline-item
+                  a(href='#')
+                    i.mdi.mdi-facebook
+                li.list-inline-item
+                  a(href='#')
+                    i.mdi.mdi-google
+                li.list-inline-item
+                  a(href='#')
+                    i.mdi.mdi-twitter
+                li.list-inline-item
+                  a(href='#')
+                    i.mdi.mdi-instagram
+      .col-lg-3
+        .team_section.bg-white.text-center.mt-3.p-4
+          img.img-fluid.mx-auto.d-block(src='/static/images/team/team-2.jpg' alt='')
+          .mt-3
+            h5.font-weight-bold.text_custom Forest Priest
+            p.mb-0.text-muted.team_work Sr.Developer
+            .mt-3
+              ul.list-inline.team_social_icon.mb-0.text-center
+                li.list-inline-item
+                  a(href='#')
+                    i.mdi.mdi-facebook
+                li.list-inline-item
+                  a(href='#')
+                    i.mdi.mdi-google
+                li.list-inline-item
+                  a(href='#')
+                    i.mdi.mdi-twitter
+                li.list-inline-item
+                  a(href='#')
+                    i.mdi.mdi-instagram
+// our team end
+// Pricing Plan Start
+section#pricing.section_all.bg-light
+  .container
+    .row
+      .col-lg-12.text-center
+        h4.section-title
+          | Find the plan That&apos;s 
+          span.text_custom Right for you
+        .section-title-border.mx-auto  
+        p.text-muted.pt-2.section-subtitle.mx-auto
+          | Lorem ipsum dolor sit amet, consectetur adipisicing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.
+    .row.mt-5
+      .col-lg-4
+        .mt-3.pricing_plan_box.bg-white
+          .pricing_header.text-center
+            .price-name
+              h4.text-capitalize.font-weight-bold.mb-0 Basic
+            .price_tag_heading.mt-4
+              h2.mb-0.font-weight-bold
+                sup $
+                | 49/
+                span.font-weight-bold Mo
+          .divider_line.mx-auto
+          .list_price_features.text-muted.text-center.mb-4.mt-4
+            p  Additional Features
+            p Maximum Support
+            p 24/7 Support
+            p Custom Domain
+            p.mb-0 Free Email Support
+          .text-center
+            a.btn.btn_custom.btn-rounded(href='#') Sign up now
+      .col-lg-4
+        .mt-3.pricing_plan_box.bg-white
+          .pricing_header.text-center
+            .price-name
+              h4.text-capitalize.font-weight-bold.mb-0 Standard
+            .price_tag_heading.mt-4
+              h2.mb-0.font-weight-bold
+                sup $
+                | 99/
+                span.font-weight-bold Mo
+          .divider_line.mx-auto
+          .list_price_features.text-muted.text-center.mb-4.mt-4
+            p  Additional Features
+            p Maximum Support
+            p 24/7 Support
+            p Custom Domain
+            p.mb-0 Free Email Support
+          .text-center
+            a.btn.btn_custom.btn-rounded(href='#') Sign up now
+      .col-lg-4
+        .mt-3.pricing_plan_box.bg-white
+          .pricing_header.text-center
+            .price-name
+              h4.text-capitalize.font-weight-bold.mb-0 Premium
+            .price_tag_heading.mt-4
+              h2.mb-0.font-weight-bold
+                sup $
+                | 199/
+                span.font-weight-bold Mo
+          .divider_line.mx-auto
+          .list_price_features.text-muted.text-center.mb-4.mt-4
+            p  Additional Features
+            p Maximum Support
+            p 24/7 Support
+            p Custom Domain
+            p.mb-0 Free Email Support
+          .text-center
+            a.btn.btn_custom.btn-rounded(href='#') Sign up now
+// Pricing Plan End
+// Counter
+section.section_all.bg_counter
+  .bg_overlay_section
+  .container
+    #counter.row
+      .col-lg-3
+        .text-center.counter_box.rounded.text-white.p-4.mt-3
+          .counter_icon.mb-3
+            i.mdi.mdi-alarm-multiple
+          h1.counter_value.mb-1(data-count='2000') 4
+          p.info_name.mb-0 Working Hours
+      .col-lg-3
+        .text-center.counter_box.rounded.text-white.p-4.mt-3
+          .counter_icon.mb-3
+            i.mdi.mdi-bootstrap
+          h1.counter_value.mb-1(data-count='1500') 10
+          p.info_name.mb-0 Completed Projects
+      .col-lg-3
+        .text-center.counter_box.rounded.text-white.p-4.mt-3
+          .counter_icon.font-weight-bold.mb-3
+            i.mdi.mdi-wallet-membership
+          h1.counter_value.mb-1(data-count='2200') 201
+          p.info_name.mb-0 No. of Clients
+      .col-lg-3
+        .text-center.counter_box.rounded.text-white.p-4.mt-3
+          .counter_icon.mb-3
+            i.mdi.mdi-code-tags
+          h1.counter_value.mb-1(data-count='5500') 2
+          p.info_name.mb-0 Line&apos;s Of Code
+// Counter End
+// FAQ Start
+section#faq.section_all
+  .container
+    .row
+      .col-lg-12.text-center
+        h4.section-title
+          | frequently asked  
+          span.text_custom questions
+        .section-title-border.mx-auto  
+        p.text-muted.pt-2.section-subtitle.mx-auto
+          | Lorem ipsum dolor sit amet, consectetur adipisicing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.
+    .row.mt-5
+      .col-lg-6
+        .testi-desc.mt-3
+          h6.font-weight-bold Why Can Be Used ?
+          p.text-muted
+            | Porttitor elit consequat mattis ac cum leo ultrices pulvinar torquent urna est volutpat. Ut blandit imperdiet ut praesent metus suspendisse urna hac torquent.
+      .col-lg-6
+        .testi-desc.mt-3
+          h6.font-weight-bold What is a Loren ipsume ?
+          p.text-muted
+            | Lorem ipsum dolor sit amet, consectetuer adipiscing elit. Aenean commodo ligula eget dolor. Aenean massa. Cum sociis natoque penatibus et magnis dis parturient montes, nascetur ridiculus mus. Donec quam felis, ultricies nec.
+    .row.mt-3
+      .col-lg-6
+        .testi-desc.mt-3
+          h6.font-weight-bold Who is Loren ipsume ?
+          p.text-muted
+            | &quot;Porttitor elit consequat mattis ac cum leo ultrices pulvinar torquent urna est volutpat. Ut blandit imperdiet ut praesent metus suspendisse urna hac torquent, ultrices pulvinar torquent urna est volutpat.
+      .col-lg-6
+        .testi-desc.mt-3
+          h6.font-weight-bold Why is Loren ipsume ?
+          p.text-muted
+            | Sed ut perspiciatis unde omnis iste natus error sit voluptatem accusantium doloremque laudantium, totam rem aperiam, eaque ipsa quae ab illo inventore veritatis et quasi architecto beatae vitae dicta sunt explicabo. Nemo enim ipsam voluptatem quia voluptas sit aspernatur aut odit aut fugit.
+// End FAQ
+// Great People Start
+section.section_all.bg-light
+  .container
+    .row
+      .col-lg-12.text-center
+        h4.section-title
+          | Our  
+          span.text_custom Great People
+        .section-title-border.mx-auto  
+        p.text-muted.pt-2.section-subtitle.mx-auto
+          | Lorem ipsum dolor sit amet, consectetur adipisicing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.
+    .row.mt-5
+      .col-lg-2
+        .logo_img.mt-3
+          img.mx-auto.img-fluid.d-block(src='/static/images/client/1.png' alt='logo-img')
+      .col-lg-2
+        .logo_img.mt-3
+          img.mx-auto.img-fluid.d-block(src='/static/images/client/2.png' alt='logo-img')
+      .col-lg-2
+        .logo_img.mt-3
+          img.mx-auto.img-fluid.d-block(src='/static/images/client/3.png' alt='logo-img')
+      .col-lg-2
+        .logo_img.mt-3
+          img.mx-auto.img-fluid.d-block(src='/static/images/client/4.png' alt='logo-img')
+      .col-lg-2
+        .logo_img.mt-3
+          img.mx-auto.img-fluid.d-block(src='/static/images/client/5.png' alt='logo-img')
+      .col-lg-2
+        .logo_img.mt-3
+          img.mx-auto.img-fluid.d-block(src='/static/images/client/6.png' alt='logo-img')
+// Great People End
+// Contact Start
+section#contact.section_all
+  .container
+    .row
+      .col-lg-12.text-center
+        h4.section-title
+          | Get In 
+          span.text_custom Touch
+        .section-title-border.mx-auto  
+        p.text-muted.pt-2.section-subtitle.mx-auto
+          | Lorem ipsum dolor sit amet, consectetur adipisicing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.
+    .row.vertical_content_manage.mt-5
+      .col-lg-5
+        .mt-3
+          .com_logo_here
+            img.img-fluid.d-block(src='/static/images/logo-dark.png' alt='')
+          .mt-3.contact_details.text-muted
+            p.mt-3.mail
+              | E-mail : 
+              a(href='#') Support@info.com
+            p Phone : +789 7069 5656
+            p.mb-0.mt-3
+              | 4021 Par Drive,Mira Loma.
+              br
+              | California,91752.
+            p.mt-3
+              | Lorem ipsum dolor sit amet, consectetuer adipiscing elit. Aenean commodo ligula eget dolor. Aenean massa. Cum sociis natoque penatibus et magnis dis parturient montes, nascetur ridiculus mus.
+            p.mt-3 We are open from 9am - 5pm week days.
+      .col-lg-7
+        .corp_form_custom.bg-white.mt-3
+          form
+            .form-row
+              .col
+                label.col-form-label First name
+                input.form-control(type='text' required='')
+              .col
+                label.col-form-label Last name
+                input.form-control(type='text' required='')
+            .form-row.pt-2
+              .col
+                label.col-form-label You Email
+                input.form-control(type='email' required='')
+            .form-row.pt-2
+              .col
+                label.col-form-label Message
+                textarea#exampleFormControlTextarea1.form-control(rows='3')
+            .pt-3
+              button.btn.btn_custom(type='submit') Send Message
+// End Contact Start
+// Start Footer
+footer.section_all.footer_detail.footer_background
+  .container
+    .row
+      .col-lg-2
+        h6.mt-3.text-white.text-uppercase About
+        ul.list-unstyled.footer_menu_list.mt-3
+          li
+            a(href='') About Skill
+          li
+            a(href='') Case Studies
+          li
+            a(href='') Blog
+          li
+            a(href='') Support
+          li
+            a(href='') Careers
+      .col-lg-3
+        h6.mt-3.text-white.text-uppercase Resources
+        ul.list-unstyled.footer_menu_list.mt-3
+          li
+            a(href='') Pricing
+          li
+            a(href='') How it work
+          li
+            a(href='') Watch a video
+          li
+            a(href='') What people Saying
+          li
+            a(href='') Join Us
+      .col-lg-2
+        h6.mt-3.text-white.text-uppercase Solution
+        ul.list-unstyled.footer_menu_list.mt-3
+          li
+            a(href='') Support
+          li
+            a(href='') Faqs
+          li
+            a(href='') Privacy Policy
+          li
+            a(href='') Tern &amp; Condition
+      .col-lg-2
+        h6.mt-3.text-white.text-uppercase Company
+        ul.list-unstyled.footer_menu_list.mt-3
+          li
+            a(href='') Contact Us
+          li
+            a(href='') Request a Demo
+          li
+            a(href='') Services
+          li
+            a(href='') Knowledge Base
+          li
+            a(href='') Ontario
+      .col-lg-2
+        .mt-3.contact_us_info
+          h6.mt-3.text-white.text-uppercase Contact Us
+          p.mt-3.mail
+            | E-mail : 
+            a(href='#') Sales@.com
+          p Phone : +789 7069 5656
+          p.mb-0.mt-3 4021 Par Drive,Mira Loma.California,91752.
+    .row.mt-3
+      .col-lg-12
+        .text-center.mt-3
+          p.copy-rights.mb-0 2018 &copy; Xaino. Design by Saptavarana.
+        .text-center.icon_social_footer.mt-3
+          ul.list-inline.mb-0
+            li.list-inline-item
+              a(href='')
+                i.mdi.mdi-facebook
+            li.list-inline-item
+              a(href='')
+                i.mdi.mdi-twitter
+            li.list-inline-item
+              a(href='')
+                i.mdi.mdi-linkedin
+            li.list-inline-item
+              a(href='')
+                i.mdi.mdi-google-plus
+// End Footer
+// JAVASCRIPTS
+script(src='/static/js/jquery.min.js' async)
+script(src='/static/js/popper.min.js' async)
+script(src='/static/js/bootstrap.min.js' async)
+// TESTISLIDER JS
+script(src='/static/js/owl.carousel.min.js' async)
+script(src='/static/js/jquery.magnific-popup.min.js' async)
+script(src='/static/js/scrollspy.min.js' async)
+script(src='/static/js/jquery.easing.min.js' async)
+script(src='/static/js/custom.js' async)
