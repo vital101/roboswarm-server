@@ -217,39 +217,8 @@ section#faq.section_all
           p.text-muted
             | Not yet, but soon!
 // End FAQ
-// Great People Start
-section.section_all.bg-light
-  .container
-    .row
-      .col-lg-12.text-center
-        h4.section-title
-          | Our  
-          span.text_custom Great People
-        .section-title-border.mx-auto  
-        p.text-muted.pt-2.section-subtitle.mx-auto
-          | Lorem ipsum dolor sit amet, consectetur adipisicing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.
-    .row.mt-5
-      .col-lg-2
-        .logo_img.mt-3
-          img.mx-auto.img-fluid.d-block(src='/static/images/client/1.png' alt='logo-img')
-      .col-lg-2
-        .logo_img.mt-3
-          img.mx-auto.img-fluid.d-block(src='/static/images/client/2.png' alt='logo-img')
-      .col-lg-2
-        .logo_img.mt-3
-          img.mx-auto.img-fluid.d-block(src='/static/images/client/3.png' alt='logo-img')
-      .col-lg-2
-        .logo_img.mt-3
-          img.mx-auto.img-fluid.d-block(src='/static/images/client/4.png' alt='logo-img')
-      .col-lg-2
-        .logo_img.mt-3
-          img.mx-auto.img-fluid.d-block(src='/static/images/client/5.png' alt='logo-img')
-      .col-lg-2
-        .logo_img.mt-3
-          img.mx-auto.img-fluid.d-block(src='/static/images/client/6.png' alt='logo-img')
-// Great People End
 // Contact Start
-section#contact.section_all
+section#contact.section_all.bg-light
   .container
     .row
       .col-lg-12.text-center
@@ -258,27 +227,20 @@ section#contact.section_all
           span.text_custom Touch
         .section-title-border.mx-auto  
         p.text-muted.pt-2.section-subtitle.mx-auto
-          | Lorem ipsum dolor sit amet, consectetur adipisicing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.
+          | Have questions? Need help? Fill out the form below and we'll reach out.
     .row.vertical_content_manage.mt-5
       .col-lg-5
         .mt-3
           .com_logo_here
-            img.img-fluid.d-block(src='/static/images/logo-dark.png' alt='')
+            img.img-fluid.d-block(src='/static/images/roboswarm-dark.png' alt='')
           .mt-3.contact_details.text-muted
-            p.mt-3.mail
-              | E-mail : 
-              a(href='#') Support@info.com
-            p Phone : +789 7069 5656
-            p.mb-0.mt-3
-              | 4021 Par Drive,Mira Loma.
-              br
-              | California,91752.
             p.mt-3
-              | Lorem ipsum dolor sit amet, consectetuer adipiscing elit. Aenean commodo ligula eget dolor. Aenean massa. Cum sociis natoque penatibus et magnis dis parturient montes, nascetur ridiculus mus.
-            p.mt-3 We are open from 9am - 5pm week days.
+              | We will do our best to respond within 24 hours of receiving your message.
+            p.mb-0.mt-3
+              | Made with &hearts; in Raleigh, NC, USA
       .col-lg-7
         .corp_form_custom.bg-white.mt-3
-          form
+          form(method='POST', action='https://hooks.zapier.com/hooks/catch/4015857/e8ujt7/')
             .form-row
               .col
                 label.col-form-label First name
@@ -300,83 +262,10 @@ section#contact.section_all
 // Start Footer
 footer.section_all.footer_detail.footer_background
   .container
-    .row
-      .col-lg-2
-        h6.mt-3.text-white.text-uppercase About
-        ul.list-unstyled.footer_menu_list.mt-3
-          li
-            a(href='') About Skill
-          li
-            a(href='') Case Studies
-          li
-            a(href='') Blog
-          li
-            a(href='') Support
-          li
-            a(href='') Careers
-      .col-lg-3
-        h6.mt-3.text-white.text-uppercase Resources
-        ul.list-unstyled.footer_menu_list.mt-3
-          li
-            a(href='') Pricing
-          li
-            a(href='') How it work
-          li
-            a(href='') Watch a video
-          li
-            a(href='') What people Saying
-          li
-            a(href='') Join Us
-      .col-lg-2
-        h6.mt-3.text-white.text-uppercase Solution
-        ul.list-unstyled.footer_menu_list.mt-3
-          li
-            a(href='') Support
-          li
-            a(href='') Faqs
-          li
-            a(href='') Privacy Policy
-          li
-            a(href='') Tern &amp; Condition
-      .col-lg-2
-        h6.mt-3.text-white.text-uppercase Company
-        ul.list-unstyled.footer_menu_list.mt-3
-          li
-            a(href='') Contact Us
-          li
-            a(href='') Request a Demo
-          li
-            a(href='') Services
-          li
-            a(href='') Knowledge Base
-          li
-            a(href='') Ontario
-      .col-lg-2
-        .mt-3.contact_us_info
-          h6.mt-3.text-white.text-uppercase Contact Us
-          p.mt-3.mail
-            | E-mail : 
-            a(href='#') Sales@.com
-          p Phone : +789 7069 5656
-          p.mb-0.mt-3 4021 Par Drive,Mira Loma.California,91752.
     .row.mt-3
       .col-lg-12
         .text-center.mt-3
-          p.copy-rights.mb-0 2018 &copy; Xaino. Design by Saptavarana.
-        .text-center.icon_social_footer.mt-3
-          ul.list-inline.mb-0
-            li.list-inline-item
-              a(href='')
-                i.mdi.mdi-facebook
-            li.list-inline-item
-              a(href='')
-                i.mdi.mdi-twitter
-            li.list-inline-item
-              a(href='')
-                i.mdi.mdi-linkedin
-            li.list-inline-item
-              a(href='')
-                i.mdi.mdi-google-plus
+          p.copy-rights.mb-0 2018 &copy; RoboSwarm
 // End Footer
 // JAVASCRIPTS
 script(src='/static/js/jquery.min.js')
