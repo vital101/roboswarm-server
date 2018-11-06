@@ -107,12 +107,14 @@ export async function processSwarmProvisionEvent(event: SwarmProvisionEvent): Pr
                 case SwarmSetupStep.READY: {
                     const isSwarmReady: boolean = await swarmReady(event.createdSwarm.id);
                     if (!isSwarmReady) {
+                        console.log(`Swarm ${event.createdSwarm.id} not ready. Waiting 5 seconds`);
                         const delayTime = new Date();
                         delayTime.setSeconds(delayTime.getSeconds() + 5);
                         event.delayUntil = delayTime;
                         event.steps.unshift(SwarmSetupStep.READY);
                         event.steps.unshift(SwarmSetupStep.DELAY);
                     } else {
+                        console.log(`Swarm ${event.createdSwarm.id} ready.`);
                         await setReadyAt(event.createdSwarm);
                     }
                     break;
@@ -146,6 +148,8 @@ export async function processSwarmProvisionEvent(event: SwarmProvisionEvent): Pr
                         stepToExecute: MachineSetupStep.START_MASTER,
                         steps: []
                     };
+                    // Do we need this? Should be replace event with masterStartEvent
+                    // and let it fall through to the bottom?
                     await enqueue(masterStartEvent);
                     break;
                 }
