@@ -29,7 +29,7 @@ app.use(bodyParser.urlencoded({ extended: true }));
 
 // Static marketing files for development
 if (process.env.NODE_ENV === "development") {
-    app.use("/marketing-static", express.static("theme_base"));
+    app.use("/marketing-static", express.static("marketing-static"));
 }
 
 // Enable CORS
