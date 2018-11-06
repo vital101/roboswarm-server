@@ -10,8 +10,8 @@ const stripePlans: any = {
     },
     production: {
         free: "plan_DsOd6cJgabydY8",
-        startup: "plan_DsOewMGOIvBRfW",
-        enterprise: "plan_DsOfpolJtdkCLD"
+        startup: "plan_DvRC4jdEGKYKZJ",
+        enterprise: "plan_DvRCm2UAaidwN5"
     }
 };
 
