@@ -196,7 +196,7 @@ button {
 }
 
 .navbar-brand img {
-    height: 34px;
+    height: 45px;
 }
 
 .btn-rounded {
@@ -245,9 +245,9 @@ button {
     color: rgba(0, 0, 0, 0.75);
 }
 
-.custom_nav_menu .navbar-brand.logo img {
+/* .custom_nav_menu .navbar-brand.logo img {
     height: 26px;
-}
+} */
 
 .stickyadd.custom_nav_menu {
     margin-top: 0px;
@@ -303,7 +303,7 @@ button {
 ==================*/
 
 .bg_home_landing {
-    background-image: url(../images/bg_home-1.jpg);
+    /* background-image: url(../images/bg_home-1.jpg); */
     position: relative;
     background-size: cover;
     background-position: center center;
