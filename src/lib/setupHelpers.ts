@@ -105,17 +105,24 @@ export async function processSwarmProvisionEvent(event: SwarmProvisionEvent): Pr
                     break;
                 }
                 case SwarmSetupStep.READY: {
-                    const isSwarmReady: boolean = await swarmReady(event.createdSwarm.id);
-                    if (!isSwarmReady) {
-                        console.log(`Swarm ${event.createdSwarm.id} not ready. Waiting 5 seconds`);
-                        const delayTime = new Date();
-                        delayTime.setSeconds(delayTime.getSeconds() + 5);
-                        event.delayUntil = delayTime;
-                        event.steps.unshift(SwarmSetupStep.READY);
-                        event.steps.unshift(SwarmSetupStep.DELAY);
+                    // Has it been destroyed?
+                    const swarm: Swarm = await getSwarmById(event.createdSwarm.id);
+                    if (swarm.destroyed_at) {
+                        console.log(`In SwarmSetupStep.READY: Swarm ${swarm.id} is destroyed. Stopping.`);
+                        return;
                     } else {
-                        console.log(`Swarm ${event.createdSwarm.id} ready.`);
-                        await setReadyAt(event.createdSwarm);
+                        const isSwarmReady: boolean = await swarmReady(event.createdSwarm.id);
+                        if (!isSwarmReady) {
+                            console.log(`Swarm ${event.createdSwarm.id} not ready. Waiting 5 seconds`);
+                            const delayTime = new Date();
+                            delayTime.setSeconds(delayTime.getSeconds() + 5);
+                            event.delayUntil = delayTime;
+                            event.steps.unshift(SwarmSetupStep.READY);
+                            event.steps.unshift(SwarmSetupStep.DELAY);
+                        } else {
+                            console.log(`Swarm ${event.createdSwarm.id} ready.`);
+                            await setReadyAt(event.createdSwarm);
+                        }
                     }
                     break;
                 }
