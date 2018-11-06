@@ -26,7 +26,7 @@ nav.navbar.navbar-expand-lg.fixed-top.custom_nav_menu.sticky
       i.mdi.mdi-menu
     #navbarCollapse.collapse.navbar-collapse
       ul.navbar-nav.ml-auto
-        li.nav-item.active
+        li.nav-item
           a.nav-link(href='#home') Home
         li.nav-item
           a.nav-link(href='#features') Product
@@ -36,6 +36,8 @@ nav.navbar.navbar-expand-lg.fixed-top.custom_nav_menu.sticky
           a.nav-link(href='#faq') Faq
         li.nav-item
           a.nav-link(href='#contact') Contact
+        li.nav-item
+          a.nav-link(href='/app/#/login') Sign In
 // END NAVBAR
 // Home Section Start
 section#home.bg_home_landing.home_half_cover
@@ -54,7 +56,7 @@ section#home.bg_home_landing.home_half_cover
                 p.home_subtitle.mt-4.mx-auto.mb-0
                   | RoboSwarm is a cloud-based distributed load &amp; performance testing platform. Run your Locust load tests at scale with a few simple clicks.
               .home_btn_manage.mt-4.pt-3
-                a.btn.btn_custom.mr-3(href='#') Get Started
+                a.btn.btn_custom.mr-3(href='/app/#/register') Sign Up Now for Free
   .scroll_down
     a.scroll(href='#services')
       i.mdi.mdi-chevron-double-down.text-white
@@ -65,50 +67,50 @@ section#features.section_all
     .row
       .col-lg-12.text-center
         h4.section-title
-          | Our Some Of 
+          | RoboSwarm 
           span.text_custom Features
-        .section-title-border.mx-auto  
+        .section-title-border.mx-auto
         p.text-muted.pt-2.section-subtitle.mx-auto
-          | Lorem ipsum dolor sit amet, consectetur adipisicing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.
+          | RoboSwarm allows you to easily create and execute Locust load tests at scale.
         .section_subtitle_border.mx-auto
     .row.mt-5.vertical_content_manage
       .col-lg-6
         .features_box_content.mt-3
-          h4.font-weight-bold.text-capitalize.features_box_title_top  Corporate &amp; Small businesses collaboration Project.
-          .text-left.feauters-box.feauters-box-right.mt-4
+          h4.font-weight-bold.text-capitalize.features_box_title_top  Locust Load &amp; Performance Testing
+          .text-left.features-box.features-box-right.mt-4
             i.mdi.mdi-airplay
-            .feauters-content
-              h5.text-dark.font-weight-bold Improve Your Marketing business.
-              p.feauters-subtitle.text-muted
-                | It is a long established fact that a reader will be distracted by the readable content of a page when looking at its layout. The point of using Lorem Ipsum.
-          .text-left.feauters-box.feauters-box-right.mt-4
+            .features-content
+              h5.text-dark.font-weight-bold Test From Around the World
+              p.features-subtitle.text-muted
+                | RoboSwarm can load test your application from all over the world. We can spin up Locust load testing clusters in: Amsterdam, Bangalore, Frankfurt, London, New York City, San Francisco, Singapore, &amp; Toronto.
+          .text-left.features-box.features-box-right.mt-4
             i.mdi.mdi-cards-variant
-            .feauters-content
-              h5.text-dark.font-weight-bold  All types element&apos;s of from morder design.
-              p.feauters-subtitle.text-muted
-                | It is a long established fact that a reader will be distracted by the readable content of a page when looking at its layout. The point of using Lorem Ipsum.
+            .features-content
+              h5.text-dark.font-weight-bold  Requests &amp; Distribution Data
+              p.features-subtitle.text-muted
+                | Easily see the status of your load test in real-time or analyze the data after the test has completed.
       .col-lg-6
         .mt-3
-          img.img-fluid.mx-auto.d-block(src='/static/images/features-1.png' alt='' title='features-1')
+          img.img-fluid.mx-auto.d-block(src='/static/images/roboswarm_requests.png' alt='' title='RoboSwarm Requests Chart')
     .row.mt-5.vertical_content_manage
       .col-lg-6
         .mt-3
-          img.img-fluid.mx-auto.d-block(src='/static/images/features-2.png' alt='' title='features-2')
+          img.img-fluid.mx-auto.d-block(src='/static/images/roboswarm_distribution.png' alt='' title='RoboSwarm Distribution Chart')
       .col-lg-6
         .features_box_content.mt-3
-          h4.font-weight-bold.text-capitalize.features_box_title_top  Manage all Those comic Corporate &amp; Small businesses Features.
-          .text-left.feauters-box.feauters-box-right.mt-4
+          h4.font-weight-bold.text-capitalize.features_box_title_top  Any Scale, Any Time
+          .text-left.features-box.features-box-right.mt-4
             i.mdi.mdi-chart-bar
-            .feauters-content
-              h5.text-dark.font-weight-bold Improve Your Marketing business Strategy.
-              p.feauters-subtitle.text-muted
-                | It is a long established fact that a reader will be distracted by the readable content of a page when looking at its layout. The point of using Lorem Ipsum.
-          .text-left.feauters-box.feauters-box-right.mt-4
+            .features-content
+              h5.text-dark.font-weight-bold On-Demand Infrastructure
+              p.features-subtitle.text-muted
+                | RoboSwarm creates your Locust swarms on-demand using Digital Ocean. With no infrastructure to worry about we focus only on making your load testing experience and amazing as possible.
+          .text-left.features-box.features-box-right.mt-4
             i.mdi.mdi-chart-bubble
-            .feauters-content
-              h5.text-dark.font-weight-bold Increase Your Marketing Performance.
-              p.feauters-subtitle.text-muted
-                | It is a long established fact that a reader will be distracted by the readable content of a page when looking at its layout. The point of using Lorem Ipsum.
+            .features-content
+              h5.text-dark.font-weight-bold 1 to Thousands Nodes in an Instant
+              p.features-subtitle.text-muted
+                | By leveraging Digital Ocean's massive hosting infrastructure, we can scale our test clusters from 1 to thousands of test nodes in an instant.
 // Features End
 // Pricing Plan Start
 section#pricing.section_all.bg-light
@@ -116,69 +118,70 @@ section#pricing.section_all.bg-light
     .row
       .col-lg-12.text-center
         h4.section-title
-          | Find the plan That&apos;s 
-          span.text_custom Right for you
+          | Simple Pricing
         .section-title-border.mx-auto  
         p.text-muted.pt-2.section-subtitle.mx-auto
-          | Lorem ipsum dolor sit amet, consectetur adipisicing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.
+          | Our simple pricing plans make it easy to choose the right plan for your team. No credit card required to get started!
     .row.mt-5
       .col-lg-4
         .mt-3.pricing_plan_box.bg-white
           .pricing_header.text-center
             .price-name
-              h4.text-capitalize.font-weight-bold.mb-0 Basic
+              h4.text-capitalize.font-weight-bold.mb-0 Free
             .price_tag_heading.mt-4
               h2.mb-0.font-weight-bold
                 sup $
-                | 49/
+                | 0/
                 span.font-weight-bold Mo
           .divider_line.mx-auto
           .list_price_features.text-muted.text-center.mb-4.mt-4
-            p  Additional Features
-            p Maximum Support
-            p 24/7 Support
-            p Custom Domain
-            p.mb-0 Free Email Support
+            p 5 Machine Hours / Month
+            p 2 Load Tests / Month
+            p 15 Minute Max Test Duration
+            p 5 Day Data Retention
+            p.mb-0 Email Support
+          .text-center
+            a.btn.btn_custom.btn-rounded(href='/app/#/register') Sign up now
+      .col-lg-4
+        .mt-3.pricing_plan_box.bg-white
+          .pricing_header.text-center
+            .price-name
+              h4.text-capitalize.font-weight-bold.mb-0 Startup
+            .price_tag_heading.mt-4
+              h2.mb-0.font-weight-bold
+                sup $
+                | 79/
+                span.font-weight-bold Mo
+          .divider_line.mx-auto
+          .list_price_features.text-muted.text-center.mb-4.mt-4
+            p 1000 Machine Hours / Month
+            p 30 Load Tests / Month
+            p 2 Hour Max Test Duration
+            p 90 Day Data Retention
+            p.mb-0 Scheduled Live Chat &amp; Email Support
           .text-center
             a.btn.btn_custom.btn-rounded(href='#') Sign up now
       .col-lg-4
         .mt-3.pricing_plan_box.bg-white
           .pricing_header.text-center
             .price-name
-              h4.text-capitalize.font-weight-bold.mb-0 Standard
+              h4.text-capitalize.font-weight-bold.mb-0 Enterprise
             .price_tag_heading.mt-4
               h2.mb-0.font-weight-bold
                 sup $
-                | 99/
+                | 399/
                 span.font-weight-bold Mo
           .divider_line.mx-auto
           .list_price_features.text-muted.text-center.mb-4.mt-4
-            p  Additional Features
-            p Maximum Support
-            p 24/7 Support
-            p Custom Domain
-            p.mb-0 Free Email Support
+            p 7000 Machine Hours / Month
+            p 300 Load Tests / Month
+            p 6 Hour Max Test Duration
+            p 1 Year Data Retention
+            p API Access
+            p User / Group Management
+            p.mb-0 Live Chat, Phone, &amp; Email Support
           .text-center
-            a.btn.btn_custom.btn-rounded(href='#') Sign up now
-      .col-lg-4
-        .mt-3.pricing_plan_box.bg-white
-          .pricing_header.text-center
-            .price-name
-              h4.text-capitalize.font-weight-bold.mb-0 Premium
-            .price_tag_heading.mt-4
-              h2.mb-0.font-weight-bold
-                sup $
-                | 199/
-                span.font-weight-bold Mo
-          .divider_line.mx-auto
-          .list_price_features.text-muted.text-center.mb-4.mt-4
-            p  Additional Features
-            p Maximum Support
-            p 24/7 Support
-            p Custom Domain
-            p.mb-0 Free Email Support
-          .text-center
-            a.btn.btn_custom.btn-rounded(href='#') Sign up now
+            a.btn.btn_custom.btn-rounded(href='/') Coming Soon!
 // Pricing Plan End
 // Counter
 section.section_all.bg_counter

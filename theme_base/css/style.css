@@ -475,11 +475,11 @@ button {
     margin-top: 15px;
 }
 
-.feauters-box-right i {
+.features-box-right i {
     float: left;
 }
 
-.feauters-box i {
+.features-box i {
     display: inline-block;
     font-size: 26px;
     width: 55px;
@@ -493,12 +493,12 @@ button {
     background: #15ccbe;
 }
 
-.feauters-content {
+.features-content {
     overflow: hidden;
     padding-left: 26px;
 }
 
-.feauters-subtitle {
+.features-subtitle {
     line-height: 1.6;
 }
 

@@ -30,7 +30,7 @@ const settings: Settings = {
     free: {
         maxMachineHours: 5,
         maxLoadTests: 2,
-        maxLoadTestDurationMinutes: 30,
+        maxLoadTestDurationMinutes: 15,
         dataRetentionDays: 5
     },
     startup: {
