@@ -27,8 +27,9 @@ app.set("port", process.env.PORT || 3000);
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
 
+// Static marketing files for development
 if (process.env.NODE_ENV === "development") {
-    app.use("/static", express.static("theme_base"));
+    app.use("/marketing-static", express.static("theme_base"));
 }
 
 // Enable CORS

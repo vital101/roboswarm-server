@@ -7,21 +7,21 @@ head
   meta(name='keywords' content='')
 
   //- CSS Imports
-  link(rel='stylesheet' href='/static/css/magnific-popup.css')
-  link(href='/static/css/owl.carousel.css' rel='stylesheet')
-  link(href='/static/css/owl.theme.css' rel='stylesheet')
-  link(href='/static/css/owl.transitions.css' rel='stylesheet')
-  link(href='/static/css/mobiriseicons.css' rel='stylesheet')
-  link(rel='stylesheet' type='text/css' href='/static/css/materialdesignicons.min.css')
-  link(rel='stylesheet' href='/static/css/animate.min.css')
-  link(rel='stylesheet' type='text/css' href='/static/css/bootstrap.min.css')
-  link(href='/static/css/style.css' rel='stylesheet')
+  link(rel='stylesheet' href='/marketing-static/css/magnific-popup.css')
+  link(href='/marketing-static/css/owl.carousel.css' rel='stylesheet')
+  link(href='/marketing-static/css/owl.theme.css' rel='stylesheet')
+  link(href='/marketing-static/css/owl.transitions.css' rel='stylesheet')
+  link(href='/marketing-static/css/mobiriseicons.css' rel='stylesheet')
+  link(rel='stylesheet' type='text/css' href='/marketing-static/css/materialdesignicons.min.css')
+  link(rel='stylesheet' href='/marketing-static/css/animate.min.css')
+  link(rel='stylesheet' type='text/css' href='/marketing-static/css/bootstrap.min.css')
+  link(href='/marketing-static/css/style.css' rel='stylesheet')
 
 nav.navbar.navbar-expand-lg.fixed-top.custom_nav_menu.sticky
   .container
     a.navbar-brand.logo(href='/')
-      img.img-fluid.logo-light(src='/static/images/roboswarm.png' alt='RoboSwarm')
-      img.img-fluid.logo-dark(src='/static/images/roboswarm-dark.png' alt='RoboSwarm')
+      img.img-fluid.logo-light(src='/marketing-static/images/roboswarm.png' alt='RoboSwarm')
+      img.img-fluid.logo-dark(src='/marketing-static/images/roboswarm-dark.png' alt='RoboSwarm')
     button.navbar-toggler(type='button' data-toggle='collapse' data-target='#navbarCollapse' aria-controls='navbarCollapse' aria-expanded='false' aria-label='Toggle navigation')
       i.mdi.mdi-menu
     #navbarCollapse.collapse.navbar-collapse
@@ -58,7 +58,7 @@ section#home.bg_home_landing.home_half_cover
               .home_btn_manage.mt-4.pt-3
                 a.btn.btn_custom.mr-3(href='/app/#/register') Sign Up Now for Free
   .scroll_down
-    a.scroll(href='#services')
+    a.scroll(href='#features')
       i.mdi.mdi-chevron-double-down.text-white
 // Home Section End
 // Features Start
@@ -91,11 +91,11 @@ section#features.section_all
                 | Easily see the status of your load test in real-time or analyze the data after the test has completed.
       .col-lg-6
         .mt-3
-          img.img-fluid.mx-auto.d-block(src='/static/images/roboswarm_requests.png' alt='' title='RoboSwarm Requests Chart')
+          img.img-fluid.mx-auto.d-block(src='/marketing-static/images/roboswarm_requests.png' alt='' title='RoboSwarm Requests Chart')
     .row.mt-5.vertical_content_manage
       .col-lg-6
         .mt-3
-          img.img-fluid.mx-auto.d-block(src='/static/images/roboswarm_distribution.png' alt='' title='RoboSwarm Distribution Chart')
+          img.img-fluid.mx-auto.d-block(src='/marketing-static/images/roboswarm_distribution.png' alt='' title='RoboSwarm Distribution Chart')
       .col-lg-6
         .features_box_content.mt-3
           h4.font-weight-bold.text-capitalize.features_box_title_top  Any Scale, Any Time
@@ -232,7 +232,7 @@ section#contact.section_all.bg-light
       .col-lg-5
         .mt-3
           .com_logo_here
-            img.img-fluid.d-block(src='/static/images/roboswarm-dark.png' alt='')
+            img.img-fluid.d-block(src='/marketing-static/images/roboswarm-dark.png' alt='')
           .mt-3.contact_details.text-muted
             p.mt-3
               | We will do our best to respond within 24 hours of receiving your message.
@@ -240,22 +240,24 @@ section#contact.section_all.bg-light
               | Made with &hearts; in Raleigh, NC, USA
       .col-lg-7
         .corp_form_custom.bg-white.mt-3
-          form(method='POST', action='https://hooks.zapier.com/hooks/catch/4015857/e8ujt7/')
+          div.alert.alert-info
+            | Your message was sent successfully.
+          form(id='contact-form')
             .form-row
               .col
                 label.col-form-label First name
-                input.form-control(type='text' required='')
+                input.form-control(id='first-name' type='text' required='')
               .col
                 label.col-form-label Last name
-                input.form-control(type='text' required='')
+                input.form-control(id='last-name' type='text' required='')
             .form-row.pt-2
               .col
                 label.col-form-label You Email
-                input.form-control(type='email' required='')
+                input.form-control(id='email' type='email' required='')
             .form-row.pt-2
               .col
                 label.col-form-label Message
-                textarea#exampleFormControlTextarea1.form-control(rows='3')
+                textarea.form-control(id='message' rows='3')
             .pt-3
               button.btn.btn_custom(type='submit') Send Message
 // End Contact Start
@@ -268,12 +270,12 @@ footer.section_all.footer_detail.footer_background
           p.copy-rights.mb-0 2018 &copy; RoboSwarm
 // End Footer
 // JAVASCRIPTS
-script(src='/static/js/jquery.min.js')
-script(src='/static/js/popper.min.js')
-script(src='/static/js/bootstrap.min.js')
+script(src='/marketing-static/js/jquery.min.js')
+script(src='/marketing-static/js/popper.min.js')
+script(src='/marketing-static/js/bootstrap.min.js')
 // TESTISLIDER JS
-script(src='/static/js/owl.carousel.min.js')
-script(src='/static/js/jquery.magnific-popup.min.js')
-script(src='/static/js/scrollspy.min.js')
-script(src='/static/js/jquery.easing.min.js')
-script(src='/static/js/custom.js')
+script(src='/marketing-static/js/owl.carousel.min.js')
+script(src='/marketing-static/js/jquery.magnific-popup.min.js')
+script(src='/marketing-static/js/scrollspy.min.js')
+script(src='/marketing-static/js/jquery.easing.min.js')
+script(src='/marketing-static/js/custom.js')

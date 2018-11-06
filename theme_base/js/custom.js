@@ -32,9 +32,11 @@
     }
 
     function initScrollspy() {
-        $("#navbarCollapse").scrollspy({
-            offset: 20
-        });
+        try {
+            $("#navbarCollapse").scrollspy({
+                offset: 20
+            });
+        } catch (e) {}
     }
 
     function initTesti() {
@@ -100,13 +102,41 @@
         });
     }
 
+    function initFormSubmit() {
+        $(".corp_form_custom .alert").hide();
+        $("#contact-form").submit(function (e) {
+            e.preventDefault();
+            $("#contact-form button").attr("disabled", "disabled");
+            var message = $("#message").val();
+            var firstName = $("#first-name").val();
+            var lastName = $("#last-name").val();
+            var email = $("#email").val();
+            $.ajax({
+                type: "POST",
+                url: "https://hooks.zapier.com/hooks/catch/4015857/e8ujt7/",
+                data: {
+                    message: message,
+                    firstName: firstName,
+                    lastName: lastName,
+                    email: email
+                },
+                success: function () {
+                    $("#contact-form").hide();
+                    $(".corp_form_custom .alert").show();
+                },
+                dataType: "json"
+            });
+        });
+    }
+
     function init() {
         initNavbarStickey();
         initSmoothLink();
         initScrollspy();
         initTesti();
         initMfpvideo();
-        initCounter();
+        // initCounter();
+        initFormSubmit();
     }
     init();
 
