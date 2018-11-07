@@ -135,8 +135,12 @@
         initScrollspy();
         initTesti();
         initMfpvideo();
-        // initCounter();
         initFormSubmit();
+
+        // Event tracking
+        if (window.NODE_ENV === "production") {
+            amplitude.getInstance().logEvent('HOME_PAGE_VIEW');
+        }
     }
     init();
 
