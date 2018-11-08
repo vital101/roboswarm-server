@@ -826,3 +826,7 @@ a {
         padding: 125px 0 130px 0;
     }
 }
+
+.githublink {
+    color: blue;
+}
