@@ -6,12 +6,14 @@ const stripePlans: any = {
     development: {
         free: "plan_DsOgBFnxs3q0Fu",
         startup: "plan_DsOgpbf6qZDIYc",
-        enterprise: "plan_DsOhDhHNxMpAYi"
+        enterprise: "plan_DsOhDhHNxMpAYi",
+        kernl: "plan_DyknTJNqy6ACNs"
     },
     production: {
         free: "plan_DsOd6cJgabydY8",
         startup: "plan_DvRC4jdEGKYKZJ",
-        enterprise: "plan_DvRCm2UAaidwN5"
+        enterprise: "plan_DvRCm2UAaidwN5",
+        kernl: "plan_DykmMmE8GXyhHi"
     }
 };
 
