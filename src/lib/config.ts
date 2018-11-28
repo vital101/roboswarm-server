@@ -11,6 +11,9 @@ export interface Settings {
     free: Plan;
     startup: Plan;
     enterprise: Plan;
+    "kernl-startup": Plan;
+    "kernl-agency": Plan;
+    "kernl-enterprise": Plan;
 }
 
 export function getPlan(user: User): Plan {
@@ -21,6 +24,12 @@ export function getPlan(user: User): Plan {
         return settings.startup;
         case "enterprise":
         return settings.enterprise;
+        case "kernl-startup":
+        return settings["kernl-startup"];
+        case "kernl-agency":
+        return settings["kernl-agency"];
+        case "kernl-enterprise":
+        return settings["kernl-enterprise"];
         default:
         return settings.free;
     }
@@ -43,6 +52,24 @@ const settings: Settings = {
         maxMachineHours: 7000,
         maxLoadTests: 300,
         maxLoadTestDurationMinutes: 360,
+        dataRetentionDays: 365
+    },
+    "kernl-startup": {
+        maxMachineHours: 5,
+        maxLoadTests: 10,
+        maxLoadTestDurationMinutes: 60,
+        dataRetentionDays: 30
+    },
+    "kernl-agency": {
+        maxMachineHours: 30,
+        maxLoadTests: 30,
+        maxLoadTestDurationMinutes: 120,
+        dataRetentionDays: 90
+    },
+    "kernl-enterprise": {
+        maxMachineHours: 100,
+        maxLoadTests: 100,
+        maxLoadTestDurationMinutes: 300,
         dataRetentionDays: 365
     }
 };

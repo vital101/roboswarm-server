@@ -7,13 +7,17 @@ const stripePlans: any = {
         free: "plan_DsOgBFnxs3q0Fu",
         startup: "plan_DsOgpbf6qZDIYc",
         enterprise: "plan_DsOhDhHNxMpAYi",
-        kernl: "plan_DyknTJNqy6ACNs"
+        "kernl-startup": "plan_DyknTJNqy6ACNs",
+        "kernl-agency": "plan_E3aMdXLF4hCW55",
+        "kernl-enterprise": "plan_E3aMDZSnshUS25"
     },
     production: {
         free: "plan_DsOd6cJgabydY8",
         startup: "plan_DvRC4jdEGKYKZJ",
         enterprise: "plan_DvRCm2UAaidwN5",
-        kernl: "plan_DykmMmE8GXyhHi"
+        "kernl-startup": "plan_DykmMmE8GXyhHi",
+        "kernl-agency": "plan_E3ah8NqlDIlvDM",
+        "kernl-enterprise": "plan_E3ah84PpFz2ecD"
     }
 };
 
@@ -67,7 +71,6 @@ export async function setStripePlan(userId: number, planName: string): Promise<v
             customer: user.stripe_id,
             items: [{ plan: getPlanId(planName) }]
         };
-        console.log({ createOptions });
         await stripe.subscriptions.create(createOptions);
     }
 
