@@ -1,4 +1,5 @@
 import { db } from "../lib/db";
+import * as moment from "moment";
 
 export interface Request {
     id?: number;
@@ -12,6 +13,7 @@ export interface Request {
     max_response_time: number;
     avg_content_size: number;
     requests_per_second: number;
+    failures_per_second?: number;
 }
 
 export interface RequestFinal extends Request {
@@ -33,6 +35,24 @@ export interface DistributionFinal extends Distribution {
 }
 
 export async function createRequest(request: Request): Promise<Request> {
+    const latestRequestResult: Request[] = await db("load_test_requests")
+        .where({ swarm_id : request.swarm_id })
+        .orderBy("created_at", "DESC")
+        .limit(1);
+
+    // Determine failures per second. This compares the last request we have with this one
+    // figures out how much time passed, and then averages total failures per second over
+    // that period.
+    let failuresPerSecond = 0;
+    if (latestRequestResult && latestRequestResult.length === 1) {
+        const start: moment.Moment = moment(latestRequestResult[0].created_at);
+        const end: moment.Moment = moment(request.created_at);
+        const duration: moment.Duration = moment.duration(start.diff(end));
+        const totalSeconds: number = Math.ceil(Math.abs(duration.asSeconds()));
+        failuresPerSecond = Math.ceil((request.failures - latestRequestResult[0].failures) / totalSeconds);
+    }
+
+    request.failures_per_second = failuresPerSecond;
     const result: Request[] = await db("load_test_requests")
         .insert(request)
         .returning("*");
