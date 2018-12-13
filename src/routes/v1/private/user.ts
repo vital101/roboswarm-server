@@ -3,6 +3,7 @@ import { RoboRequest, RoboResponse } from "../../../interfaces/shared.interface"
 import * as User from "../../../models/User";
 import * as Stripe from "../../../lib/stripe";
 import { sendEmail } from "../../../lib/email";
+import { getUserResourceAvailability, ResourceAvailability } from "../../../lib/authorization";
 
 interface UserBodyResponse extends RoboResponse {
     json: (user: User.User) => any;
@@ -23,6 +24,10 @@ interface SetPlanRequest extends RoboRequest {
 
 interface UpdateCardRequest extends RoboRequest {
     body: UpdateCardBody;
+}
+
+interface ResourceResponse extends RoboResponse {
+    json: (resources: ResourceAvailability) => any;
 }
 
 const router = Router();
@@ -52,6 +57,14 @@ router.route("/me/plan")
             res.status(500);
             res.send(err.toString());
         }
+    });
+
+router.route("/me/resources")
+    .get(async (req: RoboRequest, res: ResourceResponse) => {
+        const user: User.User = await User.getById(req.user.id);
+        const resources: ResourceAvailability = await getUserResourceAvailability(user);
+        res.status(200);
+        res.json(resources);
     });
 
 router.route("/me")

@@ -11,6 +11,16 @@ export interface DateRange {
     end: Date;
 }
 
+export interface ResourceAvailability {
+    resetsOnDate: Date;
+    delinquent: boolean;
+    loadTests: number;
+    machineSeconds: number;
+    maxDurationMinutes: number;
+    maxLoadTests: number;
+    maxMachineSeconds: number;
+}
+
 export async function getAuthorizationDateRange(user: User): Promise<DateRange> {
     const subscription: Stripe.subscriptions.ISubscription = await stripeHelpers.getUserSubscription(user);
     return {
@@ -24,12 +34,6 @@ export async function willExceedMaxMachineHours(user: User, testDurationInMinute
     const total: number = await Swarm.totalMachineSecondsInPeriod(queryDateRange.start, queryDateRange.end, user.group.id);
     const maxAllowedMachineSeconds: number = getPlan(user).maxMachineHours * 60 * 60;
     const testDurationInSeconds = testDurationInMinutes * 60;
-    console.log({
-        queryDateRange,
-        total,
-        maxAllowedMachineSeconds,
-        testDurationInSeconds
-    });
     return ((total + testDurationInSeconds) > maxAllowedMachineSeconds);
 }
 
@@ -37,11 +41,6 @@ export async function willExceedMaxLoadTests(user: User): Promise<boolean> {
     const queryDateRange: DateRange = await getAuthorizationDateRange(user);
     const swarmsInRange: number = await Swarm.getSwarmsInDateRange(queryDateRange.start, queryDateRange.end, user.group.id);
     const maxLoadTests: number = getPlan(user).maxLoadTests;
-    console.log({
-        queryDateRange,
-        swarmsInRange,
-        maxLoadTests
-    });
     return swarmsInRange < maxLoadTests ? false : true;
 }
 
@@ -88,4 +87,22 @@ export async function canCreateSwarm(user: User, swarm: Swarm.NewSwarm): Promise
     }
 
     return true;
+}
+
+export async function getUserResourceAvailability(user: User): Promise<ResourceAvailability> {
+    const queryDateRange: DateRange = await getAuthorizationDateRange(user);
+    const swarmsInRange: number = await Swarm.getSwarmsInDateRange(queryDateRange.start, queryDateRange.end, user.group.id);
+    const maxLoadTests: number = getPlan(user).maxLoadTests;
+    const totalMachineSeconds: number = await Swarm.totalMachineSecondsInPeriod(queryDateRange.start, queryDateRange.end, user.group.id);
+    const maxAllowedMachineSeconds: number = getPlan(user).maxMachineHours * 60 * 60;
+    return {
+        resetsOnDate: queryDateRange.end,
+        delinquent: user.is_delinquent,
+        loadTests: swarmsInRange,
+        maxLoadTests: maxLoadTests,
+        machineSeconds: Math.floor(totalMachineSeconds),
+        maxMachineSeconds: maxAllowedMachineSeconds,
+        maxDurationMinutes: getPlan(user).maxLoadTestDurationMinutes,
+    };
+
 }

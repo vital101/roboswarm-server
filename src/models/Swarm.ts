@@ -421,7 +421,7 @@ export async function totalMachineSecondsInPeriod(start: Date, end: Date, group_
             if (machine.created_at && machine.destroyed_at) {
                 const created = moment(machine.created_at);
                 const destroyed = moment(machine.destroyed_at);
-                totalSeconds += moment.duration(created.diff(destroyed)).asSeconds();
+                totalSeconds += Math.abs(moment.duration(created.diff(destroyed)).asSeconds());
             } else {
                 totalSeconds += swarm.duration * 60;
             }
