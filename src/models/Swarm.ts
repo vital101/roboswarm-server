@@ -442,3 +442,24 @@ export async function getActiveSwarms(): Promise<Swarm[]> {
     const swarms: Swarm[] = await db("swarm").whereNull("destroyed_at");
     return swarms;
 }
+
+export async function createRepeatSwarmRequest(swarmId: number): Promise<NewSwarm> {
+    const oldSwarm: Swarm = await getById(swarmId);
+    const newSwarm: NewSwarm = {
+        name: oldSwarm.name,
+        duration: oldSwarm.duration,
+        simulated_users: oldSwarm.simulated_users,
+        file_path: oldSwarm.file_path,
+        host_url: oldSwarm.host_url,
+        spawn_rate: oldSwarm.spawn_rate,
+        machines: [],
+        region: oldSwarm.region,
+        swarm_ui_type: oldSwarm.swarm_ui_type
+    };
+    const oldMachines: Machine.Machine[] = await getSwarmMachines(swarmId);
+    newSwarm.machines = oldMachines.map(() => {
+        return { region: oldSwarm.region };
+    });
+    return newSwarm;
+
+}

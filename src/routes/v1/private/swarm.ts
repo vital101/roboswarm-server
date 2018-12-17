@@ -33,6 +33,10 @@ interface LoadTestMetricsRequest extends RoboRequest {
     body: LoadTestMetricsQuery;
 }
 
+interface RepeatSwarmResponse extends RoboResponse {
+    json: (newSwarm: Swarm.Swarm) => any;
+}
+
 const router = Router();
 
 const upload = multer({
@@ -69,6 +73,26 @@ router.route("/:id/metrics")
         } catch (err) {
             res.status(500);
             res.json(err);
+        }
+    });
+
+router.route("/:id/repeat")
+    .post(async (req: RoboRequest, res: RepeatSwarmResponse) => {
+        const newSwarm: Swarm.NewSwarm = await Swarm.createRepeatSwarmRequest(req.params.id);
+        const user: User.User = await User.getById(req.user.id);
+        const canProceed: boolean | RoboError = await canCreateSwarm(user, req.body);
+        if (canProceed !== true) {
+            const err = canProceed as RoboError;
+            res.status(err.status);
+            res.send(err.err);
+        } else {
+            try {
+                const mySwarm: Swarm.Swarm = await Swarm.create(newSwarm, req.user.id, req.user.groupId);
+                res.status(201);
+                res.json(mySwarm);
+            } catch (err) {
+                console.log(err);
+            }
         }
     });
 
