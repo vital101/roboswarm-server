@@ -80,7 +80,7 @@ router.route("/:id/repeat")
     .post(async (req: RoboRequest, res: RepeatSwarmResponse) => {
         const newSwarm: Swarm.NewSwarm = await Swarm.createRepeatSwarmRequest(req.params.id);
         const user: User.User = await User.getById(req.user.id);
-        const canProceed: boolean | RoboError = await canCreateSwarm(user, req.body);
+        const canProceed: boolean | RoboError = await canCreateSwarm(user, newSwarm);
         if (canProceed !== true) {
             const err = canProceed as RoboError;
             res.status(err.status);
@@ -91,7 +91,8 @@ router.route("/:id/repeat")
                 res.status(201);
                 res.json(mySwarm);
             } catch (err) {
-                console.log(err);
+                res.status(500);
+                res.send("There was an error creating your new swarm.");
             }
         }
     });
