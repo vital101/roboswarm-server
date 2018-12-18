@@ -34,6 +34,7 @@ export interface Swarm {
     swarm_ui_type: string;
     master_ip?: string;
     size?: number;
+    currentUsers?: number;
 }
 
 export interface NewSwarm {
@@ -185,6 +186,18 @@ export async function getById(id: number): Promise<Swarm> {
     });
     data.file_transfer_complete = file_transfer_complete;
     data.setup_complete = setup_complete;
+    data.currentUsers = 0;
+
+    // Calculate the current number of users
+    const metrics: LoadTest.Request[] = await LoadTest.getLastRequestMetricForSwarm(id);
+    const lastMetric: LoadTest.Request = metrics && metrics.length > 0 ? metrics[0] : undefined;
+    if (lastMetric) {
+        const swarmReady: moment.Moment = moment(data.ready_at);
+        const duration: moment.Duration = moment.duration(swarmReady.diff(lastMetric.created_at));
+        const seconds: number = Math.abs(duration.asSeconds());
+        const currentUsers = Math.floor(seconds * data.spawn_rate);
+        data.currentUsers = currentUsers <= data.simulated_users ? currentUsers : data.simulated_users;
+    }
 
     return data;
 }

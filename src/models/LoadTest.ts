@@ -90,6 +90,15 @@ export async function getRequestsInRange(swarm_id: number, startId?: number): Pr
     return result;
 }
 
+export async function getLastRequestMetricForSwarm(swarm_id: number): Promise<Request[]> {
+    const results: Request[] = await db("load_test_requests")
+        .where({ swarm_id })
+        .orderBy("created_at", "DESC")
+        .limit(1);
+
+    return results;
+}
+
 export async function getDistributionsInRange(swarm_id: number, startId?: number): Promise<Distribution[]> {
     let query = db("load_test_distribution").where({ swarm_id });
     if (startId) { query = query.andWhere("id", ">", startId); }
