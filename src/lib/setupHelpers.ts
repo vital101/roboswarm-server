@@ -25,6 +25,7 @@ import {
 import { enqueue } from "./events";
 import { getSwarmMachineIds } from "../models/SwarmMachine";
 import { Status } from "../interfaces/shared.interface";
+import { parse as parseURL } from "url";
 
 export async function nextStep(event: MachineProvisionEvent|SwarmProvisionEvent) {
     if (event.steps.length > 0) {
@@ -234,6 +235,10 @@ export async function processMachineProvisionEvent(event: MachineProvisionEvent)
                     }
                     break;
                 }
+                case MachineSetupStep.TRACEROUTE: {
+                    await traceRoute(event.machine.id, event.machine.ip_address, event.swarm.host_url, event.sshKey.private);
+                    break;
+                }
                 case MachineSetupStep.PACKAGE_INSTALL: {
                     await installPackagesOnMachine(event.machine.ip_address, event.sshKey.private);
                     break;
@@ -277,11 +282,26 @@ export async function installPackagesOnMachine(machineIp: string, privateKey: st
     });
     const commands: Array<string> = [
         "apt-get update",
-        "apt-get install -y python2.7 python-pip unzip"
+        "apt-get install -y python2.7 python-pip unzip traceroute"
     ];
     await ssh.execCommand(commands.join(" && "));
     ssh.connection.end();
     console.log(`Finished package install on ${machineIp}`);
+}
+
+export async function traceRoute(machineId: number, machineIp: string, hostUrl: string, privateKey: string): Promise<void> {
+    const ssh = new node_ssh();
+    const domain = parseURL(hostUrl);
+    console.log(`Starting traceroute on ${machineIp} to ${domain.host}`);
+    await ssh.connect({
+        host: machineIp,
+        username: "root",
+        privateKey,
+    });
+    const output = await ssh.execCommand(`traceroute ${domain.host}`);
+    ssh.connection.end();
+    await Machine.update(machineId, { traceroute: output.stdout });
+    console.log(`Finished traceroute on ${machineIp} to ${domain.host}`);
 }
 
 export async function transferFileToMachine(machineIp: string, filePath: string, privateKey: string): Promise<void> {

@@ -39,8 +39,13 @@ interface RepeatSwarmResponse extends RoboResponse {
     json: (newSwarm: Swarm.Swarm) => any;
 }
 
+interface IPAddress {
+    ip_address: string;
+    traceroute: string;
+}
+
 interface LoadTestIpAddressesResponse extends RoboResponse {
-    json: (ips: string[]) => any;
+    json: (ips: IPAddress[]) => any;
 }
 
 const router = Router();
@@ -85,7 +90,14 @@ router.route("/:id/metrics")
 router.route("/:id/ip-addresses")
     .get(async (req: RoboRequest, res: LoadTestIpAddressesResponse) => {
         const machines: Machine.Machine[] = await SwarmMachine.getSwarmMachines(req.params.id);
-        const ips: string[] = machines.filter(m => !m.is_master).map(m => m.ip_address);
+        const ips: IPAddress[] = machines
+            .filter(m => !m.is_master)
+            .map(m => {
+                return {
+                    ip_address: m.ip_address,
+                    traceroute: m.traceroute
+                };
+            });
         res.status(200);
         res.json(ips);
     });
