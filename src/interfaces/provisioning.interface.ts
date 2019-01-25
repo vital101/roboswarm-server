@@ -11,7 +11,8 @@ export enum MachineSetupStep {
     TRANSFER_FILE,
     UNZIP_AND_PIP_INSTALL,
     START_MASTER,
-    START_SLAVE
+    START_SLAVE,
+    TRACEROUTE
 }
 
 export enum SwarmSetupStep {

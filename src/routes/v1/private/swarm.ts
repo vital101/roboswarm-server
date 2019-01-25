@@ -1,5 +1,7 @@
 import { Router } from "express";
 import * as Swarm from "../../../models/Swarm";
+import * as Machine from "../../../models/Machine";
+import * as SwarmMachine from "../../../models/SwarmMachine";
 import * as LoadTest from "../../../models/LoadTest";
 import * as User from "../../../models/User";
 import { RoboRequest, RoboResponse, RoboError } from "../../../interfaces/shared.interface";
@@ -35,6 +37,15 @@ interface LoadTestMetricsRequest extends RoboRequest {
 
 interface RepeatSwarmResponse extends RoboResponse {
     json: (newSwarm: Swarm.Swarm) => any;
+}
+
+interface IPAddress {
+    ip_address: string;
+    traceroute: string;
+}
+
+interface LoadTestIpAddressesResponse extends RoboResponse {
+    json: (ips: IPAddress[]) => any;
 }
 
 const router = Router();
@@ -74,6 +85,21 @@ router.route("/:id/metrics")
             res.status(500);
             res.json(err);
         }
+    });
+
+router.route("/:id/ip-addresses")
+    .get(async (req: RoboRequest, res: LoadTestIpAddressesResponse) => {
+        const machines: Machine.Machine[] = await SwarmMachine.getSwarmMachines(req.params.id);
+        const ips: IPAddress[] = machines
+            .filter(m => !m.is_master)
+            .map(m => {
+                return {
+                    ip_address: m.ip_address,
+                    traceroute: m.traceroute
+                };
+            });
+        res.status(200);
+        res.json(ips);
     });
 
 router.route("/:id/repeat")

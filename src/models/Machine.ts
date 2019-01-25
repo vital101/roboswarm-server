@@ -20,6 +20,7 @@ export interface Machine {
     is_master: boolean;
     dependency_install_complete: boolean;
     port_open_complete: boolean;
+    traceroute?: string;
 }
 
 export interface NewMachine {
@@ -53,6 +54,7 @@ export async function create(machine: NewMachine, swarm: Swarm, key: SSHKey): Pr
             MachineSetupStep.DELAY,
             MachineSetupStep.OPEN_PORTS,
             MachineSetupStep.PACKAGE_INSTALL,
+            MachineSetupStep.TRACEROUTE,
             MachineSetupStep.TRANSFER_FILE,
             MachineSetupStep.UNZIP_AND_PIP_INSTALL
         ],
