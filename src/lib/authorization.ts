@@ -49,6 +49,10 @@ export function willExceedMaxLoadTestDuration(user: User, proposedSwarmDuration:
     return proposedSwarmDuration > plan.maxLoadTestDurationMinutes;
 }
 
+export function willExceedMaxUsers(user: User, requestedUsers: number): boolean {
+    return requestedUsers > getPlan(user).maxUsers;
+}
+
 export async function canCreateSwarm(user: User, swarm: Swarm.NewSwarm): Promise<RoboError|boolean> {
     if (await Swarm.willExceedDropletPoolAvailability(swarm.machines.length)) {
         return {
@@ -75,6 +79,14 @@ export async function canCreateSwarm(user: User, swarm: Swarm.NewSwarm): Promise
     if (await willExceedMaxLoadTestDuration(user, swarm.duration)) {
         return {
             err: "This request will exceed the maximum load test duration for your account. Please try again with a shorter duration.",
+            status: 403
+        };
+    }
+
+    if (await willExceedMaxUsers(user, swarm.simulated_users)) {
+        const maxUsers = getPlan(user).maxUsers;
+        return {
+            err: `This request will exceed the maximum number of users (${maxUsers}) allowed by your account. To run a larger load test, upgrade to a bigger plan.`,
             status: 403
         };
     }

@@ -5,6 +5,7 @@ export interface Plan {
     maxLoadTests: number;
     maxLoadTestDurationMinutes: number;
     dataRetentionDays: number;
+    maxUsers: number;
 }
 
 export interface Settings {
@@ -40,36 +41,42 @@ const settings: Settings = {
         maxMachineHours: 5,
         maxLoadTests: 2,
         maxLoadTestDurationMinutes: 15,
-        dataRetentionDays: 5
+        dataRetentionDays: 5,
+        maxUsers: 100
     },
     startup: {
         maxMachineHours: 1000,
         maxLoadTests: 30,
         maxLoadTestDurationMinutes: 120,
-        dataRetentionDays: 90
+        dataRetentionDays: 90,
+        maxUsers: 5000
     },
     enterprise: {
         maxMachineHours: 7000,
         maxLoadTests: 300,
         maxLoadTestDurationMinutes: 360,
-        dataRetentionDays: 365
+        dataRetentionDays: 365,
+        maxUsers: 40000
     },
     "kernl-startup": {
         maxMachineHours: 5,
         maxLoadTests: 10,
         maxLoadTestDurationMinutes: 60,
-        dataRetentionDays: 30
+        dataRetentionDays: 30,
+        maxUsers: 2000
     },
     "kernl-agency": {
         maxMachineHours: 30,
         maxLoadTests: 30,
         maxLoadTestDurationMinutes: 120,
-        dataRetentionDays: 90
+        dataRetentionDays: 90,
+        maxUsers: 10000
     },
     "kernl-enterprise": {
         maxMachineHours: 100,
         maxLoadTests: 100,
         maxLoadTestDurationMinutes: 300,
-        dataRetentionDays: 365
+        dataRetentionDays: 365,
+        maxUsers: 25000
     }
 };

@@ -8,7 +8,6 @@ export interface Message {
 }
 
 export async function sendEmail(message: Message): Promise<void> {
-    console.log("Key: ", process.env.SENDGRID_API_KEY);
     sgMail.setApiKey(process.env.SENDGRID_API_KEY);
     await sgMail.send(message);
 }
