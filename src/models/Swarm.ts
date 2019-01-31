@@ -35,6 +35,7 @@ export interface Swarm {
     master_ip?: string;
     size?: number;
     currentUsers?: number;
+    soft_delete?: boolean;
 }
 
 export interface NewSwarm {
@@ -203,7 +204,12 @@ export async function getById(id: number): Promise<Swarm> {
 }
 
 export async function getByGroupId(groupId: number): Promise<Array<Swarm>> {
-    const swarmQuery = db("swarm").where("group_id", groupId).orderBy("created_at", "DESC");
+    const swarmQuery = db("swarm")
+        .where({
+            group_id: groupId,
+            soft_delete: false
+        })
+        .orderBy("created_at", "DESC");
     const swarms: Array<Swarm> = await swarmQuery;
     const swarmSizes: any = {};
     const swarmStatus: any = {};
@@ -475,4 +481,11 @@ export async function createRepeatSwarmRequest(swarmId: number): Promise<NewSwar
     });
     return newSwarm;
 
+}
+
+export async function softDelete(swarmId: number, group_id: number): Promise<Swarm> {
+    await db("swarm")
+        .update({ soft_delete: true })
+        .where({ id: swarmId, group_id });
+    return await getById(swarmId);
 }
