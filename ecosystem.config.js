@@ -32,7 +32,7 @@ module.exports = {
   deploy : {
     production : {
       user : 'root',
-      host : '45.55.43.188',
+      host : ['45.55.43.188', 'roboswarm.kernl.us'],
       ref  : 'origin/master',
       repo : 'git@bitbucket.org:roboswarm/roboswarm-server.git',
       path : '/var/www/roboswarm',
