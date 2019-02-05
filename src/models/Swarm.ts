@@ -489,3 +489,10 @@ export async function softDelete(swarmId: number, group_id: number): Promise<Swa
         .where({ id: swarmId, group_id });
     return await getById(swarmId);
 }
+
+export async function decrementSwarmSize(swarmId: number): Promise<Swarm> {
+    await db("swarm")
+        .where({ id: swarmId })
+        .decrement("size", 1);
+    return await getById(swarmId);
+}

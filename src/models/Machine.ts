@@ -7,6 +7,7 @@ import * as SwarmMachine from "./SwarmMachine";
 import { SSHKey } from "./SSHKey";
 import { enqueue } from "../lib/events";
 import { MachineProvisionEvent, WorkerEventType, MachineSetupStep } from "../interfaces/provisioning.interface";
+import * as moment from "moment";
 
 export interface Machine {
     id: number;
@@ -183,4 +184,12 @@ export async function update(id: number, data: any): Promise<void> {
     await db("machine")
         .update(data)
         .where("id", id);
+}
+
+export async function shouldDeprovision(id: number): Promise<boolean> {
+    const m: Machine = await findById(id);
+    const timeStamp: moment.Moment = moment(m.created_at);
+    const diff: number = timeStamp.diff(moment(), "minutes");
+    return diff >= 4;
+
 }

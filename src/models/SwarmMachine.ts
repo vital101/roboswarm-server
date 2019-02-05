@@ -46,3 +46,10 @@ export async function getSwarmIdByMachineId(machineId: number): Promise<number> 
     const result: SwarmMachine[] = await db("swarm_machine").where({ machine_id: machineId });
     return result[0].swarm_id;
 }
+
+export async function removeMachineFromSwarm(machineId: number, swarmId: number): Promise<void> {
+    const query = db("swarm_machine")
+        .where({ swarm_id: swarmId, machine_id: machineId })
+        .delete();
+    await query;
+}

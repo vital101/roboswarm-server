@@ -12,7 +12,8 @@ import {
     destroyById as destroySwarmById,
     provision as provisionSwarm,
     getById as getSwarmById,
-    shouldStop } from "../models/Swarm";
+    shouldStop,
+    decrementSwarmSize } from "../models/Swarm";
 import {
     SwarmProvisionEvent,
     MachineProvisionEvent,
@@ -23,7 +24,7 @@ import {
     DeprovisionEventType,
     DataCaptureEvent } from "../interfaces/provisioning.interface";
 import { enqueue } from "./events";
-import { getSwarmMachineIds } from "../models/SwarmMachine";
+import { getSwarmMachineIds, removeMachineFromSwarm } from "../models/SwarmMachine";
 import { Status } from "../interfaces/shared.interface";
 import { parse as parseURL } from "url";
 
@@ -230,8 +231,29 @@ export async function processMachineProvisionEvent(event: MachineProvisionEvent)
                     if (ready) {
                         event.machine = await Machine.findById(event.machine.id);
                     } else {
-                        await asyncSleep(5);
-                        event.steps.unshift(MachineSetupStep.MACHINE_READY);
+                        const shouldDeprovision = await Machine.shouldDeprovision(event.machine.id);
+                        if (shouldDeprovision) {
+                            while (event.steps.length > 0) { event.steps.pop(); }
+                            await removeMachineFromSwarm(event.machine.id, event.swarm.id);
+                            const updatedSwarm: Swarm = await decrementSwarmSize(event.swarm.id);
+                            if (updatedSwarm.size <= 1) {
+                                await destroySwarmById(event.swarm.id, event.swarm.group_id);
+                            } else {
+                                const machineDestroyEvent: DeprovisionEvent = {
+                                    id: event.machine.id,
+                                    eventType: WorkerEventType.DEPROVISION,
+                                    deprovisionType: DeprovisionEventType.MACHINE,
+                                    maxRetries: 10,
+                                    currentTry: 0,
+                                    lastActionTime: new Date(),
+                                    errors: []
+                                };
+                                await enqueue(machineDestroyEvent);
+                            }
+                        } else {
+                            await asyncSleep(5);
+                            event.steps.unshift(MachineSetupStep.MACHINE_READY);
+                        }
                     }
                     break;
                 }
