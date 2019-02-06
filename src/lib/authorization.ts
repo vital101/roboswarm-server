@@ -54,51 +54,59 @@ export function willExceedMaxUsers(user: User, requestedUsers: number): boolean 
 }
 
 export async function canCreateSwarm(user: User, swarm: Swarm.NewSwarm): Promise<RoboError|boolean> {
-    if (await Swarm.willExceedDropletPoolAvailability(swarm.machines.length)) {
+    try {
+        if (await Swarm.willExceedDropletPoolAvailability(swarm.machines.length)) {
+            return {
+                err: "This request will exceed the resources that RoboSwarm has available. Our team has been notified.",
+                status: 500
+            };
+        }
+
+        const swarmMachineMinutes: number = swarm.duration * swarm.machines.length;
+        if (await willExceedMaxMachineHours(user, swarmMachineMinutes)) {
+            return {
+                err: "This request will exceed the number of hours you have left on your plan before your next billing cycle. Try a smaller swarm size.",
+                status: 403
+            };
+        }
+
+        if (await willExceedMaxLoadTests(user)) {
+            return {
+                err: "This request will exceed the maximum number of load tests that your plan allows.",
+                status: 403
+            };
+        }
+
+        if (await willExceedMaxLoadTestDuration(user, swarm.duration)) {
+            return {
+                err: "This request will exceed the maximum load test duration for your account. Please try again with a shorter duration.",
+                status: 403
+            };
+        }
+
+        if (await willExceedMaxUsers(user, swarm.simulated_users)) {
+            const maxUsers = getPlan(user).maxUsers;
+            return {
+                err: `This request will exceed the maximum number of users (${maxUsers}) allowed by your account. To run a larger load test, upgrade to a bigger plan.`,
+                status: 403
+            };
+        }
+
+        if (user.is_delinquent) {
+            return {
+                err: "This account is past due. You cannot create swarms while your account is past due.",
+                status: 402
+            };
+        }
+
+        return true;
+    } catch (err) {
+        console.error(err);
         return {
-            err: "This request will exceed the resources that RoboSwarm has available. Our team has been notified.",
+            err: "There was error verifying your account status. Please reach out to jack@kernl.us",
             status: 500
         };
     }
-
-    const swarmMachineMinutes: number = swarm.duration * swarm.machines.length;
-    if (await willExceedMaxMachineHours(user, swarmMachineMinutes)) {
-        return {
-            err: "This request will exceed the number of hours you have left on your plan before your next billing cycle. Try a smaller swarm size.",
-            status: 403
-        };
-    }
-
-    if (await willExceedMaxLoadTests(user)) {
-        return {
-            err: "This request will exceed the maximum number of load tests that your plan allows.",
-            status: 403
-        };
-    }
-
-    if (await willExceedMaxLoadTestDuration(user, swarm.duration)) {
-        return {
-            err: "This request will exceed the maximum load test duration for your account. Please try again with a shorter duration.",
-            status: 403
-        };
-    }
-
-    if (await willExceedMaxUsers(user, swarm.simulated_users)) {
-        const maxUsers = getPlan(user).maxUsers;
-        return {
-            err: `This request will exceed the maximum number of users (${maxUsers}) allowed by your account. To run a larger load test, upgrade to a bigger plan.`,
-            status: 403
-        };
-    }
-
-    if (user.is_delinquent) {
-        return {
-            err: "This account is past due. You cannot create swarms while your account is past due.",
-            status: 402
-        };
-    }
-
-    return true;
 }
 
 export async function getUserResourceAvailability(user: User): Promise<ResourceAvailability> {
