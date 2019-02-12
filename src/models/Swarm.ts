@@ -365,11 +365,21 @@ export async function fetchLoadTestMetrics(swarm: Swarm, isFinal?: boolean): Pro
                 try {
                     const splitRow = row.split(",");
                     const methodRoute = splitRow[0].split(" ");
+                    let method = "";
+                    try {
+                        method = methodRoute[0].replace(/\"/g, "");
+                    } catch (err) { }
+
+                    let route = "";
+                    try {
+                        route = methodRoute[1].replace(/\"/g, "");
+                    } catch (err) { }
+
                     const data: LoadTest.DistributionFinal = {
                         swarm_id: swarm.id,
                         created_at: new Date(),
-                        method: methodRoute[0].replace(/\"/g, ""),
-                        route: methodRoute[1].replace(/\"/g, ""),
+                        method,
+                        route,
                         requests: parseInt(splitRow[1], 10),
                         percentiles: JSON.stringify({
                             "50%": splitRow[2],
