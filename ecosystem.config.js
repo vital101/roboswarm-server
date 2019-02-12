@@ -20,7 +20,7 @@ module.exports = {
   {
     name: 'RoboSwarm Workers',
     script: 'dist/workers/provisionWorker.js',
-    instances: 5,
+    instances: 3,
     autorestart: true,
     watch: false,
     max_memory_restart: '200M',
@@ -32,7 +32,7 @@ module.exports = {
   deploy : {
     production : {
       user : 'root',
-      host : '45.55.43.188',
+      host : [/*'45.55.43.188', */'roboswarm.kernl.us'],
       ref  : 'origin/master',
       repo : 'git@bitbucket.org:roboswarm/roboswarm-server.git',
       path : '/var/www/roboswarm',

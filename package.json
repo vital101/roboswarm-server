@@ -91,7 +91,7 @@
     "concurrently": "^3.5.1",
     "gulp": "^3.9.1",
     "gulp-ssh": "^0.7.0",
-    "nodemon": "^1.18.5",
+    "nodemon": "^1.18.9",
     "supertest": "^3.0.0",
     "tslint": "^5.9.1",
     "typescript": "^2.7.2"

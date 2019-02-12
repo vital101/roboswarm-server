@@ -22,7 +22,7 @@ function asyncSleep(durationInSeconds: number): Promise<void> {
             const stripeCustomer: Stripe.customers.ICustomer = await stripeHelpers.getCustomer(user.id);
             await User.updateById(user.id, { is_delinquent: stripeCustomer.delinquent });
         } catch (err) {
-            // No-Op.
+            console.error(err);
         }
         asyncSleep(1);
     }

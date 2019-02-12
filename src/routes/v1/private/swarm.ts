@@ -123,6 +123,18 @@ router.route("/:id/repeat")
         }
     });
 
+router.route("/:id/soft-delete")
+    .delete(async (req: RoboRequest, res: RoboResponse) => {
+        try {
+            await Swarm.softDelete(req.params.id, req.user.groupId);
+            res.status(204);
+            res.send("ok");
+        } catch (err) {
+            res.status(500);
+            res.json(err);
+        }
+    });
+
 router.route("/:id")
     .delete(async (req: RoboRequest, res: RoboResponse) => {
         try {

@@ -35,6 +35,7 @@ export interface Swarm {
     master_ip?: string;
     size?: number;
     currentUsers?: number;
+    soft_delete?: boolean;
 }
 
 export interface NewSwarm {
@@ -203,7 +204,12 @@ export async function getById(id: number): Promise<Swarm> {
 }
 
 export async function getByGroupId(groupId: number): Promise<Array<Swarm>> {
-    const swarmQuery = db("swarm").where("group_id", groupId).orderBy("created_at", "DESC");
+    const swarmQuery = db("swarm")
+        .where({
+            group_id: groupId,
+            soft_delete: false
+        })
+        .orderBy("created_at", "DESC");
     const swarms: Array<Swarm> = await swarmQuery;
     const swarmSizes: any = {};
     const swarmStatus: any = {};
@@ -337,20 +343,28 @@ export async function fetchLoadTestMetrics(swarm: Swarm, isFinal?: boolean): Pro
             }
         }
     } else {
-        const requestTotals = requestRows[requestRows.length - 1].split(",");
-        const requestTotalData: LoadTest.Request = {
-            swarm_id: swarm.id,
-            created_at: new Date(),
-            requests: parseInt(requestTotals[2], 10),
-            failures: parseInt(requestTotals[3], 10),
-            median_response_time: parseInt(requestTotals[4], 10),
-            average_response_time: parseInt(requestTotals[5], 10),
-            min_response_time: parseInt(requestTotals[6], 10),
-            max_response_time: parseInt(requestTotals[7], 10),
-            avg_content_size: parseInt(requestTotals[8], 10),
-            requests_per_second: Math.floor(parseFloat(requestTotals[9]))
-        };
-        await LoadTest.createRequest(requestTotalData);
+        try {
+            const requestTotals = requestRows[requestRows.length - 1].split(",");
+            const requestTotalData: LoadTest.Request = {
+                swarm_id: swarm.id,
+                created_at: new Date(),
+                requests: parseInt(requestTotals[2], 10),
+                failures: parseInt(requestTotals[3], 10),
+                median_response_time: parseInt(requestTotals[4], 10),
+                average_response_time: parseInt(requestTotals[5], 10),
+                min_response_time: parseInt(requestTotals[6], 10),
+                max_response_time: parseInt(requestTotals[7], 10),
+                avg_content_size: parseInt(requestTotals[8], 10),
+                requests_per_second: Math.floor(parseFloat(requestTotals[9]))
+            };
+            await LoadTest.createRequest(requestTotalData);
+        } catch (err) {
+            console.log("Request row error: ", {
+                err,
+                swarm_id: swarm.id,
+                requestRows
+            });
+        }
     }
 
     const distribution: SSHCommandResult = await ssh.execCommand("cat /root/status_distribution.csv");
@@ -400,24 +414,32 @@ export async function fetchLoadTestMetrics(swarm: Swarm, isFinal?: boolean): Pro
             }
         }
     } else {
-        const distributionTotals = distributionRows[distributionRows.length - 1].split(",");
-        const distributionTotalData: LoadTest.Distribution = {
-            swarm_id: swarm.id,
-            created_at: new Date(),
-            requests: parseInt(distributionTotals[1], 10),
-            percentiles: JSON.stringify({
-                "50%": distributionTotals[2],
-                "66%": distributionTotals[3],
-                "75%": distributionTotals[4],
-                "80%": distributionTotals[5],
-                "90%": distributionTotals[6],
-                "95%": distributionTotals[7],
-                "98%": distributionTotals[8],
-                "99%": distributionTotals[9],
-                "100%": distributionTotals[10]
-            })
-        };
-        await LoadTest.createDistribution(distributionTotalData);
+        try {
+            const distributionTotals = distributionRows[distributionRows.length - 1].split(",");
+            const distributionTotalData: LoadTest.Distribution = {
+                swarm_id: swarm.id,
+                created_at: new Date(),
+                requests: parseInt(distributionTotals[1], 10),
+                percentiles: JSON.stringify({
+                    "50%": distributionTotals[2],
+                    "66%": distributionTotals[3],
+                    "75%": distributionTotals[4],
+                    "80%": distributionTotals[5],
+                    "90%": distributionTotals[6],
+                    "95%": distributionTotals[7],
+                    "98%": distributionTotals[8],
+                    "99%": distributionTotals[9],
+                    "100%": distributionTotals[10]
+                })
+            };
+            await LoadTest.createDistribution(distributionTotalData);
+        } catch (err) {
+            console.log("Distribution row error: ", {
+                err,
+                swarm_id: swarm.id,
+                distributionRows
+            });
+        }
     }
 
     ssh.connection.end();
@@ -486,4 +508,18 @@ export async function createRepeatSwarmRequest(swarmId: number): Promise<NewSwar
     });
     return newSwarm;
 
+}
+
+export async function softDelete(swarmId: number, group_id: number): Promise<Swarm> {
+    await db("swarm")
+        .update({ soft_delete: true })
+        .where({ id: swarmId, group_id });
+    return await getById(swarmId);
+}
+
+export async function decrementSwarmSize(swarmId: number): Promise<Swarm> {
+    await db("swarm")
+        .where({ id: swarmId })
+        .decrement("size", 1);
+    return await getById(swarmId);
 }
