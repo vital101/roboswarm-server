@@ -150,7 +150,7 @@ export async function processSwarmProvisionEvent(event: SwarmProvisionEvent): Pr
                         errors: [],
                         swarm: event.createdSwarm,
                         machine: masterMachine,
-                        region: event.swarm.region,
+                        region: event.swarm.region[0], // Just use the first one for master.
                         slaveCount: machineIds.length - 1,
                         slaveIds: machineIds.filter(id => id !== machineIds[0]),
                         stepToExecute: MachineSetupStep.START_MASTER,

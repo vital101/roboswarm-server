@@ -45,7 +45,7 @@ export interface NewSwarm {
     host_url: string;
     spawn_rate: number;
     machines: Array<Machine.NewMachine>;
-    region: string;
+    region: Array<string>;
     swarm_ui_type: string;
 }
 
@@ -79,7 +79,7 @@ export async function create(swarm: NewSwarm, userId: number, groupId: number): 
             host_url: swarm.host_url,
             spawn_rate: swarm.spawn_rate,
             ssh_key_id: key.id,
-            region: swarm.region,
+            region: swarm.region.join(","),
             duration: swarm.duration,
             swarm_ui_type: swarm.swarm_ui_type,
             size: swarm.machines.length - 1
@@ -365,11 +365,21 @@ export async function fetchLoadTestMetrics(swarm: Swarm, isFinal?: boolean): Pro
                 try {
                     const splitRow = row.split(",");
                     const methodRoute = splitRow[0].split(" ");
+                    let method = "";
+                    try {
+                        method = methodRoute[0].replace(/\"/g, "");
+                    } catch (err) { }
+
+                    let route = "";
+                    try {
+                        route = methodRoute[1].replace(/\"/g, "");
+                    } catch (err) { }
+
                     const data: LoadTest.DistributionFinal = {
                         swarm_id: swarm.id,
                         created_at: new Date(),
-                        method: methodRoute[0].replace(/\"/g, ""),
-                        route: methodRoute[1].replace(/\"/g, ""),
+                        method,
+                        route,
                         requests: parseInt(splitRow[1], 10),
                         percentiles: JSON.stringify({
                             "50%": splitRow[2],
@@ -458,6 +468,7 @@ export async function getActiveSwarms(): Promise<Swarm[]> {
 
 export async function createRepeatSwarmRequest(swarmId: number): Promise<NewSwarm> {
     const oldSwarm: Swarm = await getById(swarmId);
+    const region: string[] = oldSwarm.region.split(",");
     const newSwarm: NewSwarm = {
         name: oldSwarm.name,
         duration: oldSwarm.duration,
@@ -466,7 +477,7 @@ export async function createRepeatSwarmRequest(swarmId: number): Promise<NewSwar
         host_url: oldSwarm.host_url,
         spawn_rate: oldSwarm.spawn_rate,
         machines: [],
-        region: oldSwarm.region,
+        region,
         swarm_ui_type: oldSwarm.swarm_ui_type
     };
     const oldMachines: Machine.Machine[] = await getSwarmMachines(swarmId);
