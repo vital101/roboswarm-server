@@ -46,7 +46,7 @@ export interface NewSwarm {
     host_url: string;
     spawn_rate: number;
     machines: Array<Machine.NewMachine>;
-    region: Array<string>;
+    region: string;
     swarm_ui_type: string;
 }
 
@@ -80,7 +80,7 @@ export async function create(swarm: NewSwarm, userId: number, groupId: number): 
             host_url: swarm.host_url,
             spawn_rate: swarm.spawn_rate,
             ssh_key_id: key.id,
-            region: swarm.region.join(","),
+            region: swarm.region,
             duration: swarm.duration,
             swarm_ui_type: swarm.swarm_ui_type,
             size: swarm.machines.length - 1
@@ -490,7 +490,6 @@ export async function getActiveSwarms(): Promise<Swarm[]> {
 
 export async function createRepeatSwarmRequest(swarmId: number): Promise<NewSwarm> {
     const oldSwarm: Swarm = await getById(swarmId);
-    const region: string[] = oldSwarm.region.split(",");
     const newSwarm: NewSwarm = {
         name: oldSwarm.name,
         duration: oldSwarm.duration,
@@ -499,13 +498,23 @@ export async function createRepeatSwarmRequest(swarmId: number): Promise<NewSwar
         host_url: oldSwarm.host_url,
         spawn_rate: oldSwarm.spawn_rate,
         machines: [],
-        region,
+        region: oldSwarm.region,
         swarm_ui_type: oldSwarm.swarm_ui_type
     };
+
+    // Rotate through the old machines and regions evenly distributing the load.
     const oldMachines: Machine.Machine[] = await getSwarmMachines(swarmId);
-    newSwarm.machines = oldMachines.map(() => {
-        return { region: oldSwarm.region };
+    const oldRegions = oldSwarm.region.split(",");
+    newSwarm.machines = oldMachines.map(m => {
+        const currentRegion = oldRegions.pop();
+        const newMachine = { region: currentRegion };
+        oldRegions.unshift(currentRegion);
+        return newMachine;
     });
+
+    // Plus one extra machine to be master.
+    newSwarm.machines.push({ region: oldRegions[0] });
+
     return newSwarm;
 
 }
