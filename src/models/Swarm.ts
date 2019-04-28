@@ -11,6 +11,7 @@ import * as LoadTest from "./LoadTest";
 import * as moment from "moment";
 import { sendEmail } from "../lib/email";
 import { WorkerEventType, SwarmProvisionEvent, SwarmSetupStep, DeprovisionEvent, DeprovisionEventType } from "../interfaces/provisioning.interface";
+import * as User from "./User";
 const node_ssh = require("node-ssh");
 
 export interface Swarm {
@@ -19,6 +20,7 @@ export interface Swarm {
     status: Status;
     group_id: number;
     user_id: number;
+    user?: User.User;
     simulated_users: number;
     ssh_key_id: number;
     file_path: string;
@@ -199,6 +201,19 @@ export async function getById(id: number): Promise<Swarm> {
         const currentUsers = Math.floor(seconds * data.spawn_rate);
         data.currentUsers = currentUsers <= data.simulated_users ? currentUsers : data.simulated_users;
     }
+
+    // Hydrate the user who owns this.
+    data.user = await User.getById(data.user_id);
+    data.user.password = undefined;
+    data.user.stripe_card_id = undefined;
+    data.user.stripe_id = undefined;
+    data.user.stripe_plan_description = undefined;
+    data.user.stripe_plan_id = undefined;
+    delete data.user.password;
+    delete data.user.stripe_card_id;
+    delete data.user.stripe_id;
+    delete data.user.stripe_plan_description;
+    delete data.user.stripe_plan_id;
 
     return data;
 }
