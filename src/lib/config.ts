@@ -4,6 +4,8 @@ export interface Plan {
     maxMachineHours: number;
     maxLoadTests: number;
     maxLoadTestDurationMinutes: number;
+    maxReliabilityTestMinutes: number;
+    maxReliabilityTestUsers: number;
     dataRetentionDays: number;
     maxUsers: number;
 }
@@ -41,6 +43,8 @@ const settings: Settings = {
         maxMachineHours: 5,
         maxLoadTests: 2,
         maxLoadTestDurationMinutes: 15,
+        maxReliabilityTestMinutes: 150,
+        maxReliabilityTestUsers: 25,
         dataRetentionDays: 5,
         maxUsers: 100
     },
@@ -48,6 +52,8 @@ const settings: Settings = {
         maxMachineHours: 1000,
         maxLoadTests: 30,
         maxLoadTestDurationMinutes: 120,
+        maxReliabilityTestMinutes: 1200,
+        maxReliabilityTestUsers: 25,
         dataRetentionDays: 90,
         maxUsers: 5000
     },
@@ -55,6 +61,8 @@ const settings: Settings = {
         maxMachineHours: 7000,
         maxLoadTests: 300,
         maxLoadTestDurationMinutes: 360,
+        maxReliabilityTestMinutes: 3600,
+        maxReliabilityTestUsers: 25,
         dataRetentionDays: 365,
         maxUsers: 40000
     },
@@ -62,6 +70,8 @@ const settings: Settings = {
         maxMachineHours: 5,
         maxLoadTests: 10,
         maxLoadTestDurationMinutes: 60,
+        maxReliabilityTestMinutes: 600,
+        maxReliabilityTestUsers: 25,
         dataRetentionDays: 30,
         maxUsers: 2000
     },
@@ -69,6 +79,8 @@ const settings: Settings = {
         maxMachineHours: 30,
         maxLoadTests: 30,
         maxLoadTestDurationMinutes: 120,
+        maxReliabilityTestMinutes: 1200,
+        maxReliabilityTestUsers: 25,
         dataRetentionDays: 90,
         maxUsers: 10000
     },
@@ -76,6 +88,8 @@ const settings: Settings = {
         maxMachineHours: 100,
         maxLoadTests: 100,
         maxLoadTestDurationMinutes: 300,
+        maxReliabilityTestMinutes: 3000,
+        maxReliabilityTestUsers: 25,
         dataRetentionDays: 365,
         maxUsers: 25000
     }

@@ -106,7 +106,7 @@ router.route("/:id/repeat")
     .post(async (req: RoboRequest, res: RepeatSwarmResponse) => {
         const newSwarm: Swarm.NewSwarm = await Swarm.createRepeatSwarmRequest(req.params.id);
         const user: User.User = await User.getById(req.user.id);
-        const canProceed: boolean | RoboError = await canCreateSwarm(user, newSwarm);
+        const canProceed: boolean | RoboError = await canCreateSwarm(user, newSwarm, req.body.reliability_test);
         if (canProceed !== true) {
             const err = canProceed as RoboError;
             res.status(err.status);
@@ -167,7 +167,7 @@ router.route("/")
         // Always add one machine to the pool so it can be master.
         req.body.machines.push({ region: req.body.machines[0].region });
         const user: User.User = await User.getById(req.user.id);
-        const canProceed: boolean|RoboError = await canCreateSwarm(user, req.body);
+        const canProceed: boolean|RoboError = await canCreateSwarm(user, req.body, req.body.reliability_test);
         if (canProceed !== true) {
             const err = canProceed as RoboError;
             res.status(err.status);

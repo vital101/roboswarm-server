@@ -44,16 +44,25 @@ export async function willExceedMaxLoadTests(user: User): Promise<boolean> {
     return swarmsInRange < maxLoadTests ? false : true;
 }
 
-export function willExceedMaxLoadTestDuration(user: User, proposedSwarmDuration: number): boolean {
+export function willExceedMaxLoadTestDuration(user: User, proposedSwarmDuration: number, isReliabilityTest: boolean): boolean {
     const plan = getPlan(user);
-    return proposedSwarmDuration > plan.maxLoadTestDurationMinutes;
+    if (isReliabilityTest) {
+        return proposedSwarmDuration > plan.maxReliabilityTestMinutes;
+    } else {
+        return proposedSwarmDuration > plan.maxLoadTestDurationMinutes;
+    }
 }
 
-export function willExceedMaxUsers(user: User, requestedUsers: number): boolean {
-    return requestedUsers > getPlan(user).maxUsers;
+export function willExceedMaxUsers(user: User, requestedUsers: number, isReliabilityTest: boolean): boolean {
+    const plan = getPlan(user);
+    if (isReliabilityTest) {
+        return requestedUsers > plan.maxReliabilityTestUsers;
+    } else {
+        return requestedUsers > plan.maxUsers;
+    }
 }
 
-export async function canCreateSwarm(user: User, swarm: Swarm.NewSwarm): Promise<RoboError|boolean> {
+export async function canCreateSwarm(user: User, swarm: Swarm.NewSwarm, isReliabilityTest: boolean): Promise<RoboError|boolean> {
     try {
         if (await Swarm.willExceedDropletPoolAvailability(swarm.machines.length)) {
             return {
@@ -77,14 +86,14 @@ export async function canCreateSwarm(user: User, swarm: Swarm.NewSwarm): Promise
             };
         }
 
-        if (await willExceedMaxLoadTestDuration(user, swarm.duration)) {
+        if (await willExceedMaxLoadTestDuration(user, swarm.duration, isReliabilityTest)) {
             return {
                 err: "This request will exceed the maximum load test duration for your account. Please try again with a shorter duration.",
                 status: 403
             };
         }
 
-        if (await willExceedMaxUsers(user, swarm.simulated_users)) {
+        if (await willExceedMaxUsers(user, swarm.simulated_users, isReliabilityTest)) {
             const maxUsers = getPlan(user).maxUsers;
             return {
                 err: `This request will exceed the maximum number of users (${maxUsers}) allowed by your account. To run a larger load test, upgrade to a bigger plan.`,

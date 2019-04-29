@@ -50,6 +50,7 @@ export interface NewSwarm {
     machines: Array<Machine.NewMachine>;
     region: string;
     swarm_ui_type: string;
+    reliability_test?: boolean;
 }
 
 function getStatus(created_at: Date, ready_at: Date, destroyed_at: Date): Status {
