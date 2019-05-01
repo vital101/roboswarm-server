@@ -80,16 +80,25 @@ export async function createDistributionFinal(distributionFinal: DistributionFin
     return result[0];
 }
 
-// TODO: limit this data.
 export async function getRequestsInRange(swarm_id: number, rowsBetweenPoints: number, startId?: number): Promise<Request[]> {
-    let query = db("load_test_requests").where({ swarm_id });
+    rowsBetweenPoints = rowsBetweenPoints === 0 ? 1 : rowsBetweenPoints;
+    let query = `
+        SELECT t.*
+        FROM (
+            select *, row_number() OVER(ORDER BY id ASC) AS row
+            from "load_test_requests"
+            where "swarm_id" = ${swarm_id}
+    `;
     if (startId) {
-        query = query.andWhere("id", ">", startId);
+        query += `id > ${startId}`;
     }
-    query = query.orderBy("created_at", "ASC");
-    console.log({ query: query.toString() });
-    const result: Request[] = await query;
-    return result;
+    query += `
+            order by "created_at" ASC
+        ) t
+        WHERE t.row % ${rowsBetweenPoints} = 0
+    `;
+    const result = await db.raw(query);
+    return result.rows as Request[];
 }
 
 export async function getTotalRequestRows(swarm_id: number, startId?: number): Promise<number> {
