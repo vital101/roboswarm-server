@@ -75,10 +75,23 @@ router.route("/:id/metrics/final")
 router.route("/:id/metrics")
     .post(async (req: LoadTestMetricsRequest, res: LoadTestMetricsResponse) => {
         try {
+            const totalRequestRows: number = await LoadTest.getTotalRequestRows(req.params.id, req.body.lastRequestId);
+            const totalDistributionRows: number = await LoadTest.getTotalDistributionRows(req.params.id, req.body.lastDistributionId);
+            const requestRowsBetweenPoints: number = LoadTest.getRowsInBetweenPoints(totalRequestRows);
+            const distributionRowsBetweenPoints: number = LoadTest.getRowsInBetweenPoints(totalDistributionRows);
+            const rowsBetweenPoints: number = requestRowsBetweenPoints > distributionRowsBetweenPoints ? requestRowsBetweenPoints : distributionRowsBetweenPoints;
             const data: LoadTestMetrics = {
-                requests: await LoadTest.getRequestsInRange(req.params.id, req.body.lastRequestId),
-                distribution: await LoadTest.getDistributionsInRange(req.params.id, req.body.lastDistributionId)
+                requests: await LoadTest.getRequestsInRange(req.params.id, rowsBetweenPoints, req.body.lastRequestId, ),
+                distribution: await LoadTest.getDistributionsInRange(req.params.id, rowsBetweenPoints, req.body.lastDistributionId)
             };
+
+            console.log({
+                totalRequestRows,
+                totalDistributionRows,
+                requestRowsBetweenPoints,
+                distributionRowsBetweenPoints
+            });
+
             res.status(200);
             res.json(data);
         } catch (err) {
