@@ -85,13 +85,6 @@ router.route("/:id/metrics")
                 distribution: await LoadTest.getDistributionsInRange(req.params.id, rowsBetweenPoints, req.body.lastDistributionId)
             };
 
-            console.log({
-                totalRequestRows,
-                totalDistributionRows,
-                requestRowsBetweenPoints,
-                distributionRowsBetweenPoints
-            });
-
             res.status(200);
             res.json(data);
         } catch (err) {
