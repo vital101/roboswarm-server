@@ -88,7 +88,6 @@ router.route("/:id/metrics")
             res.status(200);
             res.json(data);
         } catch (err) {
-            console.log(err);
             res.status(500);
             res.json(err);
         }
