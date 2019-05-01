@@ -95,9 +95,8 @@ export async function getRequestsInRange(swarm_id: number, rowsBetweenPoints: nu
     query += `
             order by "created_at" ASC
         ) t
-        WHERE t.row % ${rowsBetweenPoints} = 0
+        WHERE t.row % ${rowsBetweenPoints} = 0 OR t.failures_per_second > 0
     `;
-    console.log(query);
     const result = await db.raw(query);
     return result.rows as Request[];
 }
@@ -138,7 +137,6 @@ export async function getDistributionsInRange(swarm_id: number, rowsBetweenPoint
         ) t
         WHERE t.row % ${rowsBetweenPoints} = 0
     `;
-    console.log(query);
     const result = await db.raw(query);
     return result.rows as Distribution[];
 }
@@ -163,11 +161,11 @@ export async function getDistributionFinal(swarm_id: number): Promise<Distributi
 
 export function getRowsInBetweenPoints(totalRows: number): number {
     let i = 1;
-    if (totalRows < 500) {
+    if (totalRows < 300) {
         return i;
     } else {
         while (i) {
-            if ((totalRows / i) <= 500) {
+            if ((totalRows / i) <= 300) {
                 return i;
             }
             i++;
