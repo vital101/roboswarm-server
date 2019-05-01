@@ -109,7 +109,6 @@ export async function getTotalRequestRows(swarm_id: number, startId?: number): P
     }
     query = query.count();
     const totalRequestRows = await query;
-    console.log({totalRequestRowsQuery: query.toString()});
     return parseInt(totalRequestRows[0].count, 10);
 }
 
@@ -149,7 +148,6 @@ export async function getTotalDistributionRows(swarm_id: number, startId?: numbe
     if (startId) { query = query.andWhere("id", ">", startId); }
     query = query.count();
     const totalDistributionRows = await query;
-    console.log({ totalDistQuery: query.toString()});
     return parseInt(totalDistributionRows[0].count, 10);
 }
 

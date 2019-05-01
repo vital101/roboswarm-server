@@ -80,6 +80,13 @@ router.route("/:id/metrics")
             const requestRowsBetweenPoints: number = LoadTest.getRowsInBetweenPoints(totalRequestRows);
             const distributionRowsBetweenPoints: number = LoadTest.getRowsInBetweenPoints(totalDistributionRows);
             const rowsBetweenPoints: number = requestRowsBetweenPoints > distributionRowsBetweenPoints ? requestRowsBetweenPoints : distributionRowsBetweenPoints;
+            console.log({
+                totalRequestRows,
+                totalDistributionRows,
+                requestRowsBetweenPoints,
+                distributionRowsBetweenPoints,
+                rowsBetweenPoints
+            });
             const data: LoadTestMetrics = {
                 requests: await LoadTest.getRequestsInRange(req.params.id, rowsBetweenPoints, req.body.lastRequestId, ),
                 distribution: await LoadTest.getDistributionsInRange(req.params.id, rowsBetweenPoints, req.body.lastDistributionId)
