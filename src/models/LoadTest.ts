@@ -97,6 +97,7 @@ export async function getRequestsInRange(swarm_id: number, rowsBetweenPoints: nu
         ) t
         WHERE t.row % ${rowsBetweenPoints} = 0
     `;
+    console.log(query);
     const result = await db.raw(query);
     return result.rows as Request[];
 }
@@ -137,6 +138,7 @@ export async function getDistributionsInRange(swarm_id: number, rowsBetweenPoint
         ) t
         WHERE t.row % ${rowsBetweenPoints} = 0
     `;
+    console.log(query);
     const result = await db.raw(query);
     return result.rows as Distribution[];
 }
