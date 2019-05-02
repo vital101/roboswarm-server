@@ -81,31 +81,24 @@ export async function createDistributionFinal(distributionFinal: DistributionFin
 }
 
 export async function getRequestsInRange(swarm_id: number, rowsBetweenPoints: number, startId?: number): Promise<Request[]> {
-    let query = db("load_test_requests").where({ swarm_id });
+    rowsBetweenPoints = rowsBetweenPoints === 0 ? 1 : rowsBetweenPoints;
+    let query = `
+        SELECT t.*
+        FROM (
+            select *, row_number() OVER(ORDER BY id ASC) AS row
+            from "load_test_requests"
+            where "swarm_id" = ${swarm_id}
+    `;
     if (startId) {
-        query = query.andWhere("id", ">", startId);
+        query += ` AND id > ${startId}`;
     }
-    query = query.orderBy("created_at", "ASC");
-    const result: Request[] = await query;
-    return result;
-    // rowsBetweenPoints = rowsBetweenPoints === 0 ? 1 : rowsBetweenPoints;
-    // let query = `
-    //     SELECT t.*
-    //     FROM (
-    //         select *, row_number() OVER(ORDER BY id ASC) AS row
-    //         from "load_test_requests"
-    //         where "swarm_id" = ${swarm_id}
-    // `;
-    // if (startId) {
-    //     query += `id > ${startId}`;
-    // }
-    // query += `
-    //         order by "created_at" ASC
-    //     ) t
-    //     WHERE t.row % ${rowsBetweenPoints} = 0 OR t.failures_per_second > 0
-    // `;
-    // const result = await db.raw(query);
-    // return result.rows as Request[];
+    query += `
+            order by "created_at" ASC
+        ) t
+        WHERE t.row % ${rowsBetweenPoints} = 0 OR t.failures_per_second > 0
+    `;
+    const result = await db.raw(query);
+    return result.rows as Request[];
 }
 
 export async function getTotalRequestRows(swarm_id: number, startId?: number): Promise<number> {
@@ -128,29 +121,24 @@ export async function getLastRequestMetricForSwarm(swarm_id: number): Promise<Re
 }
 
 export async function getDistributionsInRange(swarm_id: number, rowsBetweenPoints: number, startId?: number, ): Promise<Distribution[]> {
-    let query = db("load_test_distribution").where({ swarm_id });
-    if (startId) { query = query.andWhere("id", ">", startId); }
-    query = query.orderBy("created_at", "ASC");
-    const result: Distribution[] = await query;
-    return result;
-    // rowsBetweenPoints = rowsBetweenPoints === 0 ? 1 : rowsBetweenPoints;
-    // let query = `
-    //     SELECT t.*
-    //     FROM (
-    //         select *, row_number() OVER(ORDER BY id ASC) AS row
-    //         from "load_test_distribution"
-    //         where "swarm_id" = ${swarm_id}
-    // `;
-    // if (startId) {
-    //     query += `id > ${startId}`;
-    // }
-    // query += `
-    //         order by "created_at" ASC
-    //     ) t
-    //     WHERE t.row % ${rowsBetweenPoints} = 0
-    // `;
-    // const result = await db.raw(query);
-    // return result.rows as Distribution[];
+    rowsBetweenPoints = rowsBetweenPoints === 0 ? 1 : rowsBetweenPoints;
+    let query = `
+        SELECT t.*
+        FROM (
+            select *, row_number() OVER(ORDER BY id ASC) AS row
+            from "load_test_distribution"
+            where "swarm_id" = ${swarm_id}
+    `;
+    if (startId) {
+        query += ` AND id > ${startId}`;
+    }
+    query += `
+            order by "created_at" ASC
+        ) t
+        WHERE t.row % ${rowsBetweenPoints} = 0
+    `;
+    const result = await db.raw(query);
+    return result.rows as Distribution[];
 }
 
 export async function getTotalDistributionRows(swarm_id: number, startId?: number): Promise<number> {
