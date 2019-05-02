@@ -25,6 +25,7 @@ interface LoadTestMetricsFinal {
 interface LoadTestMetricsQuery {
     lastDistributionId: number;
     lastRequestId: number;
+    showAll: boolean;
 }
 
 interface LoadTestMetricsResponse extends RoboResponse {
@@ -79,7 +80,8 @@ router.route("/:id/metrics")
             const totalDistributionRows: number = await LoadTest.getTotalDistributionRows(req.params.id, req.body.lastDistributionId);
             const requestRowsBetweenPoints: number = LoadTest.getRowsInBetweenPoints(totalRequestRows);
             const distributionRowsBetweenPoints: number = LoadTest.getRowsInBetweenPoints(totalDistributionRows);
-            const rowsBetweenPoints: number = requestRowsBetweenPoints > distributionRowsBetweenPoints ? requestRowsBetweenPoints : distributionRowsBetweenPoints;
+            let rowsBetweenPoints: number = requestRowsBetweenPoints > distributionRowsBetweenPoints ? requestRowsBetweenPoints : distributionRowsBetweenPoints;
+            if (req.body.showAll) { rowsBetweenPoints = 1; }
             const data: LoadTestMetrics = {
                 requests: await LoadTest.getRequestsInRange(req.params.id, rowsBetweenPoints, req.body.lastRequestId, ),
                 distribution: await LoadTest.getDistributionsInRange(req.params.id, rowsBetweenPoints, req.body.lastDistributionId)
