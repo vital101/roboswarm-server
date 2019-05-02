@@ -161,11 +161,11 @@ export async function getDistributionFinal(swarm_id: number): Promise<Distributi
 
 export function getRowsInBetweenPoints(totalRows: number): number {
     let i = 1;
-    if (totalRows < 300) {
+    if (totalRows < 200) {
         return i;
     } else {
         while (i) {
-            if ((totalRows / i) <= 300) {
+            if ((totalRows / i) <= 200) {
                 return i;
             }
             i++;
