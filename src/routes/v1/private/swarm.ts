@@ -112,7 +112,8 @@ router.route("/:id/repeat")
     .post(async (req: RoboRequest, res: RepeatSwarmResponse) => {
         const newSwarm: Swarm.NewSwarm = await Swarm.createRepeatSwarmRequest(req.params.id);
         const user: User.User = await User.getById(req.user.id);
-        const canProceed: boolean | RoboError = await canCreateSwarm(user, newSwarm, req.body.reliability_test);
+        const isReliabilityTest = !!(newSwarm.simulated_users <= 25 && newSwarm.duration > 120);
+        const canProceed: boolean | RoboError = await canCreateSwarm(user, newSwarm, isReliabilityTest);
         if (canProceed !== true) {
             const err = canProceed as RoboError;
             res.status(err.status);
