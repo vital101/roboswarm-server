@@ -14,9 +14,33 @@ interface SiteOwnershipCreateRequest extends RoboRequest {
     body: SiteOwnership.SiteOwnership;
 }
 
+interface SiteOwnershipVerifyRequest extends RoboRequest {
+    params: {
+        id: string;
+    };
+}
+
+interface SiteOwnershipVerifyResponse extends RoboResponse {
+    json: (data: SiteOwnership.SiteOwnership) => any;
+}
+
 const router = Router();
 
-router.route("/site-ownership")
+router.route("/verify/:id")
+    .get(async (req: SiteOwnershipVerifyRequest, res: SiteOwnershipVerifyResponse) => {
+        let siteToVerify: SiteOwnership.SiteOwnership = await SiteOwnership.findById(parseInt(req.params.id, 10));
+        if (!siteToVerify) {
+            res.status(404);
+            res.send("Not found.");
+            return;
+        }
+        await SiteOwnership.verify(siteToVerify);
+        siteToVerify = await SiteOwnership.findById(parseInt(req.params.id, 10));
+        res.status(200);
+        res.json(siteToVerify);
+    });
+
+router.route("/")
     .get(async (req: RoboRequest, res: SiteOwnershipResponse) => {
         const results: SiteOwnership.SiteOwnership[] = await SiteOwnership.find({
             user_id: req.user.id,
