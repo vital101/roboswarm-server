@@ -24,20 +24,41 @@ interface SiteOwnershipVerifyResponse extends RoboResponse {
     json: (data: SiteOwnership.SiteOwnership) => any;
 }
 
+interface SiteOwnershipDeleteRequest extends RoboRequest {
+    params: {
+        id: string;
+    };
+}
+
 const router = Router();
 
 router.route("/verify/:id")
-    .get(async (req: SiteOwnershipVerifyRequest, res: SiteOwnershipVerifyResponse) => {
-        let siteToVerify: SiteOwnership.SiteOwnership = await SiteOwnership.findById(parseInt(req.params.id, 10));
+    .post(async (req: SiteOwnershipVerifyRequest, res: SiteOwnershipVerifyResponse) => {
+        const id: number = parseInt(req.params.id, 10);
+        let siteToVerify: SiteOwnership.SiteOwnership = await SiteOwnership.findById(id);
         if (!siteToVerify) {
             res.status(404);
             res.send("Not found.");
             return;
         }
         await SiteOwnership.verify(siteToVerify);
-        siteToVerify = await SiteOwnership.findById(parseInt(req.params.id, 10));
+        siteToVerify = await SiteOwnership.findById(id);
         res.status(200);
         res.json(siteToVerify);
+    });
+
+router.route("/:id")
+    .delete(async (req: SiteOwnershipDeleteRequest, res: RoboResponse) => {
+        const id: number = parseInt(req.params.id, 10);
+        const siteToDelete: SiteOwnership.SiteOwnership = await SiteOwnership.findById(id);
+        if (siteToDelete.user_id !== req.user.id) {
+            res.status(403);
+            res.send("Unauthorized.");
+            return;
+        }
+        await SiteOwnership.deleteById(id);
+        res.status(200);
+        res.send("Deleted.");
     });
 
 router.route("/")
