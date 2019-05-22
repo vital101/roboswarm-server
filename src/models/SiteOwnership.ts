@@ -55,7 +55,15 @@ export async function verify(siteToVerify: SiteOwnership): Promise<void> {
             if (err) {
                 resolve(); // Site stays in un-verified state.
             } else {
+                const matchRegex = new RegExp(/^roboswarm-verify-(.+)$/);
                 const verified = false;
+                for (const address of addresses) {
+                    const [ txtRecord ] = address;
+                    const matchedValues = txtRecord.match(matchRegex);
+                    console.log(matchedValues);
+                    if (matchedValues.length > 0) {
+                    }
+                }
                 // for each txt, if one matches, set verified to true.
                 // update verified record.
                 // resolve.
