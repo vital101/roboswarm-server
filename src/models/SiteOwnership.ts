@@ -1,3 +1,4 @@
+import { resolveTxt } from "dns";
 import { db } from "../lib/db";
 import { v4 as generateUUID } from "uuid";
 
@@ -45,5 +46,24 @@ export async function update(where: Object, fieldsToUpdate: Object): Promise<Sit
 }
 
 export async function verify(siteToVerify: SiteOwnership): Promise<void> {
-    // WIP - verify the DNS txt record.
+    return new Promise(resolve => {
+        const domain = siteToVerify.base_url
+            .replace("https://", "")
+            .replace("http://", "")
+            .replace("/", "");
+        resolveTxt(domain, (err: NodeJS.ErrnoException, addresses: string[][]) => {
+            if (err) {
+                resolve(); // Site stays in un-verified state.
+            } else {
+                const verified = false;
+                // for each txt, if one matches, set verified to true.
+                // update verified record.
+                // resolve.
+                console.log(addresses);
+                // WIP - Update site.
+                // resolve.
+                resolve();
+            }
+        });
+    });
 }
