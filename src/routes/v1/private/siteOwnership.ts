@@ -73,6 +73,7 @@ router.route("/")
     .post(async (req: SiteOwnershipCreateRequest, res: SiteOwnershipCreateResponse) => {
         req.body.user_id = req.user.id;
         req.body.group_id = req.user.groupId;
+        req.body.verified = false;
         const newSite: SiteOwnership.SiteOwnership = await SiteOwnership.create(req.body);
         res.status(201);
         res.json(newSite);
