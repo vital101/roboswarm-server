@@ -64,6 +64,7 @@ export async function verify(siteToVerify: SiteOwnership): Promise<SiteOwnership
                 const matchRegex = new RegExp(/^roboswarm-verify-(?<uuid>.+)$/);
                 let verified = false;
                 for (const address of addresses) {
+                    console.log(address);
                     const [ txtRecord ] = address;
                     const matchedValues: RegExpMatchArray = txtRecord.match(matchRegex);
                     if (matchedValues && matchedValues.groups && matchedValues.groups.uuid) {
