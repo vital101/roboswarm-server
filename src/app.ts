@@ -8,6 +8,7 @@ import * as jwt from "express-jwt";
 import * as cors from "cors";
 
 // Private routes
+import _siteOwnershipRoutes from "./routes/v1/private/siteOwnership";
 import _swarmRoutes from "./routes/v1/private/swarm";
 import _userRoutes from "./routes/v1/private/user";
 
@@ -45,6 +46,7 @@ app.use("/app", appRoutes);
 app.use("/api/v1/public/user", userRoutes);
 
 // Private API
+app.use("/api/v1/site-ownership", jwt(jwtConfig), _siteOwnershipRoutes);
 app.use("/api/v1/swarm", jwt(jwtConfig), _swarmRoutes);
 app.use("/api/v1/user", jwt(jwtConfig), _userRoutes);
 
@@ -52,9 +54,9 @@ app.use("/api/v1/user", jwt(jwtConfig), _userRoutes);
 app.use("/", marketingRoutes);
 
 // Error handler
-// app.use((req: any, res: any, next: any) => {
-//     res.status(500);
-//     res.json(err);
-// });
+app.use((req: any, res: any, next: any) => {
+    res.status(500);
+    res.json({});
+});
 
 module.exports = app;

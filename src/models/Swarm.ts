@@ -12,6 +12,7 @@ import * as moment from "moment";
 import { sendEmail } from "../lib/email";
 import { WorkerEventType, SwarmProvisionEvent, SwarmSetupStep, DeprovisionEvent, DeprovisionEventType } from "../interfaces/provisioning.interface";
 import * as User from "./User";
+import * as SiteOwnership from "./SiteOwnership";
 const node_ssh = require("node-ssh");
 
 export interface Swarm {
@@ -45,12 +46,14 @@ export interface NewSwarm {
     duration: number;
     simulated_users: number;
     file_path: string;
-    host_url: string;
+    host_url?: string;
+    site_id?: number;
     spawn_rate: number;
     machines: Array<Machine.NewMachine>;
     region: string;
     swarm_ui_type: string;
     reliability_test?: boolean;
+    kernl_test?: boolean;
 }
 
 function getStatus(created_at: Date, ready_at: Date, destroyed_at: Date): Status {
@@ -72,6 +75,15 @@ export async function create(swarm: NewSwarm, userId: number, groupId: number): 
     // Create the SSH keys that this swarm will use.
     const key = await SSHKey.create();
 
+    // Set the correct host_url
+    let host_url;
+    if (swarm.host_url && swarm.kernl_test) {
+        host_url = swarm.host_url;
+    } else {
+        const siteOwnership: SiteOwnership.SiteOwnership = await SiteOwnership.findById(swarm.site_id);
+        host_url = siteOwnership.base_url;
+    }
+
     // Create the container swarm.
     const newSwarmResult: Array<Swarm> = await db("swarm")
         .insert({
@@ -80,7 +92,7 @@ export async function create(swarm: NewSwarm, userId: number, groupId: number): 
             user_id: userId,
             simulated_users: swarm.simulated_users,
             file_path: swarm.file_path,
-            host_url: swarm.host_url,
+            host_url,
             spawn_rate: swarm.spawn_rate,
             ssh_key_id: key.id,
             region: swarm.region,

@@ -5,6 +5,7 @@ import * as Stripe from "stripe";
 import * as Swarm from "../models/Swarm";
 import { getPlan } from "./config";
 import { RoboError } from "../interfaces/shared.interface";
+import * as SiteOwnership from "../models/SiteOwnership";
 
 export interface DateRange {
     start: Date;
@@ -62,8 +63,37 @@ export function willExceedMaxUsers(user: User, requestedUsers: number, isReliabi
     }
 }
 
+export async function isValidSite(user: User, swarm: Swarm.NewSwarm) {
+
+    // Legacy Kernl testing hooks.
+    if (swarm.kernl_test && swarm.host_url) {
+        return true;
+    }
+
+    // Don't allow people to create tests without the kernl_test flag.
+    if (swarm.host_url && !swarm.kernl_test) {
+        return false;
+    }
+
+    // Now check site id against current user.
+    const siteOwnership: SiteOwnership.SiteOwnership = await SiteOwnership.findById(swarm.site_id);
+    if (siteOwnership.user_id !== user.id) {
+        return false;
+    }
+
+    // Site is only valid for testing if it is verified.
+    return siteOwnership.verified;
+}
+
 export async function canCreateSwarm(user: User, swarm: Swarm.NewSwarm, isReliabilityTest: boolean): Promise<RoboError|boolean> {
     try {
+        if (!(await isValidSite(user, swarm))) {
+            return {
+                err: "The site is not valid. Be sure to verify your ownership.",
+                status: 400
+            };
+        }
+
         if (await Swarm.willExceedDropletPoolAvailability(swarm.machines.length)) {
             return {
                 err: "This request will exceed the resources that RoboSwarm has available. Our team has been notified.",
