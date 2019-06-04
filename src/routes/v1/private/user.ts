@@ -30,6 +30,14 @@ interface ResourceResponse extends RoboResponse {
     json: (resources: ResourceAvailability) => any;
 }
 
+interface UpdateUserRequest extends RoboRequest {
+    body: {
+        email: string;
+        first_name: string;
+        last_name: string;
+    };
+}
+
 const router = Router();
 
 router.route("/me/card")
@@ -70,6 +78,11 @@ router.route("/me/resources")
 router.route("/me")
     .get(async (req: RoboRequest, res: UserBodyResponse) => {
         const user: User.User = await User.getById(req.user.id);
+        res.status(200);
+        res.json(user);
+    })
+    .put(async (req: UpdateUserRequest, res: UserBodyResponse) => {
+        const user: User.User = await User.updateById(req.user.id, req.body);
         res.status(200);
         res.json(user);
     });
