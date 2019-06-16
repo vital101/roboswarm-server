@@ -47,7 +47,7 @@ async function generateKeys(): Promise<KeyPair> {
     const ssh_public_path = `/tmp/${sshUUID}.pub`;
 
     // Generate the SSH key
-    await executeShell(`ssh-keygen -C kernl.us -t rsa -N "" -f /tmp/${sshUUID}`);
+    await executeShell(`ssh-keygen -m PEM -C kernl.us -t rsa -N "" -f /tmp/${sshUUID}`);
 
     // Read the SSH keys
     const privateKey = await readFileAsync(ssh_private_path);
