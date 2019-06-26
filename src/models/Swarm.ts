@@ -39,6 +39,7 @@ export interface Swarm {
     size?: number;
     currentUsers?: number;
     soft_delete?: boolean;
+    machines?: Machine.Machine[];
 }
 
 export interface NewSwarm {
@@ -193,6 +194,7 @@ export async function getById(id: number): Promise<Swarm> {
 
     // Fetch machines and return the file transfer status and setup_complete.
     const machines = await getSwarmMachines(id);
+    data.machines = machines;
     let file_transfer_complete = true;
     let setup_complete = true;
     machines.forEach(machine => {
@@ -252,6 +254,7 @@ export async function getByGroupId(groupId: number): Promise<Array<Swarm>> {
 
         // Fetch machines and return the file transfer status and setup_complete.
         const machines = await getSwarmMachines(swarm.id);
+        swarm.machines = machines;
         let file_transfer_complete = true;
         let setup_complete = true;
         machines.forEach(machine => {
