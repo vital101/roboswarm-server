@@ -40,6 +40,7 @@ export interface Swarm {
     currentUsers?: number;
     soft_delete?: boolean;
     machines?: Machine.Machine[];
+    load_test_started?: boolean;
 }
 
 export interface NewSwarm {

@@ -483,6 +483,10 @@ export async function startSlave(swarm: Swarm, master: Machine.Machine, slave: M
     });
     await asyncSleep(15);
     ssh.connection.end();
+
+    // Todo: Mark machine.slave_started as true.
+
+    // Todo: Check swarm: If all other slaves started, mark this swarm.load_test_startd = true
     console.log(`Finished starting slave at ${slave.ip_address}`);
 }
 
