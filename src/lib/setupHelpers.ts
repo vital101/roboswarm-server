@@ -25,7 +25,7 @@ import {
     DeprovisionEventType,
     DataCaptureEvent } from "../interfaces/provisioning.interface";
 import { enqueue } from "./events";
-import { getSwarmMachineIds, removeMachineFromSwarm } from "../models/SwarmMachine";
+import { getSwarmMachineIds, removeMachineFromSwarm, getSwarmMachines } from "../models/SwarmMachine";
 import { Status } from "../interfaces/shared.interface";
 import { parse as parseURL } from "url";
 
@@ -489,8 +489,9 @@ export async function startSlave(swarm: Swarm, master: Machine.Machine, slave: M
     await Machine.updateSetupCompleteStatus(slave.id, true);
 
     // Mark if the swarm setup is complete.
-    const machineCount: number = swarm.machines.length - 1;
-    const setupCompleteCount: number = swarm.machines
+    const machines: Machine.Machine[] = await getSwarmMachines(swarm.id);
+    const machineCount: number = machines.length - 1;
+    const setupCompleteCount: number = machines
         .filter(m => !m.is_master)
         .filter(m => m.setup_complete)
         .length;
