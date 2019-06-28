@@ -564,3 +564,10 @@ export async function decrementSwarmSize(swarmId: number): Promise<Swarm> {
         .decrement("size", 1);
     return await getById(swarmId);
 }
+
+export async function updateLoadTestStarted(swarmId: number, load_test_started: boolean): Promise<Swarm> {
+    await db("swarm")
+        .update({ load_test_started })
+        .where({ id: swarmId });
+    return await getById(swarmId);
+}

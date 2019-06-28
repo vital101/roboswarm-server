@@ -13,7 +13,8 @@ import {
     provision as provisionSwarm,
     getById as getSwarmById,
     shouldStop,
-    decrementSwarmSize } from "../models/Swarm";
+    decrementSwarmSize,
+    updateLoadTestStarted } from "../models/Swarm";
 import {
     SwarmProvisionEvent,
     MachineProvisionEvent,
@@ -484,9 +485,17 @@ export async function startSlave(swarm: Swarm, master: Machine.Machine, slave: M
     await asyncSleep(15);
     ssh.connection.end();
 
-    // Todo: Mark machine.slave_started as true.
+    // Mark that the machine setup complete.
+    await Machine.updateSetupCompleteStatus(slave.id, true);
 
-    // Todo: Check swarm: If all other slaves started, mark this swarm.load_test_startd = true
+    // Mark if the swarm setup is complete.
+    const machineCount: number = swarm.machines.length - 1;
+    const setupCompleteCount: number = swarm.machines
+        .filter(m => !m.is_master)
+        .filter(m => m.setup_complete)
+        .length;
+    await updateLoadTestStarted(swarm.id, !!(machineCount === setupCompleteCount));
+
     console.log(`Finished starting slave at ${slave.ip_address}`);
 }
 
