@@ -39,6 +39,8 @@ export interface Swarm {
     size?: number;
     currentUsers?: number;
     soft_delete?: boolean;
+    machines?: Machine.Machine[];
+    load_test_started?: boolean;
 }
 
 export interface NewSwarm {
@@ -193,6 +195,7 @@ export async function getById(id: number): Promise<Swarm> {
 
     // Fetch machines and return the file transfer status and setup_complete.
     const machines = await getSwarmMachines(id);
+    data.machines = machines;
     let file_transfer_complete = true;
     let setup_complete = true;
     machines.forEach(machine => {
@@ -252,6 +255,7 @@ export async function getByGroupId(groupId: number): Promise<Array<Swarm>> {
 
         // Fetch machines and return the file transfer status and setup_complete.
         const machines = await getSwarmMachines(swarm.id);
+        swarm.machines = machines;
         let file_transfer_complete = true;
         let setup_complete = true;
         machines.forEach(machine => {
@@ -558,5 +562,12 @@ export async function decrementSwarmSize(swarmId: number): Promise<Swarm> {
     await db("swarm")
         .where({ id: swarmId })
         .decrement("size", 1);
+    return await getById(swarmId);
+}
+
+export async function updateLoadTestStarted(swarmId: number, load_test_started: boolean): Promise<Swarm> {
+    await db("swarm")
+        .update({ load_test_started })
+        .where({ id: swarmId });
     return await getById(swarmId);
 }
