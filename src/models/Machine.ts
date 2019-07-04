@@ -73,15 +73,18 @@ export async function create(machine: NewMachine, swarm: Swarm, key: SSHKey): Pr
     return newMachine;
 }
 
-export async function createExternalMachine(id: number, region: string, externalSshKeyId: number): Promise<void> {
+export async function createExternalMachine(id: number, region: string, externalSshKeyId: number): Promise<DropletResponse> {
     // Fire off an api request.
-   const DOMachine: DropletResponse = await createDigitalOceanMachine(id, region, externalSshKeyId);
+    const DOMachine: DropletResponse = await createDigitalOceanMachine(id, region, externalSshKeyId);
 
-    // Store the external id.
-    await db("machine")
-        .update({ external_id: DOMachine.droplet.id })
-        .where("id", id)
-        .returning("*");
+    if (DOMachine) {
+        // Store the external id.
+        await db("machine")
+            .update({ external_id: DOMachine.droplet.id })
+            .where("id", id)
+            .returning("*");
+    }
+    return DOMachine;
 }
 
 export async function checkStatus(machine: Machine): Promise<DropletResponse> {

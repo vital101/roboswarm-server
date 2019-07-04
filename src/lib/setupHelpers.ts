@@ -14,7 +14,8 @@ import {
     getById as getSwarmById,
     shouldStop,
     decrementSwarmSize,
-    updateLoadTestStarted } from "../models/Swarm";
+    updateLoadTestStarted,
+    update as updateSwarm } from "../models/Swarm";
 import {
     SwarmProvisionEvent,
     MachineProvisionEvent,
@@ -204,7 +205,18 @@ export async function processMachineProvisionEvent(event: MachineProvisionEvent)
         try {
             switch (event.stepToExecute) {
                 case MachineSetupStep.CREATE: {
-                    await Machine.createExternalMachine(event.machine.id, event.region, event.sshKey.external_id);
+                    const success = await Machine.createExternalMachine(event.machine.id, event.region, event.sshKey.external_id);
+                    // If creation fails for some reason, drop this event
+                    // and update the swarm size.
+                    if (!success) {
+                        console.log("Machine provision failed. Dropping machine from swarm.");
+                        if (event.swarm.size > 0) {
+                            await updateSwarm(event.swarm.id, {
+                                size: event.swarm.size - 1
+                            });
+                        }
+                        return;
+                    }
                     break;
                 }
                 case MachineSetupStep.DELAY: {
@@ -400,7 +412,7 @@ export async function startMaster(swarm: Swarm, machine: Machine.Machine, slaveC
         flags.push(`-r ${rate}`);
         flags.push(`--run-time ${runTime}`);
         flags.push("--no-web");
-        flags.push(`--expect-slaves=${slaveCount}`);
+        flags.push(`--expect-slaves=${Math.ceil(slaveCount / 2)}`);
     }
     const command = `nohup locust ${flags.join(" ")}`;
     console.log(`Executing ${command} on master at ${machine.ip_address} &`);

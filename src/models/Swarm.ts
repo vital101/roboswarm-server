@@ -571,3 +571,10 @@ export async function updateLoadTestStarted(swarmId: number, load_test_started: 
         .where({ id: swarmId });
     return await getById(swarmId);
 }
+
+export async function update(swarmId: number, fields: any): Promise<Swarm> {
+    await db("swarm")
+        .update(fields)
+        .where({ id: swarmId });
+    return await getById(swarmId);
+}
