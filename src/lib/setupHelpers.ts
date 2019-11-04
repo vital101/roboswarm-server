@@ -475,27 +475,26 @@ export async function startSlave(swarm: Swarm, master: Machine.Machine, slave: M
     });
     await sftp.put(bashPath, "/root/start.sh");
 
-    console.log(`Starting slave at ${slave.ip_address}`);
-    const ssh = new node_ssh();
-    await ssh.connect({
-        host: slave.ip_address,
-        username: "root",
-        privateKey,
-    });
-    await ssh.execCommand("chmod +xrw /root/start.sh");
-    const command = "/bin/bash /root/start.sh";
-    console.log(`Executing ${command} on slave at ${slave.ip_address}`);
-    ssh.exec(command, [], {
-        cwd: "/root",
-        onStdout(chunk: any) {
-            console.log("stdoutChunk", chunk.toString("utf8"));
-        },
-        onStderr(chunk: any) {
-            console.log("stderrChunk", chunk.toString("utf8"));
-        },
-    });
-    await asyncSleep(15);
-    ssh.connection.end();
+    // Two worker processes on each machine.
+    for (let i = 1; i <= 2; i++) {
+        console.log(`Starting slave at ${slave.ip_address} on process ${i}`);
+        const ssh = new node_ssh();
+        await ssh.connect({
+            host: slave.ip_address,
+            username: "root",
+            privateKey,
+        });
+        await ssh.execCommand("chmod +xrw /root/start.sh");
+        const command = "/bin/bash /root/start.sh";
+        console.log(`Executing ${command} on slave at ${slave.ip_address} on process ${i}`);
+        ssh.exec(command, [], {
+            cwd: "/root",
+            onStdout(chunk: any) { console.log("stdoutChunk", chunk.toString("utf8")); },
+            onStderr(chunk: any) { console.log("stderrChunk", chunk.toString("utf8")); },
+        });
+        await asyncSleep(15);
+        ssh.connection.end();
+    }
 
     // Mark that the machine setup complete.
     await Machine.updateSetupCompleteStatus(slave.id, true);

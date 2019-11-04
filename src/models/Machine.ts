@@ -110,7 +110,7 @@ async function createDigitalOceanMachine(machineId: number, region: string, digi
     const data = {
         name: `${machineId}`,
         region: region,
-        size: "s-1vcpu-1gb",
+        size: "s-2vcpu-2gb",
         image: "ubuntu-18-04-x64",
         backups: false,
         ipv6: true,
