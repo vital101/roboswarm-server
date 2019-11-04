@@ -87,6 +87,7 @@ export async function isValidSite(user: User, swarm: Swarm.NewSwarm) {
 
 export async function canCreateSwarm(user: User, swarm: Swarm.NewSwarm, isReliabilityTest: boolean): Promise<RoboError|boolean> {
     try {
+        const numberOfMachinesToCreate: number = Math.ceil(swarm.machines.length / 2);
         if (!(await isValidSite(user, swarm))) {
             return {
                 err: "The site is not valid. Be sure to verify your ownership.",
@@ -94,14 +95,14 @@ export async function canCreateSwarm(user: User, swarm: Swarm.NewSwarm, isReliab
             };
         }
 
-        if (await Swarm.willExceedDropletPoolAvailability(swarm.machines.length)) {
+        if (await Swarm.willExceedDropletPoolAvailability(numberOfMachinesToCreate)) {
             return {
                 err: "This request will exceed the resources that RoboSwarm has available. Our team has been notified.",
                 status: 500
             };
         }
 
-        const swarmMachineMinutes: number = swarm.duration * swarm.machines.length;
+        const swarmMachineMinutes: number = swarm.duration * numberOfMachinesToCreate;
         if (await willExceedMaxMachineHours(user, swarmMachineMinutes)) {
             return {
                 err: "This request will exceed the number of hours you have left on your plan before your next billing cycle. Try a smaller swarm size.",

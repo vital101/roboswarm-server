@@ -100,7 +100,7 @@ export async function create(swarm: NewSwarm, userId: number, groupId: number): 
             region: swarm.region,
             duration: swarm.duration,
             swarm_ui_type: swarm.swarm_ui_type,
-            size: swarm.machines.length - 1
+            size: Math.ceil((swarm.machines.length - 1) / 2)
         })
         .returning("*");
 
