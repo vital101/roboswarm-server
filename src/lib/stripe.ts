@@ -9,7 +9,10 @@ const stripePlans: any = {
         enterprise: "plan_DsOhDhHNxMpAYi",
         "kernl-startup": "plan_DyknTJNqy6ACNs",
         "kernl-agency": "plan_E3aMdXLF4hCW55",
-        "kernl-enterprise": "plan_E3aMDZSnshUS25"
+        "kernl-enterprise": "plan_E3aMDZSnshUS25",
+        "kernl-startup-2020": "plan_G7f2RZUzKgbWDc",
+        "kernl-agency-2020": "plan_G7f27qFQ5US9Tf",
+        "kernl-unlimited-2020": "plan_G7f2WsL5xkB9JO"
     },
     production: {
         free: "plan_DsOd6cJgabydY8",
@@ -17,7 +20,10 @@ const stripePlans: any = {
         enterprise: "plan_DvRCm2UAaidwN5",
         "kernl-startup": "plan_DykmMmE8GXyhHi",
         "kernl-agency": "plan_E3ah8NqlDIlvDM",
-        "kernl-enterprise": "plan_E3ah84PpFz2ecD"
+        "kernl-enterprise": "plan_E3ah84PpFz2ecD",
+        "kernl-startup-2020": "plan_G7f4xmynKu9LuH",
+        "kernl-agency-2020": "plan_G7f4hvjugCZ0pI",
+        "kernl-unlimited-2020": "plan_G7f4YYgxL3W3j7"
     }
 };
 
