@@ -121,7 +121,7 @@ const settings: Settings = {
         maxUsers: 25000
     },
     "kernl-unlimited-2020": {
-        maxMachineHours: 200,
+        maxMachineHours: 500,
         maxLoadTests: 200,
         maxLoadTestDurationMinutes: 300,
         maxReliabilityTestMinutes: 3000,
