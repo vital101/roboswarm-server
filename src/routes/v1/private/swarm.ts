@@ -49,6 +49,10 @@ interface LoadTestIpAddressesResponse extends RoboResponse {
     json: (ips: IPAddress[]) => any;
 }
 
+interface GroupedSwarmResponse extends RoboResponse {
+    json: (swarms: Swarm.GroupedSwarm[]) => any;
+}
+
 const router = Router();
 
 const upload = multer({
@@ -61,6 +65,10 @@ router.route("/file-upload")
             res.json({
                 filePath: req.file.path
             });
+        });
+
+router.route("/grouped-swarms")
+        .get(async (req: RoboRequest, res: GroupedSwarmResponse) => {
         });
 
 router.route("/:id/metrics/final")

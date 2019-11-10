@@ -41,6 +41,8 @@ export interface Swarm {
     soft_delete?: boolean;
     machines?: Machine.Machine[];
     load_test_started?: boolean;
+    template_id?: string;
+    template_name?: string;
 }
 
 export interface NewSwarm {
@@ -56,6 +58,18 @@ export interface NewSwarm {
     swarm_ui_type: string;
     reliability_test?: boolean;
     kernl_test?: boolean;
+    template_id?: string;
+    template_name?: string;
+}
+
+export interface GroupedSwarm {
+    host_url: string;
+    template_id: string;
+    template_name: string;
+    regions: string[];
+    response_time: number;
+    test_count: number;
+    users: number;
 }
 
 function getStatus(created_at: Date, ready_at: Date, destroyed_at: Date): Status {
@@ -100,6 +114,8 @@ export async function create(swarm: NewSwarm, userId: number, groupId: number): 
             region: swarm.region,
             duration: swarm.duration,
             swarm_ui_type: swarm.swarm_ui_type,
+            template_id: swarm.template_id,
+            template_name: swarm.template_name,
             size: Math.ceil((swarm.machines.length - 1) / 2)
         })
         .returning("*");
@@ -533,6 +549,8 @@ export async function createRepeatSwarmRequest(swarmId: number): Promise<NewSwar
         region: oldSwarm.region,
         swarm_ui_type: oldSwarm.swarm_ui_type
     };
+    if (oldSwarm.template_id) { newSwarm.template_id = oldSwarm.template_id; }
+    if (oldSwarm.template_name) { newSwarm.template_name = oldSwarm.template_name; }
 
     // Rotate through the old machines and regions evenly distributing the load.
     const oldMachines: Machine.Machine[] = await getSwarmMachines(swarmId);
