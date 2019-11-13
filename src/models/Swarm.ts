@@ -251,46 +251,42 @@ export async function getById(id: number): Promise<Swarm> {
 }
 
 export async function getByGroupId(groupId: number): Promise<Array<Swarm>> {
-    const swarmQuery = db("swarm")
-        .where({
-            group_id: groupId,
-            soft_delete: false
-        })
-        .orderBy("created_at", "DESC");
-    const swarms: Array<Swarm> = await swarmQuery;
-    const swarmSizes: any = {};
-    const swarmStatus: any = {};
-    for (let swarm of swarms) {
-        // Get swarm size.
-        swarm = swarm as Swarm;
-        const swarmSize = await getSwarmSizeById(swarm.id);
-        swarmSizes[swarm.id] = swarmSize;
-
-        // Get swarm status.
-        swarmStatus[swarm.id] = getStatus(swarm.created_at, swarm.ready_at, swarm.destroyed_at);
-
-        // Fetch machines and return the file transfer status and setup_complete.
-        const machines = await getSwarmMachines(swarm.id);
-        swarm.machines = machines;
+    interface SwarmQueryResult {
+        rows: Array<Swarm>;
+    }
+    const query = `
+        SELECT
+            s.*,
+            array(
+                SELECT to_json(m)
+                FROM swarm_machine sm
+                JOIN machine m
+                ON sm.machine_id = m.id
+                WHERE swarm_id = s.id
+            ) as machines
+        FROM swarm s
+        WHERE
+            group_id = ${groupId} AND
+            soft_delete = false
+        ORDER BY s.created_at DESC
+    `;
+    const result: SwarmQueryResult = await db.raw(query);
+    const swarmRaw: Swarm[] = result.rows;
+    return swarmRaw.map(swarm => {
         let file_transfer_complete = true;
         let setup_complete = true;
-        machines.forEach(machine => {
+        swarm.machines.forEach(machine => {
             if (!machine.file_transfer_complete) { file_transfer_complete = false; }
             if (!machine.setup_complete) { setup_complete = false; }
         });
-        swarm.file_transfer_complete = file_transfer_complete;
-        swarm.setup_complete = setup_complete;
-    }
-    const temp = swarms.map(swarm => {
-        const size = swarmSizes[swarm.id];
-        const status = swarmStatus[swarm.id];
         return {
             ...swarm,
-            size,
-            status
+            file_transfer_complete,
+            setup_complete,
+            size: swarm.machines.length,
+            status: getStatus(swarm.created_at, swarm.ready_at, swarm.destroyed_at)
         };
     });
-    return temp;
 }
 
 export async function getSwarmSizeById(swarmId: number): Promise<number> {
