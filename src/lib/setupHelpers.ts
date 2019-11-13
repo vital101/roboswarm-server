@@ -316,6 +316,8 @@ export async function installPackagesOnMachine(machineIp: string, privateKey: st
         privateKey,
     });
     const commands: Array<string> = [
+        "sysctl -w net.ipv6.conf.all.disable_ipv6=1", // Disable ipv6
+        "sysctl -w net.ipv6.conf.default.disable_ipv6=1", // Disable ipv6
         "apt-get update",
         "export DEBIAN_FRONTEND=noninteractive && apt-get install -y python2.7 python-pip unzip traceroute"
     ];
