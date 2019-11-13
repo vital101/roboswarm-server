@@ -279,11 +279,13 @@ export async function getByGroupId(groupId: number): Promise<Array<Swarm>> {
             if (!machine.file_transfer_complete) { file_transfer_complete = false; }
             if (!machine.setup_complete) { setup_complete = false; }
         });
+        const size: number = swarm.machines.length;
         return {
             ...swarm,
             file_transfer_complete,
             setup_complete,
-            size: swarm.machines.length,
+            size,
+            machines: [],
             status: getStatus(swarm.created_at, swarm.ready_at, swarm.destroyed_at)
         };
     });
