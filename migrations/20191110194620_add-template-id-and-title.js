@@ -1,13 +1,21 @@
 exports.up = async function (knex, Promise) {
-    await knex.schema.table("swarm", (table) => {
-        table.text("template_id").nullable();
-        table.text("template_name").nullable();
+    await knex.schema.table("swarm", table => {
+        table.index("group_id");
+        table.index("soft_delete");
+    });
+
+    await knex.schema.table("swarm_machine", table => {
+        table.index("swarm_id");
     });
 };
 
 exports.down = async function (knex, Promise) {
-    await knex.schema.table("swarm", (table) => {
-        table.dropColumn("template_id");
-        table.dropColumn("template_name");
+    await knex.schema.table("swarm", table => {
+        table.dropIndex("group_id");
+        table.dropIndex("soft_delete");
+    });
+
+    await knex.schema.table("swarm_machine", table => {
+        table.dropIndex("swarm_id");
     });
 };
