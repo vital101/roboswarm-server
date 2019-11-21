@@ -292,7 +292,8 @@ export async function getByGroupId(groupId: number): Promise<Array<Swarm>> {
 }
 
 export async function getSwarmSizeById(swarmId: number): Promise<number> {
-    const row = await db("swarm_machine")
+    interface RowCount { count: number; }
+    const row: RowCount[] = await db("swarm_machine")
                         .where("swarm_id", swarmId)
                         .count();
 
