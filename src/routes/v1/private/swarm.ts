@@ -73,9 +73,10 @@ router.route("/grouped-swarms")
 
 router.route("/:id/metrics/final")
     .get(async (req: RoboRequest, res: RoboResponse) => {
+        const id: number = parseInt(req.params.id, 10);
         const finalData: LoadTestMetricsFinal = {
-            requests: await LoadTest.getRequestsFinal(req.params.id),
-            distribution: await LoadTest.getDistributionFinal(req.params.id)
+            requests: await LoadTest.getRequestsFinal(id),
+            distribution: await LoadTest.getDistributionFinal(id)
         };
         res.status(200);
         res.json(finalData);
@@ -83,16 +84,17 @@ router.route("/:id/metrics/final")
 
 router.route("/:id/metrics")
     .post(async (req: LoadTestMetricsRequest, res: LoadTestMetricsResponse) => {
+        const id: number = parseInt(req.params.id, 10);
         try {
-            const totalRequestRows: number = await LoadTest.getTotalRequestRows(req.params.id, req.body.lastRequestId);
-            const totalDistributionRows: number = await LoadTest.getTotalDistributionRows(req.params.id, req.body.lastDistributionId);
+            const totalRequestRows: number = await LoadTest.getTotalRequestRows(id, req.body.lastRequestId);
+            const totalDistributionRows: number = await LoadTest.getTotalDistributionRows(id, req.body.lastDistributionId);
             const requestRowsBetweenPoints: number = LoadTest.getRowsInBetweenPoints(totalRequestRows);
             const distributionRowsBetweenPoints: number = LoadTest.getRowsInBetweenPoints(totalDistributionRows);
             let rowsBetweenPoints: number = requestRowsBetweenPoints > distributionRowsBetweenPoints ? requestRowsBetweenPoints : distributionRowsBetweenPoints;
             if (req.body.showAll) { rowsBetweenPoints = 1; }
             const data: LoadTestMetrics = {
-                requests: await LoadTest.getRequestsInRange(req.params.id, rowsBetweenPoints, req.body.lastRequestId, ),
-                distribution: await LoadTest.getDistributionsInRange(req.params.id, rowsBetweenPoints, req.body.lastDistributionId)
+                requests: await LoadTest.getRequestsInRange(id, rowsBetweenPoints, req.body.lastRequestId, ),
+                distribution: await LoadTest.getDistributionsInRange(id, rowsBetweenPoints, req.body.lastDistributionId)
             };
 
             res.status(200);
@@ -105,7 +107,8 @@ router.route("/:id/metrics")
 
 router.route("/:id/ip-addresses")
     .get(async (req: RoboRequest, res: LoadTestIpAddressesResponse) => {
-        const machines: Machine.Machine[] = await SwarmMachine.getSwarmMachines(req.params.id);
+        const id: number = parseInt(req.params.id, 10);
+        const machines: Machine.Machine[] = await SwarmMachine.getSwarmMachines(id);
         const ips: IPAddress[] = machines
             .filter(m => !m.is_master)
             .map(m => {
@@ -120,7 +123,8 @@ router.route("/:id/ip-addresses")
 
 router.route("/:id/repeat")
     .post(async (req: RoboRequest, res: RepeatSwarmResponse) => {
-        const newSwarm: Swarm.NewSwarm = await Swarm.createRepeatSwarmRequest(req.params.id);
+        const id: number = parseInt(req.params.id, 10);
+        const newSwarm: Swarm.NewSwarm = await Swarm.createRepeatSwarmRequest(id);
         if (req.body && req.body.kernl_test) { newSwarm.kernl_test = req.body.kernl_test; }
         const user: User.User = await User.getById(req.user.id);
         const isReliabilityTest = !!(newSwarm.simulated_users <= 25 && newSwarm.duration > 120);
@@ -143,8 +147,9 @@ router.route("/:id/repeat")
 
 router.route("/:id/soft-delete")
     .delete(async (req: RoboRequest, res: RoboResponse) => {
+        const id: number = parseInt(req.params.id, 10);
         try {
-            await Swarm.softDelete(req.params.id, req.user.groupId);
+            await Swarm.softDelete(id, req.user.groupId);
             res.status(204);
             res.send("ok");
         } catch (err) {
@@ -155,8 +160,9 @@ router.route("/:id/soft-delete")
 
 router.route("/:id")
     .delete(async (req: RoboRequest, res: RoboResponse) => {
+        const id: number = parseInt(req.params.id, 10);
         try {
-            await Swarm.destroyById(req.params.id, req.user.groupId);
+            await Swarm.destroyById(id, req.user.groupId);
             res.status(204);
             res.send("ok");
         } catch (err) {
@@ -165,8 +171,9 @@ router.route("/:id")
         }
     })
     .get(async (req: RoboRequest, res: RoboResponse) => {
+        const id: number = parseInt(req.params.id, 10);
         try {
-            const swarm: Swarm.Swarm = await Swarm.getById(req.params.id);
+            const swarm: Swarm.Swarm = await Swarm.getById(id);
             res.status(200);
             res.json(swarm);
         } catch (err) {
