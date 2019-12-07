@@ -36,3 +36,6 @@ dist/**/*
 
 # Ignore uploads folder
 uploads/**/*
+
+# Test coverage folder
+coverage
