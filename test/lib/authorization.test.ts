@@ -5,6 +5,7 @@ import * as moment from "moment";
 import * as Swarm from "../../src/models/Swarm";
 import * as SiteOwnership from "../../src/models/SiteOwnership";
 import { User } from "../../src/models/User";
+import { RoboError } from "../../src/interfaces/shared.interface";
 
 describe("lib/authorization", () => {
     let sandbox: sinon.SinonSandbox;
@@ -190,5 +191,70 @@ describe("lib/authorization", () => {
             expect(findByIdStub.callCount).toBe(1);
             expect(findByIdStub.getCall(0).args[0]).toBe(swarm.site_id);
         });
+    });
+
+    describe("canCreateSwarm", () => {
+        test("rejects if not a valid site", async () => {
+            const swarm: any = {
+                machines: [1, 2, 3, 4],
+                kernl_test: false,
+                host_url: "https://some.test.url"
+            };
+            const result: any = await authorization.canCreateSwarm(user, swarm, false);
+            expect(result).toEqual({
+                err: "The site is not valid. Be sure to verify your ownership.",
+                status: 400
+            });
+
+        });
+        test("rejects if test will exceed droplet pool availability", async () => {
+            const swarm: any = {
+                machines: [1, 2, 3, 4],
+                kernl_test: true,
+                host_url: "https://some.test.url"
+            };
+            const dropletPoolAvailabilityStub: sinon.SinonStub = sandbox.stub(Swarm, "willExceedDropletPoolAvailability").resolves(true);
+            const result: any = await authorization.canCreateSwarm(user, swarm, false);
+            expect(result).toEqual({
+                err: "This request will exceed the resources that RoboSwarm has available. Our team has been notified.",
+                status: 500
+            });
+            expect(dropletPoolAvailabilityStub.callCount).toBe(1);
+        });
+        test("rejects if test will exceed max available machine hours", async () => {
+            const swarm: any = {
+                machines: [1, 2, 3, 4],
+                duration: 300,
+                kernl_test: true,
+                host_url: "https://some.test.url"
+            };
+            sandbox.stub(Swarm, "willExceedDropletPoolAvailability").resolves(false);
+            sandbox.stub(Swarm, "totalMachineSecondsInPeriod").resolves(10);
+            const result: any = await authorization.canCreateSwarm(user, swarm, false);
+            expect(result).toEqual({
+                err: "This request will exceed the number of hours you have left on your plan before your next billing cycle. Try a smaller swarm size.",
+                status: 403
+            });
+        });
+        test("rejects if test will exceed max available load tests", async () => {
+            const swarm: any = {
+                machines: [1, 2, 3, 4],
+                duration: 15,
+                kernl_test: true,
+                host_url: "https://some.test.url"
+            };
+            sandbox.stub(Swarm, "willExceedDropletPoolAvailability").resolves(false);
+            sandbox.stub(Swarm, "totalMachineSecondsInPeriod").resolves(10);
+            sandbox.stub(Swarm, "getSwarmsInDateRange").resolves(5);
+            const result: any = await authorization.canCreateSwarm(user, swarm, false);
+            expect(result).toEqual({
+                err: "This request will exceed the maximum number of load tests that your plan allows.",
+                status: 403
+            });
+        });
+        test.todo("rejects if test will exceed max duration");
+        test.todo("rejects if test will exceed max users");
+        test.todo("rejects if the user in delinquent");
+        test.todo("resolves if the user can create a swarm");
     });
 });
