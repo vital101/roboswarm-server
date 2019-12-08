@@ -252,9 +252,74 @@ describe("lib/authorization", () => {
                 status: 403
             });
         });
-        test.todo("rejects if test will exceed max duration");
-        test.todo("rejects if test will exceed max users");
-        test.todo("rejects if the user in delinquent");
-        test.todo("resolves if the user can create a swarm");
+        test("rejects if test will exceed max duration", async () => {
+            user.stripe_plan_description = "startup";
+            const swarm: any = {
+                machines: [1],
+                duration: 15000,
+                kernl_test: true,
+                host_url: "https://some.test.url"
+            };
+            sandbox.stub(Swarm, "willExceedDropletPoolAvailability").resolves(false);
+            sandbox.stub(Swarm, "totalMachineSecondsInPeriod").resolves(10);
+            sandbox.stub(Swarm, "getSwarmsInDateRange").resolves(0);
+            const result: any = await authorization.canCreateSwarm(user, swarm, false);
+            expect(result).toEqual({
+                err: "This request will exceed the maximum load test duration for your account. Please try again with a shorter duration.",
+                status: 403
+            });
+        });
+        test("rejects if test will exceed max users", async () => {
+            user.stripe_plan_description = "startup";
+            const swarm: any = {
+                machines: [1],
+                duration: 30,
+                kernl_test: true,
+                simulated_users: 5001,
+                host_url: "https://some.test.url"
+            };
+            sandbox.stub(Swarm, "willExceedDropletPoolAvailability").resolves(false);
+            sandbox.stub(Swarm, "totalMachineSecondsInPeriod").resolves(10);
+            sandbox.stub(Swarm, "getSwarmsInDateRange").resolves(0);
+            const result: any = await authorization.canCreateSwarm(user, swarm, false);
+            expect(result).toEqual({
+                err: "This request will exceed the maximum number of users (5000) allowed by your account. To run a larger load test, upgrade to a bigger plan.",
+                status: 403
+            });
+        });
+        test("rejects if the user in delinquent", async () => {
+            user.stripe_plan_description = "startup";
+            user.is_delinquent = true;
+            const swarm: any = {
+                machines: [1],
+                duration: 30,
+                kernl_test: true,
+                simulated_users: 4000,
+                host_url: "https://some.test.url"
+            };
+            sandbox.stub(Swarm, "willExceedDropletPoolAvailability").resolves(false);
+            sandbox.stub(Swarm, "totalMachineSecondsInPeriod").resolves(10);
+            sandbox.stub(Swarm, "getSwarmsInDateRange").resolves(0);
+            const result: any = await authorization.canCreateSwarm(user, swarm, false);
+            expect(result).toEqual({
+                err: "This account is past due. You cannot create swarms while your account is past due.",
+                status: 402
+            });
+        });
+        test("resolves if the user can create a swarm", async () => {
+            user.stripe_plan_description = "startup";
+            const swarm: any = {
+                machines: [1],
+                duration: 30,
+                kernl_test: true,
+                simulated_users: 4000,
+                host_url: "https://some.test.url"
+            };
+            sandbox.stub(Swarm, "willExceedDropletPoolAvailability").resolves(false);
+            sandbox.stub(Swarm, "totalMachineSecondsInPeriod").resolves(10);
+            sandbox.stub(Swarm, "getSwarmsInDateRange").resolves(0);
+            const result: any = await authorization.canCreateSwarm(user, swarm, false);
+            expect(result).toBe(true);
+        });
     });
 });
