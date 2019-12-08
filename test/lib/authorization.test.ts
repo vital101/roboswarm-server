@@ -3,6 +3,7 @@ import * as stripeHelpers from "../../src/lib/stripe";
 import * as authorization from "../../src/lib/authorization";
 import * as moment from "moment";
 import * as Swarm from "../../src/models/Swarm";
+import * as SiteOwnership from "../../src/models/SiteOwnership";
 import { User } from "../../src/models/User";
 
 describe("lib/authorization", () => {
@@ -18,6 +19,7 @@ describe("lib/authorization", () => {
 
     beforeEach(() => {
         user = {
+            id: 1,
             email: "test@example.com",
             first_name: "test",
             last_name: "user",
@@ -89,9 +91,104 @@ describe("lib/authorization", () => {
     });
 
     describe("willExceedMaxLoadTestDuration", () => {
-        test.todo("returns true if the test exceeds the max duration");
-        test.todo("returns true if the reliability test exceeds the max duration");
-        test.todo("returns false if the test exceeds the max duration");
-        test.todo("returns false if the reliability test exceeds the max duration");
+        test("returns true if the test exceeds the max duration", () => {
+            const result: boolean = authorization.willExceedMaxLoadTestDuration(user, 500, false);
+            expect(result).toBe(true);
+        });
+        test("returns true if the reliability test exceeds the max duration", () => {
+            const result: boolean = authorization.willExceedMaxLoadTestDuration(user, 50000, true);
+            expect(result).toBe(true);
+        });
+        test("returns false if the test does not exceed the max duration", () => {
+            const result: boolean = authorization.willExceedMaxLoadTestDuration(user, 10, false);
+            expect(result).toBe(false);
+        });
+        test("returns false if the reliability test does not exceed the max duration", () => {
+            const result: boolean = authorization.willExceedMaxLoadTestDuration(user, 140, true);
+            expect(result).toBe(false);
+        });
+    });
+
+    describe("willExceedMaxUsers", () => {
+        test("returns true if the test exceeds the max users", () => {
+            const result: boolean = authorization.willExceedMaxUsers(user, 120, false);
+            expect(result).toBe(true);
+        });
+        test("returns true if the reliability test exceeds the max users", () => {
+            const result: boolean = authorization.willExceedMaxUsers(user, 30, true);
+            expect(result).toBe(true);
+        });
+        test("returns false if the test does not exceed the max users", () => {
+            const result: boolean = authorization.willExceedMaxUsers(user, 100, false);
+            expect(result).toBe(false);
+        });
+        test("returns false if the reliability test does not exceed the max users", () => {
+            const result: boolean = authorization.willExceedMaxUsers(user, 25, true);
+            expect(result).toBe(false);
+        });
+    });
+
+    describe("isValidSite", () => {
+        test("returns true for Kernl initiated tests", async () => {
+            const swarm: any = {
+                kernl_test: true,
+                host_url: "https://some.test.url"
+            };
+            expect(await authorization.isValidSite(user, swarm)).toBe(true);
+
+        });
+
+        test("returns false if the swarm host_url is not set", async () => {
+            const swarm: any = {
+                kernl_test: false,
+                host_url: "https://some.test.url"
+            };
+            expect(await authorization.isValidSite(user, swarm)).toBe(false);
+        });
+
+        test("returns false if the current user does not own the site", async () => {
+            const findByIdStub: sinon.SinonStub = sandbox.stub(SiteOwnership, "findById").resolves({
+                user_id: 123,
+                verified: false
+            } as any);
+            const swarm: any = {
+                kernl_test: false,
+                host_url: undefined,
+                site_id: 1
+            };
+            expect(await authorization.isValidSite(user, swarm)).toBe(false);
+            expect(findByIdStub.callCount).toBe(1);
+            expect(findByIdStub.getCall(0).args[0]).toBe(swarm.site_id);
+        });
+
+        test("returns false if the site is not verified", async () => {
+            const findByIdStub: sinon.SinonStub = sandbox.stub(SiteOwnership, "findById").resolves({
+                user_id: 1,
+                verified: false
+            } as any);
+            const swarm: any = {
+                kernl_test: false,
+                host_url: undefined,
+                site_id: 1
+            };
+            expect(await authorization.isValidSite(user, swarm)).toBe(false);
+            expect(findByIdStub.callCount).toBe(1);
+            expect(findByIdStub.getCall(0).args[0]).toBe(swarm.site_id);
+        });
+
+        test("returns true if the site is verified", async () => {
+            const findByIdStub: sinon.SinonStub = sandbox.stub(SiteOwnership, "findById").resolves({
+                user_id: 1,
+                verified: true
+            } as any);
+            const swarm: any = {
+                kernl_test: false,
+                host_url: undefined,
+                site_id: 1
+            };
+            expect(await authorization.isValidSite(user, swarm)).toBe(true);
+            expect(findByIdStub.callCount).toBe(1);
+            expect(findByIdStub.getCall(0).args[0]).toBe(swarm.site_id);
+        });
     });
 });
