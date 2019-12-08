@@ -194,6 +194,22 @@ describe("lib/authorization", () => {
     });
 
     describe("canCreateSwarm", () => {
+
+        test("throws if there is an exception", async () => {
+            const swarm: any = {
+                machines: [1, 2, 3, 4],
+                kernl_test: true,
+                host_url: "https://some.test.url"
+            };
+            const dropletPoolAvailabilityStub: sinon.SinonStub = sandbox.stub(Swarm, "willExceedDropletPoolAvailability").throws();
+            const result: any = await authorization.canCreateSwarm(user, swarm, false);
+            expect(result).toEqual({
+                err: "There was error verifying your account status. Please reach out to jack@kernl.us",
+                status: 500
+            });
+            expect(dropletPoolAvailabilityStub.callCount).toBe(1);
+        });
+
         test("rejects if not a valid site", async () => {
             const swarm: any = {
                 machines: [1, 2, 3, 4],
@@ -320,6 +336,20 @@ describe("lib/authorization", () => {
             sandbox.stub(Swarm, "getSwarmsInDateRange").resolves(0);
             const result: any = await authorization.canCreateSwarm(user, swarm, false);
             expect(result).toBe(true);
+        });
+    });
+
+    describe("getUserResourceAvailability", () => {
+        test("returns the user's available resources", async () => {
+            sandbox.stub(Swarm, "getSwarmsInDateRange").resolves(5);
+            sandbox.stub(Swarm, "totalMachineSecondsInPeriod").resolves(10);
+            const resources: authorization.ResourceAvailability = await authorization.getUserResourceAvailability(user);
+            expect(resources.delinquent).toBe(false);
+            expect(resources.loadTests).toBe(5);
+            expect(resources.machineSeconds).toBe(10);
+            expect(resources.maxDurationMinutes).toBe(15);
+            expect(resources.maxLoadTests).toBe(2);
+            expect(resources.maxMachineSeconds).toBe(18000);
         });
     });
 });
