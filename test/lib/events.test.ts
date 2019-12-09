@@ -2,35 +2,35 @@ import * as sinon from "sinon";
 import * as redis from "redis";
 import * as events from "../../src/lib/events";
 
-type RedisCbType = (err: any, reply: any) => any;
-
 describe("lib/authorization", () => {
     let sandbox: sinon.SinonSandbox;
+    let client: redis.RedisClient;
 
     beforeAll(() => {
         sandbox = sinon.createSandbox();
     });
 
-    afterEach(() => {
+    beforeEach(done => {
+        client = redis.createClient();
+        client.flushall(done);
+    });
+
+    afterEach(done => {
         sandbox.restore();
+        client.quit(done);
     });
 
     describe("dequeue", () => {
-        test.todo("it 'rpop's the event off of the Redis queue and resolves");
-        test.todo("it rejects if there is an error");
+        test("it 'rpop's the event off of the Redis queue and resolves", async () => {
+            await events.enqueue({ test: 1 });
+            expect(await events.dequeue()).toEqual({ test: 1 });
+        });
     });
 
     describe("enqueue", () => {
-        test("it 'lpush's the event onto the Redis queue and resolves", async() => {
-            const lpushStub: sinon.SinonStub = sinon.stub(redis, "createClient").returns({
-                lpush: (queueName: string, data: any, cb: RedisCbType) => {
-                    cb(undefined, 1);
-                }
-            } as any);
+        test("it 'lpush's the event onto the Redis queue and resolves", async () => {
             const result = await events.enqueue({ test: 1 });
             expect(result).toBe(1);
-            // WIP -> Lpush needs to be a stub that calls back....
         });
-        test.todo("it rejects if there is an error");
     });
 });
