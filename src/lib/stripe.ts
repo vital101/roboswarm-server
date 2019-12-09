@@ -1,6 +1,5 @@
 import * as Stripe from "stripe";
 import * as User from "../models/User";
-const stripe = new Stripe(process.env.STRIPE_API_SECRET);
 
 const stripePlans: any = {
     development: {
@@ -36,6 +35,7 @@ function getPlanId(planName: string): string {
 }
 
 export async function createStripeCustomer(user: User.User): Promise<void> {
+    const stripe = new Stripe(process.env.STRIPE_API_SECRET);
     const customerOptions: Stripe.customers.ICustomerCreationOptions = {
         email: user.email,
         description: `${user.first_name} ${user.last_name}`
@@ -45,6 +45,7 @@ export async function createStripeCustomer(user: User.User): Promise<void> {
 }
 
 export async function getUserSubscription(user: User.User): Promise<Stripe.subscriptions.ISubscription> {
+    const stripe = new Stripe(process.env.STRIPE_API_SECRET);
     const subscriptionListOptions: Stripe.subscriptions.ISubscriptionListOptions = {
         customer: user.stripe_id
     };
@@ -53,6 +54,7 @@ export async function getUserSubscription(user: User.User): Promise<Stripe.subsc
 }
 
 export async function setStripePlan(userId: number, planName: string): Promise<void> {
+    const stripe = new Stripe(process.env.STRIPE_API_SECRET);
     const user: User.User = await User.getById(userId);
     const subscriptionListOptions: Stripe.subscriptions.ISubscriptionListOptions = {
         customer: user.stripe_id
@@ -88,6 +90,7 @@ export async function setStripePlan(userId: number, planName: string): Promise<v
 }
 
 export async function addCardToCustomer(userId: number, token: string, cardId: string): Promise<void> {
+    const stripe = new Stripe(process.env.STRIPE_API_SECRET);
     const user: User.User = await User.getById(userId);
     const options: Stripe.customers.ICustomerUpdateOptions = { source: token };
     await stripe.customers.update(user.stripe_id, options);
@@ -95,6 +98,7 @@ export async function addCardToCustomer(userId: number, token: string, cardId: s
 }
 
 export async function getCustomer(userId: number): Promise<Stripe.customers.ICustomer> {
+    const stripe = new Stripe(process.env.STRIPE_API_SECRET);
     const user: User.User = await User.getById(userId);
     return await stripe.customers.retrieve(user.stripe_id);
 }
