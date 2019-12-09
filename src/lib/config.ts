@@ -47,7 +47,7 @@ export function getPlan(user: User): Plan {
     }
 }
 
-const settings: Settings = {
+export const settings: Settings = {
     free: {
         maxMachineHours: 5,
         maxLoadTests: 2,
