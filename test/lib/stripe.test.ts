@@ -14,9 +14,7 @@ describe("lib/stripe", () => {
     });
 
     describe("createStripeCustomer", () => {
-        test("creates the stripe customer", async () => {
-
-        });
+        test.todo("creates the stripe customer");
     });
 
 });
