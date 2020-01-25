@@ -2,7 +2,6 @@ import { Router } from "express";
 import { RoboRequest, RoboResponse } from "../../../interfaces/shared.interface";
 import * as User from "../../../models/User";
 import * as Stripe from "../../../lib/stripe";
-import { sendEmail } from "../../../lib/email";
 import { getUserResourceAvailability, ResourceAvailability } from "../../../lib/authorization";
 
 interface UserBodyResponse extends RoboResponse {
@@ -51,14 +50,6 @@ router.route("/me/plan")
     .post(async (req: SetPlanRequest, res: RoboResponse) => {
         try {
             await Stripe.setStripePlan(req.user.id, req.body.planName);
-            if (req.body.planName !== "free") {
-                sendEmail({
-                    to: "jack@kernl.us",
-                    from: "jack@kernl.us",
-                    subject: `RoboSwarm Account Upgrade: ${req.user.email} -> ${req.body.planName}`,
-                    text: `${req.user.email} has changed their account to ${req.body.planName}`
-                });
-            }
             res.status(200);
             res.send("ok");
         } catch (err) {
