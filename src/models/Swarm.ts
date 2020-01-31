@@ -101,6 +101,8 @@ export async function create(swarm: NewSwarm, userId: number, groupId: number): 
     }
 
     // Create the container swarm.
+    const CORES_PER_MACHINE: number = 2;
+    const OVER_PROVISION_MULTIPLIER: number = 1.08;
     const newSwarmResult: Array<Swarm> = await db("swarm")
         .insert({
             name: swarm.name,
@@ -116,7 +118,7 @@ export async function create(swarm: NewSwarm, userId: number, groupId: number): 
             swarm_ui_type: swarm.swarm_ui_type,
             template_id: swarm.template_id,
             template_name: swarm.template_name,
-            size: Math.ceil((swarm.machines.length - 1) / 2)
+            size: Math.ceil(((swarm.machines.length - 1) / CORES_PER_MACHINE) * OVER_PROVISION_MULTIPLIER)
         })
         .returning("*");
 
