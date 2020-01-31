@@ -3,6 +3,7 @@ const client = redis.createClient();
 const EVENT_QUEUE_NAME = "events";
 
 export function enqueue(item: any): Promise<any> {
+    console.log("here. should not be");
     return new Promise((resolve, reject) => {
         const data = JSON.stringify(item);
         client.lpush(EVENT_QUEUE_NAME, data, (err, reply) => {
