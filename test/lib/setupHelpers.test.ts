@@ -137,7 +137,18 @@ describe("lib/setupHelpers", () => {
             expect(fetchMetricsStub.callCount).toEqual(0);
         });
 
-        xit("will fetch load test metrics if the current time is greater than or equal to delayUntil", async () => {
+        it("will fetch load test metrics if the current time is greater than or equal to delayUntil", async () => {
+            sandbox.stub(Swarm, "getById").resolves({
+                status: Status.ready
+            } as Swarm.Swarm);
+            const fetchMetricsStub: Sinon.SinonStub = sandbox.stub(Swarm, "fetchLoadTestMetrics").resolves();
+            await setupHelpers.processDataCaptureEvent({
+                ...baseCaptureEvent,
+                delayUntil: moment().subtract(1, "day").toDate()
+            });
+            expect(enqueueStub.callCount).toEqual(1);
+            expect(fetchMetricsStub.callCount).toEqual(1);
+            expect(fetchMetricsStub.getCall(0).args[0]).toEqual({ status: Status.ready });
         });
     });
 });
