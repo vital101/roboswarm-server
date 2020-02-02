@@ -1,8 +1,10 @@
 import * as sinon from "sinon";
 import * as setupHelpers from "../../src/lib/setupHelpers";
 import * as events from "../../src/lib/events";
-import { MachineProvisionEvent, MachineSetupStep, DataCaptureEvent, WorkerEventType } from "../../src/interfaces/provisioning.interface";
+import { MachineProvisionEvent, MachineSetupStep, DataCaptureEvent, WorkerEventType, DeprovisionEvent, DeprovisionEventType } from "../../src/interfaces/provisioning.interface";
 import * as Swarm from "../../src/models/Swarm";
+import * as Machine from "../../src/models/Machine";
+import * as SSHKey from "../../src/models/SSHKey";
 import { Status } from "../../src/interfaces/shared.interface";
 import * as moment from "moment";
 import Sinon = require("sinon");
@@ -149,6 +151,55 @@ describe("lib/setupHelpers", () => {
             expect(enqueueStub.callCount).toEqual(1);
             expect(fetchMetricsStub.callCount).toEqual(1);
             expect(fetchMetricsStub.getCall(0).args[0]).toEqual({ status: Status.ready });
+        });
+    });
+
+    describe("processDeprovisionEvent", () => {
+        let baseDeprovisionEvent: DeprovisionEvent;
+        let machineDeprovisionStub: Sinon.SinonStub;
+        let sshKeyDeprovisionStub: Sinon.SinonStub;
+
+        beforeEach(() => {
+            baseDeprovisionEvent = {
+                id: 1,
+                eventType: WorkerEventType.DEPROVISION,
+                deprovisionType: DeprovisionEventType.MACHINE,
+                maxRetries: 5,
+                currentTry: 0,
+                lastActionTime: new Date(),
+                errors: []
+            };
+            machineDeprovisionStub = sandbox.stub(Machine, "destroy").resolves();
+            sshKeyDeprovisionStub = sandbox.stub(SSHKey, "destroy").resolves();
+        });
+
+        it("does not process the event if we have reached max retries", async () => {
+            const doNotProcess: DeprovisionEvent = {
+                ...baseDeprovisionEvent,
+                currentTry: 6,
+            };
+            await setupHelpers.processDeprovisionEvent(doNotProcess);
+            expect(machineDeprovisionStub.callCount).toEqual(0);
+            expect(sshKeyDeprovisionStub.callCount).toEqual(0);
+
+        });
+
+        it("deprovisions the machine", async () => {
+            await setupHelpers.processDeprovisionEvent(baseDeprovisionEvent);
+            expect(machineDeprovisionStub.callCount).toEqual(1);
+            expect(machineDeprovisionStub.getCall(0).args[0]).toEqual(baseDeprovisionEvent.id);
+            expect(sshKeyDeprovisionStub.callCount).toEqual(0);
+        });
+
+        it("deprovisions the ssh key", async () => {
+            const sshKeyDeprovisionEvent: DeprovisionEvent = {
+                ...baseDeprovisionEvent,
+                deprovisionType: DeprovisionEventType.SSH_KEY
+            };
+            await setupHelpers.processDeprovisionEvent(sshKeyDeprovisionEvent);
+            expect(machineDeprovisionStub.callCount).toEqual(0);
+            expect(sshKeyDeprovisionStub.callCount).toEqual(1);
+            expect(sshKeyDeprovisionStub.getCall(0).args[0]).toEqual(sshKeyDeprovisionEvent.id);
         });
     });
 });
