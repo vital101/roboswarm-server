@@ -102,7 +102,7 @@ export async function create(swarm: NewSwarm, userId: number, groupId: number): 
 
     // Create the container swarm.
     const CORES_PER_MACHINE: number = 2;
-    const OVER_PROVISION_MULTIPLIER: number = 1.08;
+    const OVER_PROVISION_MULTIPLIER: number = 1.15;
     const newSwarmResult: Array<Swarm> = await db("swarm")
         .insert({
             name: swarm.name,

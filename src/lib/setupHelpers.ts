@@ -410,7 +410,16 @@ export async function startMaster(swarm: Swarm, machine: Machine.Machine, slaveC
         "--csv=status"
     ];
     if (swarm.swarm_ui_type === "headless") {
-        const expectSlaveCount = slaveCount > 8 ? Math.ceil(slaveCount * 0.92) : Math.floor(slaveCount * 0.92);
+        let expectSlaveCount: number;
+        if (slaveCount === 1) {
+            expectSlaveCount = 1;
+        } else if (slaveCount > 1 && slaveCount <= 5) {
+            expectSlaveCount = slaveCount - 1;
+        } else if (slaveCount > 5 && slaveCount <= 12) {
+            expectSlaveCount = slaveCount - 2;
+        } else {
+            expectSlaveCount = Math.floor(slaveCount * 0.85);
+        }
         flags.push(`-c ${users}`);
         flags.push(`-r ${rate}`);
         flags.push(`--run-time ${runTime}`);
