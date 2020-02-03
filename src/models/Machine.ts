@@ -20,7 +20,6 @@ export interface Machine {
     file_transfer_complete: boolean;
     is_master: boolean;
     dependency_install_complete: boolean;
-    port_open_complete: boolean;
     traceroute?: string;
 }
 
@@ -53,8 +52,6 @@ export async function create(machine: NewMachine, swarm: Swarm, key: SSHKey): Pr
         steps: [
             MachineSetupStep.MACHINE_READY,
             MachineSetupStep.DELAY,
-            MachineSetupStep.OPEN_PORTS,
-            MachineSetupStep.PACKAGE_INSTALL,
             MachineSetupStep.TRACEROUTE,
             MachineSetupStep.TRANSFER_FILE,
             MachineSetupStep.UNZIP_AND_PIP_INSTALL
@@ -100,6 +97,29 @@ export async function checkStatus(machine: Machine): Promise<DropletResponse> {
     return request.get(url, options);
 }
 
+export function getDigitalOceanMachineImageId(region: string): number {
+    switch (region) {
+        case "blr1":
+            return 58697556;
+        case "tor1":
+            return 58697422;
+        case "fra1":
+            return 58695099;
+        case "lon1":
+            return 58694987;
+        case "sgp1":
+            return 58694917;
+        case "ams3":
+            return 58668113;
+        case "sfo2":
+            return 58667614;
+        case "nyc3":
+            return 58667140;
+        default:
+            return 58667140;
+    }
+}
+
 // Starts the creation of machine on Digital Ocean. Should only ever be used
 // in conjunction with creating a machine on RoboSwarm.
 async function createDigitalOceanMachine(machineId: number, region: string, digitalOceanSSHKeyId: number): Promise<RequestPromise> {
@@ -109,9 +129,9 @@ async function createDigitalOceanMachine(machineId: number, region: string, digi
     };
     const data = {
         name: `${machineId}`,
-        region: region,
+        region,
         size: "s-2vcpu-2gb",
-        image: "ubuntu-18-04-x64",
+        image: getDigitalOceanMachineImageId(region),
         backups: false,
         ipv6: true,
         tags: [ "roboswarm" ],

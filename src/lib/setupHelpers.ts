@@ -235,10 +235,6 @@ export async function processMachineProvisionEvent(event: MachineProvisionEvent)
                     }
                     break;
                 }
-                case MachineSetupStep.OPEN_PORTS: {
-                    await openPorts(event.machine.id, event.machine.ip_address, event.sshKey.private);
-                    break;
-                }
                 case MachineSetupStep.MACHINE_READY: {
                     const ready = await isMachineReady(event.machine.id);
                     if (ready) {
@@ -274,10 +270,6 @@ export async function processMachineProvisionEvent(event: MachineProvisionEvent)
                     await traceRoute(event.machine.id, event.machine.ip_address, event.swarm.host_url, event.sshKey.private);
                     break;
                 }
-                case MachineSetupStep.PACKAGE_INSTALL: {
-                    await installPackagesOnMachine(event.machine.ip_address, event.sshKey.private);
-                    break;
-                }
                 case MachineSetupStep.TRANSFER_FILE: {
                     await transferFileToMachine(event.machine.ip_address, event.swarm.file_path, event.sshKey.private);
                     break;
@@ -305,25 +297,6 @@ export async function processMachineProvisionEvent(event: MachineProvisionEvent)
     } else {
         console.log(`Dropping event after ${event.maxRetries} retries.`);
     }
-}
-
-export async function installPackagesOnMachine(machineIp: string, privateKey: string): Promise<void> {
-    const ssh = new node_ssh();
-    console.log(`Starting package install on ${machineIp}`);
-    await ssh.connect({
-        host: machineIp,
-        username: "root",
-        privateKey,
-    });
-    const commands: Array<string> = [
-        "sysctl -w net.ipv6.conf.all.disable_ipv6=1", // Disable ipv6
-        "sysctl -w net.ipv6.conf.default.disable_ipv6=1", // Disable ipv6
-        "apt-get update",
-        "export DEBIAN_FRONTEND=noninteractive && apt-get install -y python2.7 python-pip unzip traceroute"
-    ];
-    await ssh.execCommand(commands.join(" && "));
-    ssh.connection.end();
-    console.log(`Finished package install on ${machineIp}`);
 }
 
 export async function traceRoute(machineId: number, machineIp: string, hostUrl: string, privateKey: string): Promise<void> {
@@ -371,26 +344,6 @@ export async function unzipPackageAndPipInstall(machineId: number, machineIp: st
     console.log(`Finished pip install on ${machineIp}`);
     await Machine.updateDependencyInstallComplete(machineId, true);
     console.log(`Machine dependency_install_complete flag set ${machineIp}`);
-}
-
-export async function openPorts(machineId: number, machineIp: string, privateKey: string): Promise<void> {
-    // Todo try large machine batches without random start. Might not need it.
-    const randomStart = Math.floor(Math.random() * 3) + 1;
-    asyncSleep(randomStart);
-
-    const ssh = new node_ssh();
-    console.log(`Opening ports on ${machineIp}`);
-    await ssh.connect({
-        host: machineIp,
-        username: "root",
-        privateKey,
-    });
-    await ssh.execCommand("ufw allow 8000:65535/tcp");
-    ssh.connection.end();
-    console.log(`Finished opening ports ${machineIp}`);
-
-    await Machine.update(machineId, { port_open_complete: true });
-    console.log(`Machine port_open_complete flag set ${machineIp}`);
 }
 
 export async function startMaster(swarm: Swarm, machine: Machine.Machine, slaveCount: number, slaveIds: number[], privateKey: string): Promise<void> {
