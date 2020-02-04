@@ -1,13 +1,16 @@
 import * as sinon from "sinon";
 import * as setupHelpers from "../../src/lib/setupHelpers";
+import { SwarmSetupStep } from "../../src/interfaces/provisioning.interface";
 import * as events from "../../src/lib/events";
-import { MachineProvisionEvent, MachineSetupStep, DataCaptureEvent, WorkerEventType, DeprovisionEvent, DeprovisionEventType } from "../../src/interfaces/provisioning.interface";
+import { MachineProvisionEvent, MachineSetupStep, DataCaptureEvent, WorkerEventType, DeprovisionEvent, DeprovisionEventType, SwarmProvisionEvent } from "../../src/interfaces/provisioning.interface";
 import * as Swarm from "../../src/models/Swarm";
 import * as Machine from "../../src/models/Machine";
 import * as SSHKey from "../../src/models/SSHKey";
 import { Status } from "../../src/interfaces/shared.interface";
+import * as lib from "../../src/lib/lib";
 import * as moment from "moment";
 import Sinon = require("sinon");
+import * as swarmProvisionEvents from "../../src/lib/swarmProvisionEvents";
 
 describe("lib/setupHelpers", () => {
     let sandbox: sinon.SinonSandbox;
@@ -201,5 +204,135 @@ describe("lib/setupHelpers", () => {
             expect(sshKeyDeprovisionStub.callCount).toEqual(1);
             expect(sshKeyDeprovisionStub.getCall(0).args[0]).toEqual(sshKeyDeprovisionEvent.id);
         });
+    });
+
+    describe("processSwarmProvisionEvent", () => {
+        let baseSwarmProvisionEvent: SwarmProvisionEvent;
+
+        beforeEach(() => {
+            baseSwarmProvisionEvent = {
+                sshKey: {
+                    public: "public-key",
+                    private: "private-key",
+                    created_at: new Date()
+                },
+                eventType: WorkerEventType.SWARM_PROVISION,
+                maxRetries: 10,
+                currentTry: 1,
+                lastActionTime: new Date(),
+                errors: [],
+                swarm: {
+                    name: "Test Swarm",
+                    duration: 20,
+                    simulated_users: 200,
+                    file_path: "/some/file/path",
+                    spawn_rate: 1,
+                    machines: [],
+                    region: "nyc3",
+                    swarm_ui_type: "headless",
+                    reliability_test: false,
+                    kernl_test: true
+                },
+                createdSwarm: {
+                    id: 1,
+                    name: "Test Swarm",
+                    status: Status.ready,
+                    group_id: 1,
+                    user_id: 1,
+                    simulated_users: 200,
+                    ssh_key_id: 123,
+                    file_path: "/some/file/path",
+                    host_url: "https://kernl.us",
+                    spawn_rate: 1,
+                    created_at: new Date(),
+                    ready_at: new Date(),
+                    destroyed_at: new Date(),
+                    region: "nyc3",
+                    duration: 20,
+                    setup_complete: true,
+                    file_transfer_complete: true,
+                    swarm_ui_type: "headless"
+                },
+                stepToExecute: SwarmSetupStep.CREATE,
+                steps: [
+                    SwarmSetupStep.DELAY,
+                ]
+            };
+        });
+
+        it("drops the event if max tries has been exceeded", async () => {
+            const cleanupStub: Sinon.SinonStub = sandbox.stub(swarmProvisionEvents, "cleanUpSwarmProvisionEvent").resolves();
+            const dropEvent: SwarmProvisionEvent = {
+                ...baseSwarmProvisionEvent,
+                currentTry: 20
+            };
+            await setupHelpers.processSwarmProvisionEvent(dropEvent);
+            expect(cleanupStub.callCount).toEqual(1);
+            expect(cleanupStub.getCall(0).args[0]).toEqual(dropEvent);
+        });
+
+        it("it sleeps, increments, and re-enqueues the event if an error is thrown", async () => {
+            sandbox.stub(Swarm, "provision").throws();
+            const sleepStub: Sinon.SinonStub = sandbox.stub(lib, "asyncSleep").resolves();
+            const sleepEvent: SwarmProvisionEvent = {
+                ...baseSwarmProvisionEvent,
+                currentTry: 0
+            };
+            await setupHelpers.processSwarmProvisionEvent(sleepEvent);
+            expect(sleepStub.getCall(0).args[0]).toBe(3);
+            expect(enqueueStub.callCount).toBe(1);
+            expect(enqueueStub.getCall(0).args[0].currentTry).toBe(1);
+        });
+
+        describe("CREATE", () => {
+            it("provisions the swarm", async () => {
+                const provisionStub: Sinon.SinonStub = sandbox.stub(Swarm, "provision").resolves();
+                const createEvent: SwarmProvisionEvent = {
+                    ...baseSwarmProvisionEvent
+                };
+                await setupHelpers.processSwarmProvisionEvent(createEvent);
+                expect(enqueueStub.callCount).toBe(1);
+                expect(provisionStub.callCount).toBe(1);
+                expect(enqueueStub.getCall(0).args[0]).toEqual({
+                    ...baseSwarmProvisionEvent,
+                    stepToExecute: SwarmSetupStep.DELAY,
+                    steps: [],
+                    currentTry: 0
+                });
+            });
+        });
+
+        describe("READY", () => {
+            xit("stops if the swarm is destroyed", async () => {
+
+            });
+
+            xit("sets readyAt if the swarm is ready", async () => {
+            });
+
+            xit("re-enqueues and waits if the swarm is not ready", async () => {
+
+            });
+        });
+
+        describe("DELAY", () => {
+            xit("does a thing", async () => {
+
+            });
+        });
+
+        describe("START_MASTER", () => {
+            xit("does a thing", async () => {
+
+            });
+        });
+
+        describe("STOP_SWARM", () => {
+            xit("does a thing", async () => {
+
+            });
+        });
+
+
     });
 });
