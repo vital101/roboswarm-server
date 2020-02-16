@@ -303,21 +303,75 @@ describe("lib/setupHelpers", () => {
         });
 
         describe("READY", () => {
-            xit("stops if the swarm is destroyed", async () => {
-
+            it("stops if the swarm is destroyed", async () => {
+                sandbox.stub(Swarm, "getById").resolves({
+                    destroyed_at: new Date(),
+                } as Swarm.Swarm);
+                const swarmReadyEvent: SwarmProvisionEvent = {
+                    ...baseSwarmProvisionEvent,
+                    stepToExecute: SwarmSetupStep.READY
+                };
+                await setupHelpers.processSwarmProvisionEvent(swarmReadyEvent);
+                expect(enqueueStub.callCount).toBe(0);
             });
 
-            xit("sets readyAt if the swarm is ready", async () => {
+            it("sets readyAt if the swarm is ready", async () => {
+                sandbox.stub(Swarm, "getById").resolves({
+                    destroyed_at: undefined
+                } as Swarm.Swarm);
+                sandbox.stub(Swarm, "swarmReady").resolves(true);
+                const readyAtStub: Sinon.SinonStub = sandbox.stub(Swarm, "setReadyAt");
+                const swarmReadyEvent: SwarmProvisionEvent = {
+                    ...baseSwarmProvisionEvent,
+                    stepToExecute: SwarmSetupStep.READY
+                };
+                await setupHelpers.processSwarmProvisionEvent(swarmReadyEvent);
+                expect(readyAtStub.callCount).toBe(1);
+                expect(enqueueStub.callCount).toBe(1);
             });
 
-            xit("re-enqueues and waits if the swarm is not ready", async () => {
-
+            it("re-enqueues and waits if the swarm is not ready", async () => {
+                sandbox.stub(Swarm, "getById").resolves({
+                    destroyed_at: undefined
+                } as Swarm.Swarm);
+                sandbox.stub(Swarm, "swarmReady").resolves(false);
+                const readyAtStub: Sinon.SinonStub = sandbox.stub(Swarm, "setReadyAt");
+                const swarmReadyEvent: SwarmProvisionEvent = {
+                    ...baseSwarmProvisionEvent,
+                    stepToExecute: SwarmSetupStep.READY
+                };
+                await setupHelpers.processSwarmProvisionEvent(swarmReadyEvent);
+                expect(readyAtStub.callCount).toBe(0);
+                expect(enqueueStub.callCount).toBe(1);
             });
         });
 
         describe("DELAY", () => {
-            xit("does a thing", async () => {
+            it("doesn't set a delay if NOW is > delayUntil time", async () => {
+                const delayUntilMinusOne: moment.Moment = moment().subtract(1, "day");
+                const delayEvent: SwarmProvisionEvent = {
+                    ...baseSwarmProvisionEvent,
+                    stepToExecute:  SwarmSetupStep.DELAY,
+                    delayUntil: delayUntilMinusOne.toDate()
+                };
+                await setupHelpers.processSwarmProvisionEvent(delayEvent);
+                expect(enqueueStub.callCount).toBe(1);
+                expect(enqueueStub.getCall(0).args[0].delayUntil).toBeUndefined();
+            });
 
+            it("adds a delay delay event if the NOW is < delayUntil time", async () => {
+                const delayUntilPlusOne: moment.Moment = moment().add(1, "day");
+                const delayEvent: SwarmProvisionEvent = {
+                    ...baseSwarmProvisionEvent,
+                    stepToExecute: SwarmSetupStep.DELAY,
+                    delayUntil: delayUntilPlusOne.toDate()
+                };
+                await setupHelpers.processSwarmProvisionEvent(delayEvent);
+                expect(enqueueStub.callCount).toBe(1);
+                expect(enqueueStub.getCall(0).args[0].delayUntil).toBeDefined();
+                const steps = enqueueStub.getCall(0).args[0].steps;
+                expect(steps[steps.length - 1]).toBe(SwarmSetupStep.DELAY);
+                expect(moment(enqueueStub.getCall(0).args[0].delayUntil).toDate().getTime()).toBe(delayUntilPlusOne.toDate().getTime());
             });
         });
 
