@@ -5,6 +5,7 @@ import { asyncSleep } from "../lib/lib";
 import * as Machine from "../models/Machine";
 import * as SSHKey from "../models/SSHKey";
 import * as Swarm from "../models/Swarm";
+import * as SwarmMachine from "../models/SwarmMachine";
 import {
     SwarmProvisionEvent,
     MachineProvisionEvent,
@@ -15,7 +16,6 @@ import {
     DeprovisionEventType,
     DataCaptureEvent } from "../interfaces/provisioning.interface";
 import { enqueue } from "./events";
-import { getSwarmMachineIds, removeMachineFromSwarm, getSwarmMachines } from "../models/SwarmMachine";
 import { Status } from "../interfaces/shared.interface";
 import { parse as parseURL } from "url";
 import * as swarmProvisionEvents from "./swarmProvisionEvents";
@@ -131,7 +131,7 @@ export async function processSwarmProvisionEvent(event: SwarmProvisionEvent): Pr
                     break;
                 }
                 case SwarmSetupStep.START_MASTER: {
-                    const machineIds: number[] = await getSwarmMachineIds(event.createdSwarm.id);
+                    const machineIds: number[] = await SwarmMachine.getSwarmMachineIds(event.createdSwarm.id);
                     await Machine.updateIsMaster(machineIds[0], true);
                     const masterMachine = await Machine.findById(machineIds[0]);
                     const masterStartEvent: MachineProvisionEvent = {
@@ -233,7 +233,7 @@ export async function processMachineProvisionEvent(event: MachineProvisionEvent)
                         const shouldDeprovision = await Machine.shouldDeprovision(event.machine.id);
                         if (shouldDeprovision) {
                             while (event.steps.length > 0) { event.steps.pop(); }
-                            await removeMachineFromSwarm(event.machine.id, event.swarm.id);
+                            await SwarmMachine.removeMachineFromSwarm(event.machine.id, event.swarm.id);
                             const updatedSwarm: Swarm.Swarm = await Swarm.decrementSwarmSize(event.swarm.id);
                             if (updatedSwarm.size <= 1) {
                                 await Swarm.destroyById(event.swarm.id, event.swarm.group_id);
@@ -455,7 +455,7 @@ export async function startSlave(swarm: Swarm.Swarm, master: Machine.Machine, sl
     await Machine.updateSetupCompleteStatus(slave.id, true);
 
     // Mark if the swarm setup is complete.
-    const machines: Machine.Machine[] = await getSwarmMachines(swarm.id);
+    const machines: Machine.Machine[] = await SwarmMachine.getSwarmMachines(swarm.id);
     const machineCount: number = machines.length - 1;
     const setupCompleteCount: number = machines
         .filter(m => !m.is_master)

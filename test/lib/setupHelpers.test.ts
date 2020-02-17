@@ -4,6 +4,7 @@ import { SwarmSetupStep } from "../../src/interfaces/provisioning.interface";
 import * as events from "../../src/lib/events";
 import { MachineProvisionEvent, MachineSetupStep, DataCaptureEvent, WorkerEventType, DeprovisionEvent, DeprovisionEventType, SwarmProvisionEvent } from "../../src/interfaces/provisioning.interface";
 import * as Swarm from "../../src/models/Swarm";
+import * as SwarmMachine from "../../src/models/SwarmMachine";
 import * as Machine from "../../src/models/Machine";
 import * as SSHKey from "../../src/models/SSHKey";
 import { Status } from "../../src/interfaces/shared.interface";
@@ -376,13 +377,41 @@ describe("lib/setupHelpers", () => {
         });
 
         describe("START_MASTER", () => {
-            xit("does a thing", async () => {
-
+            it("enqueues the start master event", async () => {
+                sandbox.stub(SwarmMachine, "getSwarmMachineIds").resolves([1, 2, 3]);
+                sandbox.stub(Machine, "findById").resolves({
+                    id: 1,
+                    created_at: new Date(),
+                    setup_complete: false,
+                    file_transfer_complete: false,
+                    is_master: false,
+                    dependency_install_complete: false,
+                });
+                const updateIsMasterStub: Sinon.SinonStub = sandbox.stub(Machine, "updateIsMaster").resolves();
+                const startMasterEvent: SwarmProvisionEvent = {
+                    ...baseSwarmProvisionEvent,
+                    stepToExecute: SwarmSetupStep.START_MASTER
+                };
+                await setupHelpers.processSwarmProvisionEvent(startMasterEvent);
+                expect(updateIsMasterStub.getCall(0).args[0]).toBe(1);
+                expect(enqueueStub.callCount).toBe(2);
+                const enqueuedEvent: MachineProvisionEvent = enqueueStub.getCall(0).args[0];
+                expect(enqueuedEvent.slaveCount).toEqual(2);
+                expect(enqueuedEvent.slaveIds).toEqual([2, 3]);
+                expect(enqueuedEvent.stepToExecute).toBe(MachineSetupStep.START_MASTER);
             });
         });
 
         describe("STOP_SWARM", () => {
-            xit("does a thing", async () => {
+            xit("does nothing if the swarm is already destroyed", async () => {
+
+            });
+
+            xit("destroys the swarm", async () => {
+
+            });
+
+            xit("delays for 10 seconds if the swarm is not ready to be destroyed", async () => {
 
             });
         });
