@@ -403,16 +403,57 @@ describe("lib/setupHelpers", () => {
         });
 
         describe("STOP_SWARM", () => {
-            xit("does nothing if the swarm is already destroyed", async () => {
-
+            it("does nothing if the swarm is already destroyed", async () => {
+                const destroyByIdStub: Sinon.SinonStub = sandbox.stub(Swarm, "destroyById").resolves();
+                const shouldStopStub: Sinon.SinonStub = sandbox.stub(Swarm, "shouldStop").resolves();
+                const getByIdStub: Sinon.SinonStub = sandbox.stub(Swarm, "getById").resolves({
+                    status: Status.destroyed
+                } as Swarm.Swarm);
+                const stopEvent: SwarmProvisionEvent = {
+                    ...baseSwarmProvisionEvent,
+                    stepToExecute: SwarmSetupStep.STOP_SWARM
+                };
+                await setupHelpers.processSwarmProvisionEvent(stopEvent);
+                expect(getByIdStub.callCount).toBe(1);
+                expect(destroyByIdStub.callCount).toBe(0);
+                expect(shouldStopStub.callCount).toBe(0);
+                expect(enqueueStub.callCount).toBe(0);
             });
 
-            xit("destroys the swarm", async () => {
-
+            it("destroys the swarm", async () => {
+                const destroyByIdStub: Sinon.SinonStub = sandbox.stub(Swarm, "destroyById").resolves();
+                const shouldStopStub: Sinon.SinonStub = sandbox.stub(Swarm, "shouldStop").resolves(true);
+                const getByIdStub: Sinon.SinonStub = sandbox.stub(Swarm, "getById").resolves({
+                    status: Status.ready
+                } as Swarm.Swarm);
+                const stopEvent: SwarmProvisionEvent = {
+                    ...baseSwarmProvisionEvent,
+                    stepToExecute: SwarmSetupStep.STOP_SWARM
+                };
+                await setupHelpers.processSwarmProvisionEvent(stopEvent);
+                expect(getByIdStub.callCount).toBe(1);
+                expect(destroyByIdStub.callCount).toBe(1);
+                expect(shouldStopStub.callCount).toBe(1);
+                expect(enqueueStub.callCount).toBe(1);
             });
 
-            xit("delays for 10 seconds if the swarm is not ready to be destroyed", async () => {
-
+            it("delays for 10 seconds if the swarm is not ready to be destroyed", async () => {
+                const destroyByIdStub: Sinon.SinonStub = sandbox.stub(Swarm, "destroyById").resolves();
+                const shouldStopStub: Sinon.SinonStub = sandbox.stub(Swarm, "shouldStop").resolves(false);
+                const getByIdStub: Sinon.SinonStub = sandbox.stub(Swarm, "getById").resolves({
+                    status: Status.ready
+                } as Swarm.Swarm);
+                const stopEvent: SwarmProvisionEvent = {
+                    ...baseSwarmProvisionEvent,
+                    stepToExecute: SwarmSetupStep.STOP_SWARM
+                };
+                await setupHelpers.processSwarmProvisionEvent(stopEvent);
+                expect(getByIdStub.callCount).toBe(1);
+                expect(destroyByIdStub.callCount).toBe(0);
+                expect(shouldStopStub.callCount).toBe(1);
+                expect(enqueueStub.callCount).toBe(1);
+                expect(enqueueStub.getCall(0).args[0].steps.pop()).toBe(SwarmSetupStep.DELAY);
+                expect(enqueueStub.getCall(0).args[0].steps.pop()).toBe(SwarmSetupStep.STOP_SWARM);
             });
         });
 
