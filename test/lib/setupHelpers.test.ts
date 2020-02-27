@@ -459,4 +459,78 @@ describe("lib/setupHelpers", () => {
 
 
     });
+
+    describe.only("processMachineProvisionEvent", () => {
+        let baseMachineProvisionEvent: MachineProvisionEvent;
+
+        beforeEach(() => {
+            baseMachineProvisionEvent = {
+                sshKey: {
+                    public: "public-key",
+                    private: "private-key",
+                    created_at: new Date()
+                },
+                eventType: WorkerEventType.MACHINE_PROVISION,
+                maxRetries: 10,
+                currentTry: 1,
+                lastActionTime: new Date(),
+                errors: [],
+                swarm: {
+                    name: "Test Swarm",
+                    duration: 20,
+                    simulated_users: 200,
+                    file_path: "/some/file/path",
+                    spawn_rate: 1,
+                    machines: [],
+                    region: "nyc3",
+                    swarm_ui_type: "headless",
+                } as Swarm.Swarm,
+                // master?: Machine;
+                // machine: Machine;
+                // region: string;
+                // stepToExecute: MachineSetupStep;
+                // slaveCount?: number;
+                // slaveIds?: number[];
+                // steps: MachineSetupStep[];
+            };
+        });
+
+        it("drops the event if max tries has been exceeded", async () => {
+        });
+
+        xit("it sleeps, increments, and re-enqueues the event if an error is thrown", async () => {
+        });
+
+        describe("CREATE", () => {
+
+        });
+
+        describe("DELAY", () => {
+
+        });
+
+        describe("MACHINE_READY", () => {
+
+        });
+
+        describe("TRACEROUTE", () => {
+
+        });
+
+        describe("TRANSFER_FILE", () => {
+
+        });
+
+        describe("UNZIP_AND_PIP_INSTALL", () => {
+
+        });
+
+        describe("START_MASTER", () => {
+
+        });
+
+        describe("START_SLAVE", () => {
+
+        });
+    });
 });
