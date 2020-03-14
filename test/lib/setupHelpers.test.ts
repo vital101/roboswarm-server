@@ -460,7 +460,7 @@ describe("lib/setupHelpers", () => {
 
     });
 
-    describe.only("processMachineProvisionEvent", () => {
+    describe("processMachineProvisionEvent", () => {
         let baseMachineProvisionEvent: MachineProvisionEvent;
 
         beforeEach(() => {
@@ -485,17 +485,22 @@ describe("lib/setupHelpers", () => {
                     region: "nyc3",
                     swarm_ui_type: "headless",
                 } as Swarm.Swarm,
-                // master?: Machine;
-                // machine: Machine;
-                // region: string;
-                // stepToExecute: MachineSetupStep;
-                // slaveCount?: number;
-                // slaveIds?: number[];
-                // steps: MachineSetupStep[];
+                machine: {
+                    id: 1,
+                    created_at: new Date(),
+                    setup_complete: false,
+                    file_transfer_complete: false,
+                    is_master: false,
+                    dependency_install_complete: false,
+                },
+                region: "nyc3",
+                stepToExecute: MachineSetupStep.CREATE,
+                steps: []
             };
         });
 
         it("drops the event if max tries has been exceeded", async () => {
+            // WIP
         });
 
         xit("it sleeps, increments, and re-enqueues the event if an error is thrown", async () => {
