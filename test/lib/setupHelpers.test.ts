@@ -12,6 +12,7 @@ import * as lib from "../../src/lib/lib";
 import * as moment from "moment";
 import Sinon = require("sinon");
 import * as swarmProvisionEvents from "../../src/lib/swarmProvisionEvents";
+import { DropletResponse } from "../../src/interfaces/digitalOcean.interface";
 
 describe("lib/setupHelpers", () => {
     let sandbox: sinon.SinonSandbox;
@@ -468,6 +469,7 @@ describe("lib/setupHelpers", () => {
                 sshKey: {
                     public: "public-key",
                     private: "private-key",
+                    external_id: 12345,
                     created_at: new Date()
                 },
                 eventType: WorkerEventType.MACHINE_PROVISION,
@@ -495,7 +497,9 @@ describe("lib/setupHelpers", () => {
                 },
                 region: "nyc3",
                 stepToExecute: MachineSetupStep.CREATE,
-                steps: []
+                steps: [
+                    MachineSetupStep.DELAY
+                ]
             };
         });
 
@@ -524,11 +528,42 @@ describe("lib/setupHelpers", () => {
 
         describe("CREATE", () => {
             it("creates the external machine", async () => {
-
+                const createStub: Sinon.SinonStub = sandbox.stub(Machine, "createExternalMachine").resolves({} as DropletResponse);
+                const createEvent: MachineProvisionEvent = {
+                    ...baseMachineProvisionEvent
+                };
+                await setupHelpers.processMachineProvisionEvent(createEvent);
+                expect(createStub.callCount).toBe(1);
+                const [machineId, region, sshKeyId] = createStub.getCall(0).args;
+                expect(machineId).toBe(createEvent.machine.id);
+                expect(region).toBe(createEvent.region);
+                expect(sshKeyId).toBe(createEvent.sshKey.external_id);
+                expect(enqueueStub.callCount).toBe(1);
+                expect(enqueueStub.getCall(0).args[0].stepToExecute).toBe(MachineSetupStep.DELAY);
             });
 
             it("removes the machine reference from the swarm if creation fails", async () => {
-
+                const createStub: Sinon.SinonStub = sandbox.stub(Machine, "createExternalMachine").resolves(false);
+                const swarmUpdateStub: Sinon.SinonStub = sandbox.stub(Swarm,"update").resolves();
+                const createEvent: MachineProvisionEvent = {
+                    ...baseMachineProvisionEvent,
+                    swarm: {
+                        ...baseMachineProvisionEvent.swarm,
+                        size: 4
+                    }
+                };
+                await setupHelpers.processMachineProvisionEvent(createEvent);
+                expect(createStub.callCount).toBe(1);
+                const [machineId, region, sshKeyId] = createStub.getCall(0).args;
+                expect(machineId).toBe(createEvent.machine.id);
+                expect(region).toBe(createEvent.region);
+                expect(sshKeyId).toBe(createEvent.sshKey.external_id);
+                expect(enqueueStub.callCount).toBe(0);
+                expect(swarmUpdateStub.callCount).toBe(1);
+                expect(swarmUpdateStub.getCall(0).args[0]).toBe(createEvent.swarm.id);
+                expect(swarmUpdateStub.getCall(0).args[1]).toEqual({
+                    size: createEvent.swarm.size - 1
+                });
             });
         });
 

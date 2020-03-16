@@ -70,7 +70,7 @@ export async function create(machine: NewMachine, swarm: Swarm, key: SSHKey): Pr
     return newMachine;
 }
 
-export async function createExternalMachine(id: number, region: string, externalSshKeyId: number): Promise<DropletResponse> {
+export async function createExternalMachine(id: number, region: string, externalSshKeyId: number): Promise<DropletResponse|boolean> {
     // Fire off an api request.
     const DOMachine: DropletResponse = await createDigitalOceanMachine(id, region, externalSshKeyId);
 
@@ -122,7 +122,7 @@ export function getDigitalOceanMachineImageId(region: string): number {
 
 // Starts the creation of machine on Digital Ocean. Should only ever be used
 // in conjunction with creating a machine on RoboSwarm.
-async function createDigitalOceanMachine(machineId: number, region: string, digitalOceanSSHKeyId: number): Promise<RequestPromise> {
+async function createDigitalOceanMachine(machineId: number, region: string, digitalOceanSSHKeyId: number): Promise<RequestPromise|boolean> {
     const headers = {
         Authorization: `Bearer ${process.env.DIGITAL_OCEAN_TOKEN}`,
         "Content-Type": "application/json"
@@ -147,7 +147,7 @@ async function createDigitalOceanMachine(machineId: number, region: string, digi
         return request.post(url, options);
     } catch (err) {
         console.log(err);
-        return undefined;
+        return false
     }
 }
 
