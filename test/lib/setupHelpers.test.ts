@@ -568,7 +568,48 @@ describe("lib/setupHelpers", () => {
         });
 
         describe("DELAY", () => {
+            it("sets delayUntil to now() + 60 seconds if delayUntil is undefined", async () => {
+                const delayEvent: MachineProvisionEvent = {
+                    ...baseMachineProvisionEvent,
+                    stepToExecute: MachineSetupStep.DELAY,
+                    delayUntil: undefined
+                };
+                await setupHelpers.processMachineProvisionEvent(delayEvent);
+                expect(enqueueStub.callCount).toBe(1);
+                const enqueuedEvent: MachineProvisionEvent = enqueueStub.getCall(0).args[0];
+                expect(enqueuedEvent.stepToExecute).toBe(MachineSetupStep.DELAY);
+                const isAfter = moment(enqueuedEvent.delayUntil).isAfter(moment().add(55, "seconds"));
+                expect(isAfter).toBe(true);
+            });
 
+            it("adds the delay step back into the queue at the end if we haven't reached the DELAY_UNTIL threshold", async () => {
+                const delayEvent: MachineProvisionEvent = {
+                    ...baseMachineProvisionEvent,
+                    stepToExecute: MachineSetupStep.DELAY,
+                    delayUntil: moment().add(15, "seconds").toDate()
+                };
+                await setupHelpers.processMachineProvisionEvent(delayEvent);
+                expect(enqueueStub.callCount).toBe(1);
+                const enqueuedEvent: MachineProvisionEvent = enqueueStub.getCall(0).args[0];
+                expect(enqueuedEvent.stepToExecute).toBe(MachineSetupStep.DELAY);
+                expect(enqueuedEvent.delayUntil).toEqual(delayEvent.delayUntil);
+            });
+
+            it("sets delayUntil to undefined if we no longer need to delay", async () => {
+                const delayEvent: MachineProvisionEvent = {
+                    ...baseMachineProvisionEvent,
+                    stepToExecute: MachineSetupStep.DELAY,
+                    delayUntil: moment().subtract(15, "seconds").toDate(),
+                    steps: [
+                        MachineSetupStep.MACHINE_READY
+                    ]
+                };
+                await setupHelpers.processMachineProvisionEvent(delayEvent);
+                expect(enqueueStub.callCount).toBe(1);
+                const enqueuedEvent: MachineProvisionEvent = enqueueStub.getCall(0).args[0];
+                expect(enqueuedEvent.stepToExecute).toBe(MachineSetupStep.MACHINE_READY);
+                expect(enqueuedEvent.delayUntil).toBe(undefined);
+            });
         });
 
         describe("MACHINE_READY", () => {
