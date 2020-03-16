@@ -460,7 +460,7 @@ describe("lib/setupHelpers", () => {
 
     });
 
-    describe("processMachineProvisionEvent", () => {
+    describe.only("processMachineProvisionEvent", () => {
         let baseMachineProvisionEvent: MachineProvisionEvent;
 
         beforeEach(() => {
@@ -500,14 +500,36 @@ describe("lib/setupHelpers", () => {
         });
 
         it("drops the event if max tries has been exceeded", async () => {
-            // WIP
+            const createExternalMachineStub: Sinon.SinonStub = sandbox.stub(Machine, "createExternalMachine").resolves();
+            const dropEvent: MachineProvisionEvent = {
+                ...baseMachineProvisionEvent,
+                currentTry: 20
+            };
+            await setupHelpers.processMachineProvisionEvent(dropEvent);
+            expect(createExternalMachineStub.callCount).toEqual(0);
         });
 
-        xit("it sleeps, increments, and re-enqueues the event if an error is thrown", async () => {
+        it("it sleeps, increments, and re-enqueues the event if an error is thrown", async () => {
+            sandbox.stub(Machine, "createExternalMachine").throws();
+            const sleepStub: Sinon.SinonStub = sandbox.stub(lib, "asyncSleep").resolves();
+            const sleepEvent: MachineProvisionEvent = {
+                ...baseMachineProvisionEvent,
+                currentTry: 0
+            };
+            await setupHelpers.processMachineProvisionEvent(sleepEvent);
+            expect(sleepStub.getCall(0).args[0]).toBe(3);
+            expect(enqueueStub.callCount).toBe(1);
+            expect(enqueueStub.getCall(0).args[0].currentTry).toBe(1);
         });
 
         describe("CREATE", () => {
+            it("creates the external machine", async () => {
 
+            });
+
+            it("removes the machine reference from the swarm if creation fails", async () => {
+
+            });
         });
 
         describe("DELAY", () => {
