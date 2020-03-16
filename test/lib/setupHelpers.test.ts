@@ -613,7 +613,25 @@ describe("lib/setupHelpers", () => {
         });
 
         describe("MACHINE_READY", () => {
+            xit("sets the machine on the event if it is ready", async () => {
+                const readyEvent: MachineProvisionEvent = {
+                    ...baseMachineProvisionEvent,
+                    stepToExecute: MachineSetupStep.MACHINE_READY
+                }
 
+            });
+
+            xit("sleeps for 5 seconds if the machine is not ready and it should not deprovision", async () => {
+
+            });
+
+            xit("removes the machine from the swarm and destroys the swarm if it was the last machine", async () => {
+
+            });
+
+            xit("removes the machine from the swarm and deprovisions the machine", async () => {
+
+            });
         });
 
         describe("TRACEROUTE", () => {
