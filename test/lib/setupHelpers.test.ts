@@ -461,7 +461,7 @@ describe("lib/setupHelpers", () => {
 
     });
 
-    describe.only("processMachineProvisionEvent", () => {
+    describe("processMachineProvisionEvent", () => {
         let baseMachineProvisionEvent: MachineProvisionEvent;
 
         beforeEach(() => {
