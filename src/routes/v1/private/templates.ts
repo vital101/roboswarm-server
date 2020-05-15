@@ -1,6 +1,7 @@
 import { Router } from "express";
 import { RoboRequest, RoboResponse, RoboError } from "../../../interfaces/shared.interface";
 import * as LoadTestTemplate from "../../../models/LoadTestTemplate";
+import * as LoadTestTemplateRoute from "../../../models/LoadTestTemplateRoute";
 
 interface GetTemplatesResponse extends RoboResponse {
     json: (data: LoadTestTemplate.LoadTestTemplate[]) => any;
@@ -24,6 +25,12 @@ interface GetTemplateByIdResponse extends RoboResponse {
     json: (data: LoadTestTemplate.LoadTestTemplateHydrated) => any;
 }
 
+interface PutTemplateByIdRequest extends GetTemplateByIdRequest {
+    body: {
+        routes: LoadTestTemplateRoute.LoadTestTemplateRoute[];
+    };
+}
+
 const router = Router();
 
 router.route("/:id")
@@ -32,6 +39,24 @@ router.route("/:id")
         const hydratedTemplate = await LoadTestTemplate.getById(Number(req.params.id), hydrate) as LoadTestTemplate.LoadTestTemplateHydrated;
         res.status(200);
         res.json(hydratedTemplate);
+    })
+    .put(async (req: PutTemplateByIdRequest, res: GetTemplateByIdResponse) => {
+        const template = await LoadTestTemplate.getById(Number(req.params.id)) as LoadTestTemplate.LoadTestTemplate;
+        if (template && template.user_id === req.user.id) {
+            await LoadTestTemplateRoute.deleteByTemplateId(Number(req.params.id));
+            const promises: any = [];
+            req.body.routes.forEach(route => {
+                promises.push(LoadTestTemplateRoute.create({
+                    ...route,
+                    id: Number(req.params.id)
+                }));
+            });
+            await Promise.all(promises);
+        }
+        const hydrate = true;
+        const templateHydrated = await LoadTestTemplate.getById(Number(req.params.id), hydrate) as LoadTestTemplate.LoadTestTemplateHydrated;
+        res.status(200);
+        res.json(templateHydrated);
     });
 
 //
