@@ -34,6 +34,12 @@ interface PutTemplateByIdRequest extends GetTemplateByIdRequest {
 const router = Router();
 
 router.route("/:id")
+    .delete(async (req: GetTemplateByIdRequest, res: RoboResponse) => {
+        await LoadTestTemplateRoute.deleteByTemplateId(Number(req.params.id));
+        await LoadTestTemplate.deleteById(Number(req.params.id));
+        res.status(200);
+        res.json({ ok: true });
+    })
     .get(async (req: GetTemplateByIdRequest, res: GetTemplateByIdResponse) => {
         const hydrate = true;
         const hydratedTemplate = await LoadTestTemplate.getById(Number(req.params.id), hydrate) as LoadTestTemplate.LoadTestTemplateHydrated;
@@ -41,7 +47,7 @@ router.route("/:id")
         res.json(hydratedTemplate);
     })
     .put(async (req: PutTemplateByIdRequest, res: GetTemplateByIdResponse) => {
-        const template = await LoadTestTemplate.getById(Number(req.params.id)) as LoadTestTemplate.LoadTestTemplate;
+        const template: LoadTestTemplate.LoadTestTemplate = await LoadTestTemplate.getById(Number(req.params.id));
         if (template && template.user_id === req.user.id) {
             await LoadTestTemplateRoute.deleteByTemplateId(Number(req.params.id));
             const promises: any = [];
@@ -58,12 +64,6 @@ router.route("/:id")
         res.status(200);
         res.json(templateHydrated);
     });
-
-//
-// Need to create:
-// PUT /:id - Deletes all routes, replaces with the new ones
-// DELETE /:id - Deletes template and all routes.
-//
 
 router.route("/")
     .get(async (req: RoboRequest, res: GetTemplatesResponse) => {
