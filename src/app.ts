@@ -10,6 +10,7 @@ import * as cors from "cors";
 // Private routes
 import _siteOwnershipRoutes from "./routes/v1/private/siteOwnership";
 import _swarmRoutes from "./routes/v1/private/swarm";
+import _templateRoutes from "./routes/v1/private/templates";
 import _userRoutes from "./routes/v1/private/user";
 
 // Public Routes
@@ -48,6 +49,7 @@ app.use("/api/v1/public/user", userRoutes);
 // Private API
 app.use("/api/v1/site-ownership", jwt(jwtConfig), _siteOwnershipRoutes);
 app.use("/api/v1/swarm", jwt(jwtConfig), _swarmRoutes);
+app.use("/api/v1/template", jwt(jwtConfig), _templateRoutes);
 app.use("/api/v1/user", jwt(jwtConfig), _userRoutes);
 
 // Marketing Pages
