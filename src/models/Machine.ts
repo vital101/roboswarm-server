@@ -147,7 +147,7 @@ async function createDigitalOceanMachine(machineId: number, region: string, digi
         return request.post(url, options);
     } catch (err) {
         console.log(err);
-        return false
+        return false;
     }
 }
 
