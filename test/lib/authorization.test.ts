@@ -108,6 +108,11 @@ describe("lib/authorization", () => {
             const result: boolean = authorization.willExceedMaxLoadTestDuration(user, 140, true);
             expect(result).toBe(false);
         });
+        test("returns false if the user is from convesio", () => {
+            user.email = "tom@convesio.com";
+            const result: boolean = authorization.willExceedMaxLoadTestDuration(user, 48 * 60, false);
+            expect(result).toBe(false);
+        });
     });
 
     describe("willExceedMaxUsers", () => {
