@@ -7,7 +7,7 @@ import { getPlan } from "./config";
 import { RoboError } from "../interfaces/shared.interface";
 import * as SiteOwnership from "../models/SiteOwnership";
 
-const unlimitedMaxDurationUsers: string[] = ["tom@convesio.com"];
+export const unlimitedMaxDurationUsers: string[] = ["tom@convesio.com"];
 
 export interface DateRange {
     start: Date;

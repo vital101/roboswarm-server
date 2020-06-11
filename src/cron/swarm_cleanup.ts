@@ -5,6 +5,7 @@ import * as moment from "moment";
 import * as User from "../models/User";
 import * as Swarm from "../models/Swarm";
 import { getPlan, Plan } from "../lib/config";
+import { unlimitedMaxDurationUsers } from "../lib/authorization";
 
 (async () => {
     console.log("Checking for orphaned swarms...");
@@ -23,6 +24,11 @@ import { getPlan, Plan } from "../lib/config";
             maxSwarmEnd = moment(swarm.created_at).add(plan.maxReliabilityTestMinutes, "minutes");
         } else {
             maxSwarmEnd = moment(swarm.created_at).add(plan.maxLoadTestDurationMinutes, "minutes");
+        }
+
+        // Exception for people with unlimited max duration.
+        if (unlimitedMaxDurationUsers.includes(swarmUser.email)) {
+            maxSwarmEnd = moment(swarm.created_at).add(3, "days");
         }
 
         if (now.isAfter(maxSwarmEnd)) {
