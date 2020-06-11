@@ -360,7 +360,7 @@ export async function fetchLoadTestMetrics(swarm: Swarm, isFinal?: boolean): Pro
         privateKey: sshKey.private
     });
 
-    const requests: SSHCommandResult = await ssh.execCommand("cat /root/status_requests.csv");
+    const requests: SSHCommandResult = await ssh.execCommand("cat /root/status_stats.csv");
     const requestRows = requests.stdout.split("\n");
 
     if (isFinal) {
@@ -393,6 +393,7 @@ export async function fetchLoadTestMetrics(swarm: Swarm, isFinal?: boolean): Pro
         }
     } else {
         try {
+            // Request status.
             const requestTotals = requestRows[requestRows.length - 1].split(",");
             const requestTotalData: LoadTest.Request = {
                 swarm_id: swarm.id,
@@ -407,89 +408,107 @@ export async function fetchLoadTestMetrics(swarm: Swarm, isFinal?: boolean): Pro
                 requests_per_second: Math.floor(parseFloat(requestTotals[9]))
             };
             await LoadTest.createRequest(requestTotalData);
-        } catch (err) {
-            console.log("Request row error: ", {
-                err,
-                swarm_id: swarm.id,
-                requestRows
-            });
-        }
-    }
 
-    const distribution: SSHCommandResult = await ssh.execCommand("cat /root/status_distribution.csv");
-    const distributionRows = distribution.stdout.split("\n");
-
-    if (isFinal) {
-        // For the final request, we store the route path information. Regular JSON object should be fine.
-        if (distributionRows.length > 2) {
-            distributionRows.shift();
-            distributionRows.pop();
-            for (const row of distributionRows) {
-                try {
-                    const splitRow = row.split(",");
-                    const methodRoute = splitRow[0].split(" ");
-                    let method = "";
-                    try {
-                        method = methodRoute[0].replace(/\"/g, "");
-                    } catch (err) { }
-
-                    let route = "";
-                    try {
-                        route = methodRoute[1].replace(/\"/g, "");
-                    } catch (err) { }
-
-                    const data: LoadTest.DistributionFinal = {
-                        swarm_id: swarm.id,
-                        created_at: new Date(),
-                        method,
-                        route,
-                        requests: parseInt(splitRow[1], 10),
-                        percentiles: JSON.stringify({
-                            "50%": splitRow[2],
-                            "66%": splitRow[3],
-                            "75%": splitRow[4],
-                            "80%": splitRow[5],
-                            "90%": splitRow[6],
-                            "95%": splitRow[7],
-                            "98%": splitRow[8],
-                            "99%": splitRow[9],
-                            "100%": splitRow[10]
-                        })
-                    };
-                    await LoadTest.createDistributionFinal(data);
-                } catch (err) {
-                    console.log("DistributionFinal Error: ", err);
-                }
-            }
-        }
-    } else {
-        try {
-            const distributionTotals = distributionRows[distributionRows.length - 1].split(",");
+            // Response time distribution.
             const distributionTotalData: LoadTest.Distribution = {
                 swarm_id: swarm.id,
                 created_at: new Date(),
-                requests: parseInt(distributionTotals[1], 10),
+                requests: requestTotalData.requests,
                 percentiles: JSON.stringify({
-                    "50%": distributionTotals[2],
-                    "66%": distributionTotals[3],
-                    "75%": distributionTotals[4],
-                    "80%": distributionTotals[5],
-                    "90%": distributionTotals[6],
-                    "95%": distributionTotals[7],
-                    "98%": distributionTotals[8],
-                    "99%": distributionTotals[9],
-                    "100%": distributionTotals[10]
+                    "50%": parseInt(requestTotals[11], 10),
+                    "66%": parseInt(requestTotals[12], 10),
+                    "75%": parseInt(requestTotals[13], 10),
+                    "80%": parseInt(requestTotals[14], 10),
+                    "90%": parseInt(requestTotals[15], 10),
+                    "95%": parseInt(requestTotals[16], 10),
+                    "98%": parseInt(requestTotals[17], 10),
+                    "99%": parseInt(requestTotals[18], 10),
+                    "100%": parseInt(requestTotals[22], 10),
                 })
             };
             await LoadTest.createDistribution(distributionTotalData);
         } catch (err) {
-            console.log("Distribution row error: ", {
+            console.log("Request Error: ", {
                 err,
-                swarm_id: swarm.id,
-                distributionRows
+                swarm_id: swarm.id
             });
         }
     }
+
+    // const distribution: SSHCommandResult = await ssh.execCommand("cat /root/status_distribution.csv");
+    // const distributionRows = distribution.stdout.split("\n");
+
+    // if (isFinal) {
+    //     // For the final request, we store the route path information. Regular JSON object should be fine.
+    //     if (distributionRows.length > 2) {
+    //         distributionRows.shift();
+    //         distributionRows.pop();
+    //         for (const row of distributionRows) {
+    //             try {
+    //                 const splitRow = row.split(",");
+    //                 const methodRoute = splitRow[0].split(" ");
+    //                 let method = "";
+    //                 try {
+    //                     method = methodRoute[0].replace(/\"/g, "");
+    //                 } catch (err) { }
+
+    //                 let route = "";
+    //                 try {
+    //                     route = methodRoute[1].replace(/\"/g, "");
+    //                 } catch (err) { }
+
+    //                 const data: LoadTest.DistributionFinal = {
+    //                     swarm_id: swarm.id,
+    //                     created_at: new Date(),
+    //                     method,
+    //                     route,
+    //                     requests: parseInt(splitRow[1], 10),
+    //                     percentiles: JSON.stringify({
+    //                         "50%": splitRow[2],
+    //                         "66%": splitRow[3],
+    //                         "75%": splitRow[4],
+    //                         "80%": splitRow[5],
+    //                         "90%": splitRow[6],
+    //                         "95%": splitRow[7],
+    //                         "98%": splitRow[8],
+    //                         "99%": splitRow[9],
+    //                         "100%": splitRow[10]
+    //                     })
+    //                 };
+    //                 await LoadTest.createDistributionFinal(data);
+    //             } catch (err) {
+    //                 console.log("DistributionFinal Error: ", err);
+    //             }
+    //         }
+    //     }
+    // } else {
+    //     try {
+    //         const distributionTotals = distributionRows[distributionRows.length - 1].split(",");
+    //         const distributionTotalData: LoadTest.Distribution = {
+    //             swarm_id: swarm.id,
+    //             created_at: new Date(),
+    //             requests: parseInt(distributionTotals[1], 10),
+    //             percentiles: JSON.stringify({
+    //                 "50%": distributionTotals[2],
+    //                 "66%": distributionTotals[3],
+    //                 "75%": distributionTotals[4],
+    //                 "80%": distributionTotals[5],
+    //                 "90%": distributionTotals[6],
+    //                 "95%": distributionTotals[7],
+    //                 "98%": distributionTotals[8],
+    //                 "99%": distributionTotals[9],
+    //                 "100%": distributionTotals[10]
+    //             })
+    //         };
+    //         await LoadTest.createDistribution(distributionTotalData);
+    //     } catch (err) {
+    //         console.log("Distribution row error: ", {
+    //             err,
+    //             swarm_id: swarm.id,
+    //             distributionRows
+    //         });
+    //     }
+    // }
 
     ssh.connection.end();
 }
