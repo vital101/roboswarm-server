@@ -87,11 +87,6 @@ router.route("/")
             name: req.body.name
         });
         for (const r of req.body.routes) {
-            console.log({
-                load_test_template_id: newTemplate.id,
-                method: r.method,
-                path: r.path
-            });
             await LoadTestTemplateRoute.create({
                 load_test_template_id: newTemplate.id,
                 method: r.method,
