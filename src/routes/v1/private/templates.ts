@@ -8,7 +8,13 @@ interface GetTemplatesResponse extends RoboResponse {
 }
 
 interface PostTemplateRequest extends RoboRequest {
-    body: LoadTestTemplate.LoadTestTemplate;
+    body: {
+        name: string;
+        routes: Array<{
+            method: string;
+            path: string;
+        }>
+    };
 }
 
 interface PostTemplateResponse extends RoboResponse {
@@ -75,7 +81,23 @@ router.route("/")
         res.json(templates);
     })
     .post(async (req: PostTemplateRequest, res: PostTemplateResponse) => {
-        const newTemplate = await LoadTestTemplate.create(req.body);
+        const newTemplate = await LoadTestTemplate.create({
+            group_id: req.user.groupId,
+            user_id: req.user.id,
+            name: req.body.name
+        });
+        for (const r of req.body.routes) {
+            console.log({
+                load_test_template_id: newTemplate.id,
+                method: r.method,
+                path: r.path
+            });
+            await LoadTestTemplateRoute.create({
+                load_test_template_id: newTemplate.id,
+                method: r.method,
+                path: r.path
+            });
+        }
         res.status(201);
         res.json(newTemplate);
     });

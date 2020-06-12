@@ -1,6 +1,6 @@
 import { db } from "../lib/db";
 
-const TABLE_NAME: string = "load_test_template";
+const TABLE_NAME: string = "load_test_template_route";
 export interface LoadTestTemplateRoute {
     id?: number;
     created_at?: Date;

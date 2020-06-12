@@ -10,7 +10,8 @@ const connection: any = {
 
 const development = {
     client: "pg",
-    connection
+    connection,
+    // debug: true
 };
 
 const production = {
