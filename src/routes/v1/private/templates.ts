@@ -59,8 +59,8 @@ router.route("/:id")
             const promises: any = [];
             req.body.routes.forEach(route => {
                 promises.push(LoadTestTemplateRoute.create({
-                    ...route,
-                    id: Number(req.params.id)
+                    load_test_template_id: template.id,
+                    ...route
                 }));
             });
             await Promise.all(promises);
