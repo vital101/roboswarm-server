@@ -2,6 +2,7 @@ import { Router } from "express";
 import { RoboRequest, RoboResponse, RoboError } from "../../../interfaces/shared.interface";
 import * as LoadTestTemplate from "../../../models/LoadTestTemplate";
 import * as LoadTestTemplateRoute from "../../../models/LoadTestTemplateRoute";
+import { getSitesFromSitemap, SitemapRoute } from "../../../lib/sitemap";
 
 interface GetTemplatesResponse extends RoboResponse {
     json: (data: LoadTestTemplate.LoadTestTemplate[]) => any;
@@ -37,7 +38,24 @@ interface PutTemplateByIdRequest extends GetTemplateByIdRequest {
     };
 }
 
+interface GetSitemapResponse extends RoboResponse {
+    json: (data: SitemapRoute[]) => any;
+}
+
+interface GetSitemapRequest extends RoboRequest {
+    body: {
+        url: string;
+    };
+}
+
 const router = Router();
+
+router.route("/sitemap")
+    .post(async (req: GetSitemapRequest, res: GetSitemapResponse) => {
+        const sites: SitemapRoute[] = await getSitesFromSitemap(req.body.url);
+        res.status(200);
+        res.json(sites);
+    });
 
 router.route("/:id")
     .delete(async (req: GetTemplateByIdRequest, res: RoboResponse) => {
