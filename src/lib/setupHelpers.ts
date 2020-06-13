@@ -377,7 +377,7 @@ export async function startMaster(swarm: Swarm.Swarm, machine: Machine.Machine, 
         flags.push("--no-web");
         flags.push(`--expect-slaves=${expectSlaveCount}`);
     }
-    const command = `nohup locust ${flags.join(" ")}`;
+    const command = `nohup locust ${flags.join(" ")} > /dev/null 2>&1`;
     console.log(`Executing ${command} on master at ${machine.ip_address} &`);
     ssh.execCommand(command, { options: { pty: true } });
     await asyncSleep(10);
