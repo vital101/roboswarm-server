@@ -386,6 +386,7 @@ describe("lib/setupHelpers", () => {
                     setup_complete: false,
                     file_transfer_complete: false,
                     is_master: false,
+                    port_open_complete: false,
                     dependency_install_complete: false,
                 });
                 const updateIsMasterStub: Sinon.SinonStub = sandbox.stub(Machine, "updateIsMaster").resolves();
@@ -493,6 +494,7 @@ describe("lib/setupHelpers", () => {
                     setup_complete: false,
                     file_transfer_complete: false,
                     is_master: false,
+                    port_open_complete: false,
                     dependency_install_complete: false,
                 },
                 region: "nyc3",
@@ -544,7 +546,7 @@ describe("lib/setupHelpers", () => {
 
             it("removes the machine reference from the swarm if creation fails", async () => {
                 const createStub: Sinon.SinonStub = sandbox.stub(Machine, "createExternalMachine").resolves(false);
-                const swarmUpdateStub: Sinon.SinonStub = sandbox.stub(Swarm,"update").resolves();
+                const swarmUpdateStub: Sinon.SinonStub = sandbox.stub(Swarm, "update").resolves();
                 const createEvent: MachineProvisionEvent = {
                     ...baseMachineProvisionEvent,
                     swarm: {
@@ -617,7 +619,7 @@ describe("lib/setupHelpers", () => {
                 const readyEvent: MachineProvisionEvent = {
                     ...baseMachineProvisionEvent,
                     stepToExecute: MachineSetupStep.MACHINE_READY
-                }
+                };
 
             });
 
