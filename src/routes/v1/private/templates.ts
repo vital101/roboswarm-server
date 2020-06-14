@@ -34,6 +34,7 @@ interface GetTemplateByIdResponse extends RoboResponse {
 
 interface PutTemplateByIdRequest extends GetTemplateByIdRequest {
     body: {
+        name: string;
         routes: LoadTestTemplateRoute.LoadTestTemplateRoute[];
     };
 }
@@ -73,6 +74,7 @@ router.route("/:id")
     .put(async (req: PutTemplateByIdRequest, res: GetTemplateByIdResponse) => {
         const template: LoadTestTemplate.LoadTestTemplate = await LoadTestTemplate.getById(Number(req.params.id));
         if (template && template.user_id === req.user.id) {
+            await LoadTestTemplate.update(Number(req.params.id), { name: req.body.name });
             await LoadTestTemplateRoute.deleteByTemplateId(Number(req.params.id));
             const promises: any = [];
             req.body.routes.forEach(route => {

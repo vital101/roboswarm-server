@@ -21,6 +21,14 @@ export async function create(template: LoadTestTemplate): Promise<LoadTestTempla
     return testTemplateList[0];
 }
 
+export async function update(id: number, fields: any): Promise<LoadTestTemplate> {
+    const updated: LoadTestTemplate[] = await db(TABLE_NAME)
+        .update(fields)
+        .where({ id })
+        .returning("*");
+    return updated[0];
+}
+
 export async function getByUserAndGroup(userId: number, groupId: number): Promise<LoadTestTemplate[]> {
     const testTemplates: LoadTestTemplate[] = await db(TABLE_NAME)
         .where({
