@@ -20,7 +20,10 @@
                 "../dist/**/*.js"
             ],
             "preLaunchTask": "npm: build",
-            "protocol": "inspector"
+            "protocol": "inspector",
+            "env": {
+                "PORT": "3002"
+            }
         }
     ]
 }
