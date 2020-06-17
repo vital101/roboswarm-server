@@ -13,6 +13,7 @@ import { sendEmail } from "../lib/email";
 import { WorkerEventType, SwarmProvisionEvent, SwarmSetupStep, DeprovisionEvent, DeprovisionEventType } from "../interfaces/provisioning.interface";
 import * as User from "./User";
 import * as SiteOwnership from "./SiteOwnership";
+import { generateLocustFileZip } from "../lib/templateGeneration";
 const node_ssh = require("node-ssh");
 
 export interface Swarm {
@@ -60,6 +61,7 @@ export interface NewSwarm {
     kernl_test?: boolean;
     template_id?: string;
     template_name?: string;
+    generate_test_from_template?: boolean;
 }
 
 export interface GroupedSwarm {
@@ -98,6 +100,15 @@ export async function create(swarm: NewSwarm, userId: number, groupId: number): 
     } else {
         const siteOwnership: SiteOwnership.SiteOwnership = await SiteOwnership.findById(swarm.site_id);
         host_url = siteOwnership.base_url;
+    }
+
+    // Generate the load test if required.
+    //
+    // WIP -> Need to test this.
+    //
+    if (swarm.generate_test_from_template) {
+        const locustTemplateZipPath = await generateLocustFileZip(Number(swarm.template_id));
+        swarm.file_path = locustTemplateZipPath;
     }
 
     // Create the container swarm.

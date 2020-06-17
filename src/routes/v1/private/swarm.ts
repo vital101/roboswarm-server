@@ -55,9 +55,9 @@ interface GroupedSwarmResponse extends RoboResponse {
 
 const router = Router();
 
-const upload = multer({
-    dest: process.env.FILE_UPLOAD_PATH || "uploads/"
-});
+// Note: This is still used by Kernl. DO NOT REMOVE.
+const dest = process.env.FILE_UPLOAD_PATH || "uploads/";
+const upload = multer({ dest });
 router.route("/file-upload")
     .post(upload.single("loadTestData"),
         (req: RoboRequest, res: RoboResponse) => {
