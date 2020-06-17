@@ -13,7 +13,7 @@ def route_{{route.id}}(l):
     data = json.loads("""
         {{route.body | safe}}
     """)
-    with l.client.post("{{route.route}}", catch_response=True, data=data, headers=headers, timeout=5.0) as response:
+    with l.client.post("{{route.path}}", catch_response=True, data=data, headers=headers, timeout=5.0) as response:
         if response.status_code == {{route.responseStatusCode}}:
             response.success()
         else:
@@ -22,7 +22,7 @@ def route_{{route.id}}(l):
     data = json.loads("""
         {{route.body | safe}}
     """)
-    with l.client.put("{{route.route}}", catch_response=True, data=data, headers=headers, timeout=5.0) as response:
+    with l.client.put("{{route.path}}", catch_response=True, data=data, headers=headers, timeout=5.0) as response:
         if response.status_code == {{route.responseStatusCode}}:
             response.success()
         else:
@@ -31,25 +31,25 @@ def route_{{route.id}}(l):
     data = json.loads("""
         {{route.body | safe}}
     """)
-    with l.client.patch("{{route.route}}", catch_response=True, data=data, headers=headers, timeout=5.0) as response:
+    with l.client.patch("{{route.path}}", catch_response=True, data=data, headers=headers, timeout=5.0) as response:
         if response.status_code == {{route.responseStatusCode}}:
             response.success()
         else:
             response.failure("Wrong status code. Expected {{ route.statusCode }}.")
     {% elseif route.method == "DELETE" %}
-    with l.client.delete("{{route.route}}", catch_response=True) as response:
+    with l.client.delete("{{route.path}}", catch_response=True) as response:
         if response.status_code == {{route.responseStatusCode}}:
             response.success()
         else:
             response.failure("Wrong status code. Expected {{ route.statusCode }}.")
     {% else %}
-    l.client.get("{{route.route}}", headers=headers, timeout=5.0)
+    l.client.get("{{route.path}}", headers=headers, timeout=5.0)
     {% endif %}
 {% endfor %}
 
 class UserBehavior(TaskSet):
     tasks = {
-        {% for route in routes %}route_{{route.id}}: {{route.multiplier}},
+        {% for route in routes %}route_{{route.id}}: 1,
         {% endfor %}
     }
 
