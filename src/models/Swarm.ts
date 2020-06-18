@@ -103,9 +103,6 @@ export async function create(swarm: NewSwarm, userId: number, groupId: number): 
     }
 
     // Generate the load test if required.
-    //
-    // WIP -> Need to test this.
-    //
     if (swarm.generate_test_from_template) {
         const locustTemplateZipPath = await generateLocustFileZip(Number(swarm.template_id));
         swarm.file_path = locustTemplateZipPath;
