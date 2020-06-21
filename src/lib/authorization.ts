@@ -25,7 +25,7 @@ export interface ResourceAvailability {
 }
 
 export async function getAuthorizationDateRange(user: User): Promise<DateRange> {
-    const subscription: Stripe.subscriptions.ISubscription = await stripeHelpers.getUserSubscription(user);
+    const subscription: Stripe.Stripe.Subscription = await stripeHelpers.getUserSubscription(user);
     return {
         start: moment.unix(subscription.current_period_start).toDate(),
         end: moment.unix(subscription.current_period_end).toDate()
