@@ -20,6 +20,9 @@ export interface Settings {
     "kernl-startup-2020": Plan;
     "kernl-agency-2020": Plan;
     "kernl-unlimited-2020": Plan;
+    "2020-roboswarm-free": Plan;
+    "2020-roboswarm-startup": Plan;
+    "2020-roboswarm-enterprise": Plan;
 }
 
 export function getPlan(user: User): Plan {
@@ -42,6 +45,12 @@ export function getPlan(user: User): Plan {
         return settings["kernl-agency"];
         case "kernl-enterprise":
         return settings["kernl-enterprise"];
+        case "2020-roboswarm-free":
+        return settings["2020-roboswarm-free"];
+        case "2020-roboswarm-startup":
+        return settings["2020-roboswarm-startup"];
+        case "2020-roboswarm-enterprise":
+        return settings["2020-roboswarm-enterprise"];
         default:
         return settings.free;
     }
@@ -128,5 +137,32 @@ export const settings: Settings = {
         maxReliabilityTestUsers: 25,
         dataRetentionDays: 365,
         maxUsers: 50000
+    },
+    "2020-roboswarm-free": {
+        maxMachineHours: 100000,
+        maxLoadTests: 2,
+        maxLoadTestDurationMinutes: 20,
+        maxReliabilityTestMinutes: 20,
+        maxReliabilityTestUsers: 5,
+        dataRetentionDays: 25000,
+        maxUsers: 5
+    },
+    "2020-roboswarm-startup": {
+        maxMachineHours: 100000,
+        maxLoadTests: 20,
+        maxLoadTestDurationMinutes: 120,
+        maxReliabilityTestMinutes: 120,
+        maxReliabilityTestUsers: 500,
+        dataRetentionDays: 25000,
+        maxUsers: 500
+    },
+    "2020-roboswarm-enterprise": {
+        maxMachineHours: 100000,
+        maxLoadTests: 50,
+        maxLoadTestDurationMinutes: 240,
+        maxReliabilityTestMinutes: 240,
+        maxReliabilityTestUsers: 2000,
+        dataRetentionDays: 25000,
+        maxUsers: 2000
     }
 };
