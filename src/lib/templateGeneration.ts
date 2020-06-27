@@ -2,13 +2,14 @@ import * as swig from "swig";
 import * as shell from "shelljs";
 import { writeFileSync } from "fs";
 import { v1 as generateUUID } from "uuid";
-import * as LoadTestTemplateRoute from "../models/LoadTestTemplateRoute";
 
+// WIP
 async function generateLocustFile(templateId: number): Promise<string> {
-    const routes: LoadTestTemplateRoute.LoadTestTemplateRoute[] = await LoadTestTemplateRoute.getByTemplateId(templateId);
-    const templatePath = `${process.env.APP_ROOT}/swig-templates/locustfile.template.py`;
-    const compiledTemplate = swig.renderFile(templatePath, { routes });
-    return compiledTemplate;
+    return "";
+    // const routes: LoadTestTemplateRoute.LoadTestTemplateRoute[] = await LoadTestTemplateRoute.getByTemplateId(templateId);
+    // const templatePath = `${process.env.APP_ROOT}/swig-templates/locustfile.template.py`;
+    // const compiledTemplate = swig.renderFile(templatePath, { routes });
+    // return compiledTemplate;
 }
 
 async function generateRequirementsFile(): Promise<string> {

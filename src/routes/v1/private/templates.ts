@@ -1,25 +1,18 @@
 import { Router } from "express";
 import { RoboRequest, RoboResponse, RoboError } from "../../../interfaces/shared.interface";
 import * as LoadTestTemplate from "../../../models/LoadTestTemplate";
-import * as LoadTestTemplateRoute from "../../../models/LoadTestTemplateRoute";
 import { getSitesFromSitemap, SitemapRoute } from "../../../lib/sitemap";
 
 interface GetTemplatesResponse extends RoboResponse {
-    json: (data: LoadTestTemplate.LoadTestTemplate[]) => any;
+    json: (data: LoadTestTemplate.TemplateSimple[]) => any;
 }
 
 interface PostTemplateRequest extends RoboRequest {
-    body: {
-        name: string;
-        routes: Array<{
-            method: string;
-            path: string;
-        }>
-    };
+    body: LoadTestTemplate.TemplateComplex;
 }
 
 interface PostTemplateResponse extends RoboResponse {
-    json: (data: LoadTestTemplate.LoadTestTemplate) => any;
+    json: (data: LoadTestTemplate.TemplateComplex) => any;
 }
 
 interface GetTemplateByIdRequest extends RoboRequest {
@@ -29,14 +22,11 @@ interface GetTemplateByIdRequest extends RoboRequest {
 }
 
 interface GetTemplateByIdResponse extends RoboResponse {
-    json: (data: LoadTestTemplate.LoadTestTemplateHydrated) => any;
+    json: (data: LoadTestTemplate.TemplateComplex) => any;
 }
 
 interface PutTemplateByIdRequest extends GetTemplateByIdRequest {
-    body: {
-        name: string;
-        routes: LoadTestTemplateRoute.LoadTestTemplateRoute[];
-    };
+    body: LoadTestTemplate.TemplateComplex;
 }
 
 interface GetSitemapResponse extends RoboResponse {
@@ -60,35 +50,19 @@ router.route("/sitemap")
 
 router.route("/:id")
     .delete(async (req: GetTemplateByIdRequest, res: RoboResponse) => {
-        await LoadTestTemplateRoute.deleteByTemplateId(Number(req.params.id));
         await LoadTestTemplate.deleteById(Number(req.params.id));
         res.status(200);
         res.json({ ok: true });
     })
     .get(async (req: GetTemplateByIdRequest, res: GetTemplateByIdResponse) => {
-        const hydrate = true;
-        const hydratedTemplate = await LoadTestTemplate.getById(Number(req.params.id), hydrate) as LoadTestTemplate.LoadTestTemplateHydrated;
+        const template = await LoadTestTemplate.getById(Number(req.params.id));
         res.status(200);
-        res.json(hydratedTemplate);
+        res.json(template);
     })
     .put(async (req: PutTemplateByIdRequest, res: GetTemplateByIdResponse) => {
-        const template: LoadTestTemplate.LoadTestTemplate = await LoadTestTemplate.getById(Number(req.params.id));
-        if (template && template.user_id === req.user.id) {
-            await LoadTestTemplate.update(Number(req.params.id), { name: req.body.name });
-            await LoadTestTemplateRoute.deleteByTemplateId(Number(req.params.id));
-            const promises: any = [];
-            req.body.routes.forEach(route => {
-                promises.push(LoadTestTemplateRoute.create({
-                    load_test_template_id: template.id,
-                    ...route
-                }));
-            });
-            await Promise.all(promises);
-        }
-        const hydrate = true;
-        const templateHydrated = await LoadTestTemplate.getById(Number(req.params.id), hydrate) as LoadTestTemplate.LoadTestTemplateHydrated;
+        const result = await LoadTestTemplate.update(Number(req.params.id), req.body);
         res.status(200);
-        res.json(templateHydrated);
+        res.json(result);
     });
 
 router.route("/")
@@ -101,20 +75,14 @@ router.route("/")
         res.json(templates);
     })
     .post(async (req: PostTemplateRequest, res: PostTemplateResponse) => {
-        const newTemplate = await LoadTestTemplate.create({
-            group_id: req.user.groupId,
+        const complexTemplate: LoadTestTemplate.TemplateComplex = {
+            ...req.body,
             user_id: req.user.id,
-            name: req.body.name
-        });
-        for (const r of req.body.routes) {
-            await LoadTestTemplateRoute.create({
-                load_test_template_id: newTemplate.id,
-                method: r.method,
-                path: r.path
-            });
-        }
+            group_id: req.user.groupId
+        };
+        const createdTemplate = await LoadTestTemplate.create(complexTemplate);
         res.status(201);
-        res.json(newTemplate);
+        res.json(createdTemplate);
     });
 
 export default router;
