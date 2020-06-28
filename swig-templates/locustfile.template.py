@@ -1,7 +1,14 @@
 from locust import HttpLocust, TaskSet
 import json
 
+#
+# WIP -> See changes that we need to make in templateGeneration.ts
+#        Will make this a lot easier going forward.
+#
+
 {% for route in routes %}
+    { % if route.routeType == = 'UNAUTHENTICATED_FRONTEND_NAVIGATE' %}
+    {% endif }
 def route_{{route.id}}(l):
     headers = {
         "Accept-Encoding" : "gzip, deflate",
@@ -9,42 +16,7 @@ def route_{{route.id}}(l):
         "Accept-Language" : "en-us",
         "User-Agent" : "Mozilla/5.0 (Macintosh; Intel Mac OS X 10.15; rv:77.0) Gecko/20100101 Firefox/77.0"
     }
-    {% if route.method == "POST" %}
-    data = json.loads("""
-        {{route.body | safe}}
-    """)
-    with l.client.post("{{route.path}}", catch_response=True, data=data, headers=headers, timeout=5.0) as response:
-        if response.status_code == {{route.responseStatusCode}}:
-            response.success()
-        else:
-            response.failure("Wrong status code. Expected {{ route.statusCode }}.")
-    {% elseif route.method == "PUT" %}
-    data = json.loads("""
-        {{route.body | safe}}
-    """)
-    with l.client.put("{{route.path}}", catch_response=True, data=data, headers=headers, timeout=5.0) as response:
-        if response.status_code == {{route.responseStatusCode}}:
-            response.success()
-        else:
-            response.failure("Wrong status code. Expected {{ route.statusCode }}.")
-    {% elseif route.method == "PATCH" %}
-    data = json.loads("""
-        {{route.body | safe}}
-    """)
-    with l.client.patch("{{route.path}}", catch_response=True, data=data, headers=headers, timeout=5.0) as response:
-        if response.status_code == {{route.responseStatusCode}}:
-            response.success()
-        else:
-            response.failure("Wrong status code. Expected {{ route.statusCode }}.")
-    {% elseif route.method == "DELETE" %}
-    with l.client.delete("{{route.path}}", catch_response=True) as response:
-        if response.status_code == {{route.responseStatusCode}}:
-            response.success()
-        else:
-            response.failure("Wrong status code. Expected {{ route.statusCode }}.")
-    {% else %}
-    l.client.get("{{route.path}}", headers=headers, timeout=5.0)
-    {% endif %}
+    l.client.get("{{route.path}}", headers=headers, timeout=7.0)
 {% endfor %}
 
 class UserBehavior(TaskSet):
