@@ -1,7 +1,8 @@
 import { Router } from "express";
-import { RoboRequest, RoboResponse, RoboError } from "../../../interfaces/shared.interface";
+import { RoboRequest, RoboResponse } from "../../../interfaces/shared.interface";
 import * as LoadTestTemplate from "../../../models/LoadTestTemplate";
 import { getSitesFromSitemap, SitemapRoute } from "../../../lib/sitemap";
+import { generateLocustFile } from "../../../lib/templateGeneration";
 
 interface GetTemplatesResponse extends RoboResponse {
     json: (data: LoadTestTemplate.TemplateSimple[]) => any;
@@ -46,6 +47,23 @@ router.route("/sitemap")
         const sites: SitemapRoute[] = await getSitesFromSitemap(req.body.url);
         res.status(200);
         res.json(sites);
+    });
+
+
+//
+// TODO - Use this to test the template generation.
+//
+router.route("/:id/generate-locustfile")
+    .get(async (req: RoboRequest, res: RoboResponse) => {
+        try {
+            const template = await generateLocustFile(Number(req.params.id));
+            res.status(200);
+            res.send(template);
+        } catch (err) {
+            console.log({err});
+            res.status(500);
+            res.json(err);
+        }
     });
 
 router.route("/:id")
