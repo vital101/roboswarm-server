@@ -1,5 +1,4 @@
-from locust import HttpLocust, TaskSet, TaskSequence, seq_task
-import json
+from locust import HttpUser, TaskSet, SequentialTaskSet, task
 
 ###
 ## Unauthenticated frontend scenario
@@ -22,8 +21,8 @@ class UnauthenticatedFrontend(TaskSet):
         {% endfor %}
     }
 
-class UnauthenticatedUser(HttpLocust):
-    task_set = UnauthenticatedFrontend
+class UnauthenticatedUser(HttpUser):
+    tasks = {UnauthenticatedFrontend:1}
     min_wait = 1000
     max_wait = 1000
 {% endif %}
@@ -32,7 +31,7 @@ class UnauthenticatedUser(HttpLocust):
 ## Authenticated frontend scenario
 ###
 {% if authenticated_frontend %}
-class AuthenticatedFrontendSequence(TaskSequence):
+class AuthenticatedFrontendSequence(SequentialTaskSet):
     headers = {
         "Accept-Encoding" : "gzip, deflate",
         "Accept" : "*/*",
@@ -42,7 +41,7 @@ class AuthenticatedFrontendSequence(TaskSequence):
     username = '{{username}}'
     password = '{{password}}'
 
-    @seq_task(1)
+    @task
     def login(self):
         headers = {
             "Accept-Encoding" : "gzip, deflate",
@@ -58,13 +57,13 @@ class AuthenticatedFrontendSequence(TaskSequence):
         self.client.post("/wp-login.php", data, headers=headers)
 
     {% for route in authenticated_frontend %}
-    @seq_task({{loop.index|increment}})
+    @task
     def page_{{route.id}}(self):
         self.client.get("{{route.path}}", headers=self.headers)
     {% endfor %}
 
-class AuthenticatedUser(HttpLocust):
-    task_set = AuthenticatedFrontendSequence
+class AuthenticatedUser(HttpUser):
+    tasks = {AuthenticatedFrontendSequence:1}
     min_wait = 1000
     max_wait = 1000
 {% endif %}
@@ -73,7 +72,7 @@ class AuthenticatedUser(HttpLocust):
 ## Authenticated admin scenario
 ##
 {% if authenticated_backend %}
-class AuthenticatedAdminSequence(TaskSequence):
+class AuthenticatedAdminSequence(SequentialTaskSet):
     headers = {
         "Accept-Encoding" : "gzip, deflate",
         "Accept" : "*/*",
@@ -83,7 +82,7 @@ class AuthenticatedAdminSequence(TaskSequence):
     username = '{{username}}'
     password = '{{password}}'
 
-    @seq_task(0)
+    @task
     def login(self):
         headers = {
             "Accept-Encoding" : "gzip, deflate",
@@ -99,7 +98,7 @@ class AuthenticatedAdminSequence(TaskSequence):
         self.client.post("/wp-login.php", data, headers=headers)
 
     {% for route in authenticated_backend %}
-    @seq_task({{loop.index}})
+    @task
     def page_{{route.id}}(self):
         self.client.get("{{route.path}}", headers=self.headers)
         {% if route.path === "/wp-admin/upload.php" %}
@@ -121,8 +120,8 @@ class AuthenticatedAdminSequence(TaskSequence):
         {% endif %}
     {% endfor %}
 
-class AuthenticatedAdmin(HttpLocust):
-    task_set = AuthenticatedAdminSequence
+class AuthenticatedAdmin(HttpUser):
+    tasks = {AuthenticatedAdminSequence:1}
     min_wait = 1000
     max_wait = 1000
 {% endif %}

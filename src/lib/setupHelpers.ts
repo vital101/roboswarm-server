@@ -335,7 +335,7 @@ export async function unzipPackageAndPipInstall(machineId: number, machineIp: st
     });
     const commands: Array<string> = [
         "unzip load_test_data.zip",
-        "pip install -r requirements.txt"
+        "pip3 install -r requirements.txt"
     ];
     await ssh.execCommand(commands.join(" && "));
     ssh.connection.end();
@@ -523,10 +523,9 @@ export async function installPackagesOnMachine(machineIp: string, privateKey: st
     const commands: Array<string> = [
         "sysctl -w net.ipv6.conf.all.disable_ipv6=1", // Disable ipv6
         "sysctl -w net.ipv6.conf.default.disable_ipv6=1", // Disable ipv6
-        "export DEBIAN_FRONTEND=noninteractive && apt-mark hold ssh",
         "export DEBIAN_FRONTEND=noninteractive && apt update",
         "export DEBIAN_FRONTEND=noninteractive && apt upgrade -y",
-        "export DEBIAN_FRONTEND=noninteractive && apt-get install -y python2.7 python-pip unzip traceroute"
+        "export DEBIAN_FRONTEND=noninteractive && apt-get install -y python3-pip unzip traceroute"
     ];
     for (const command of commands) {
         console.log(`Executing: ${command} on ${machineIp}`);
