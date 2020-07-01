@@ -70,7 +70,7 @@ class AuthenticatedUser(HttpLocust):
 {% endif %}
 
 ###
-## Authenticated backend scenario
+## Authenticated admin scenario
 ##
 {% if authenticated_backend %}
 class AuthenticatedAdminSequence(TaskSequence):
@@ -102,6 +102,23 @@ class AuthenticatedAdminSequence(TaskSequence):
     @seq_task({{loop.index}})
     def page_{{route.id}}(self):
         self.client.get("{{route.path}}", headers=self.headers)
+        {% if route.path === "/wp-admin/upload.php" %}
+        media_body = {
+            "action": "query-attachments",
+            "post_id": "0",
+            "query[orderby]": "date",
+            "query[order]": "DESC",
+            "query[posts_per_page]": "40",
+            "query[paged]": "1"
+        }
+        headers = {
+            "Accept-Encoding": "gzip, deflate",
+            "Accept": "*/*",
+            "Accept-Language": "en-us",
+            "User-Agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10.15; rv:77.0) Gecko/20100101 Firefox/77.0"
+        }
+        self.client.post("/wp-admin/admin-ajax.php", media_body, headers=headers)
+        {% endif %}
     {% endfor %}
 
 class AuthenticatedAdmin(HttpLocust):
