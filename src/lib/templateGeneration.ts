@@ -56,14 +56,14 @@ export async function generateLocustFile(templateId: number): Promise<string> {
             };
         });
     }
-
-    const templatePath = `${process.env.APP_ROOT}/swig-templates/locustfile.template.py`;
+    const appRoot = process.env.APP_ROOT ? "" : process.env.APP_ROOT;
+    const templatePath = `swig-templates/locustfile.template.py`;
     const compiledTemplate = swig.renderFile(templatePath, renderContext);
     return compiledTemplate;
 }
 
 async function generateRequirementsFile(): Promise<string> {
-    const templatePath = `${process.env.APP_ROOT}/swig-templates/requirements.template.txt`;
+    const templatePath = `swig-templates/requirements.template.txt`;
     const compiledTemplate = swig.renderFile(templatePath);
     return compiledTemplate;
 }
