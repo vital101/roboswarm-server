@@ -13,6 +13,7 @@ import { sendEmail } from "../lib/email";
 import { WorkerEventType, SwarmProvisionEvent, SwarmSetupStep, DeprovisionEvent, DeprovisionEventType } from "../interfaces/provisioning.interface";
 import * as User from "./User";
 import * as SiteOwnership from "./SiteOwnership";
+import { generateLocustFileZip } from "../lib/templateGeneration";
 const node_ssh = require("node-ssh");
 
 export interface Swarm {
@@ -60,6 +61,7 @@ export interface NewSwarm {
     kernl_test?: boolean;
     template_id?: string;
     template_name?: string;
+    generate_test_from_template?: boolean;
 }
 
 export interface GroupedSwarm {
@@ -98,6 +100,12 @@ export async function create(swarm: NewSwarm, userId: number, groupId: number): 
     } else {
         const siteOwnership: SiteOwnership.SiteOwnership = await SiteOwnership.findById(swarm.site_id);
         host_url = siteOwnership.base_url;
+    }
+
+    // Generate the load test if required.
+    if (swarm.generate_test_from_template) {
+        const locustTemplateZipPath = await generateLocustFileZip(Number(swarm.template_id));
+        swarm.file_path = locustTemplateZipPath;
     }
 
     // Create the container swarm.
@@ -434,81 +442,6 @@ export async function fetchLoadTestMetrics(swarm: Swarm, isFinal?: boolean): Pro
             });
         }
     }
-
-    // const distribution: SSHCommandResult = await ssh.execCommand("cat /root/status_distribution.csv");
-    // const distributionRows = distribution.stdout.split("\n");
-
-    // if (isFinal) {
-    //     // For the final request, we store the route path information. Regular JSON object should be fine.
-    //     if (distributionRows.length > 2) {
-    //         distributionRows.shift();
-    //         distributionRows.pop();
-    //         for (const row of distributionRows) {
-    //             try {
-    //                 const splitRow = row.split(",");
-    //                 const methodRoute = splitRow[0].split(" ");
-    //                 let method = "";
-    //                 try {
-    //                     method = methodRoute[0].replace(/\"/g, "");
-    //                 } catch (err) { }
-
-    //                 let route = "";
-    //                 try {
-    //                     route = methodRoute[1].replace(/\"/g, "");
-    //                 } catch (err) { }
-
-    //                 const data: LoadTest.DistributionFinal = {
-    //                     swarm_id: swarm.id,
-    //                     created_at: new Date(),
-    //                     method,
-    //                     route,
-    //                     requests: parseInt(splitRow[1], 10),
-    //                     percentiles: JSON.stringify({
-    //                         "50%": splitRow[2],
-    //                         "66%": splitRow[3],
-    //                         "75%": splitRow[4],
-    //                         "80%": splitRow[5],
-    //                         "90%": splitRow[6],
-    //                         "95%": splitRow[7],
-    //                         "98%": splitRow[8],
-    //                         "99%": splitRow[9],
-    //                         "100%": splitRow[10]
-    //                     })
-    //                 };
-    //                 await LoadTest.createDistributionFinal(data);
-    //             } catch (err) {
-    //                 console.log("DistributionFinal Error: ", err);
-    //             }
-    //         }
-    //     }
-    // } else {
-    //     try {
-    //         const distributionTotals = distributionRows[distributionRows.length - 1].split(",");
-    //         const distributionTotalData: LoadTest.Distribution = {
-    //             swarm_id: swarm.id,
-    //             created_at: new Date(),
-    //             requests: parseInt(distributionTotals[1], 10),
-    //             percentiles: JSON.stringify({
-    //                 "50%": distributionTotals[2],
-    //                 "66%": distributionTotals[3],
-    //                 "75%": distributionTotals[4],
-    //                 "80%": distributionTotals[5],
-    //                 "90%": distributionTotals[6],
-    //                 "95%": distributionTotals[7],
-    //                 "98%": distributionTotals[8],
-    //                 "99%": distributionTotals[9],
-    //                 "100%": distributionTotals[10]
-    //             })
-    //         };
-    //         await LoadTest.createDistribution(distributionTotalData);
-    //     } catch (err) {
-    //         console.log("Distribution row error: ", {
-    //             err,
-    //             swarm_id: swarm.id,
-    //             distributionRows
-    //         });
-    //     }
-    // }
 
     ssh.connection.end();
 }

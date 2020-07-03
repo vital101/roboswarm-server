@@ -40,6 +40,13 @@ interface UpdateUserRequest extends RoboRequest {
 const router = Router();
 
 router.route("/me/card")
+    .delete(async (req: RoboRequest, res: RoboResponse) => {
+        await Stripe.deleteCardFromCustomer(req.user.id);
+        await Stripe.setStripePlan(req.user.id, "2020-roboswarm-free");
+        await User.updateById(req.user.id, { stripe_card_id: "" });
+        res.status(200);
+        res.send("ok");
+    })
     .post(async (req: UpdateCardRequest, res: RoboResponse) => {
         await Stripe.addCardToCustomer(req.user.id, req.body.token, req.body.cardId);
         res.status(200);
@@ -49,9 +56,16 @@ router.route("/me/card")
 router.route("/me/plan")
     .post(async (req: SetPlanRequest, res: RoboResponse) => {
         try {
-            await Stripe.setStripePlan(req.user.id, req.body.planName);
-            res.status(200);
-            res.send("ok");
+            const user: User.User = await User.getById(req.user.id);
+            const requiresCard = ["2020-roboswarm-startup", "2020-roboswarm-enterprise"];
+            if (requiresCard.includes(req.body.planName) && !user.stripe_card_id) {
+                res.status(400);
+                res.send("You must have a credit card on file to select this plan.");
+            } else {
+                await Stripe.setStripePlan(req.user.id, req.body.planName);
+                res.status(200);
+                res.send("ok");
+            }
         } catch (err) {
             res.status(500);
             res.send(err.toString());

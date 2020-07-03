@@ -1,7 +1,6 @@
 // Environment variables
 require("dotenv").config();
 
-import * as Stripe from "stripe";
 import * as stripeHelpers from "../lib/stripe";
 import * as User from "../models/User";
 
@@ -19,8 +18,11 @@ function asyncSleep(durationInSeconds: number): Promise<void> {
     for (const user of users) {
         console.log(`Updating status for: ${user.email}`);
         try {
-            const stripeCustomer: Stripe.customers.ICustomer = await stripeHelpers.getCustomer(user.id);
-            await User.updateById(user.id, { is_delinquent: stripeCustomer.delinquent });
+            const stripeCustomer = await stripeHelpers.getCustomer(user.id);
+            const is_delinquent = "delinquent" in stripeCustomer ? stripeCustomer.delinquent : true;
+            if ("delinquent" in stripeCustomer) {
+                await User.updateById(user.id, { is_delinquent });
+            }
         } catch (err) {
             console.error(err);
         }

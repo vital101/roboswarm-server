@@ -335,7 +335,7 @@ export async function unzipPackageAndPipInstall(machineId: number, machineIp: st
     });
     const commands: Array<string> = [
         "unzip load_test_data.zip",
-        "pip install -r requirements.txt"
+        "pip3 install -r requirements.txt"
     ];
     await ssh.execCommand(commands.join(" && "));
     ssh.connection.end();
@@ -360,23 +360,21 @@ export async function startMaster(swarm: Swarm.Swarm, machine: Machine.Machine, 
         `--host=${swarm.host_url}`,
         "--csv=status"
     ];
-    if (swarm.swarm_ui_type === "headless") {
-        let expectSlaveCount: number;
-        if (slaveCount === 1) {
-            expectSlaveCount = 1;
-        } else if (slaveCount > 1 && slaveCount <= 5) {
-            expectSlaveCount = slaveCount - 1;
-        } else if (slaveCount > 5 && slaveCount <= 12) {
-            expectSlaveCount = slaveCount - 2;
-        } else {
-            expectSlaveCount = Math.floor(slaveCount * 0.85);
-        }
-        flags.push(`-c ${users}`);
-        flags.push(`-r ${rate}`);
-        flags.push(`--run-time ${runTime}`);
-        flags.push("--no-web");
-        flags.push(`--expect-slaves=${expectSlaveCount}`);
+    let expectSlaveCount: number;
+    if (slaveCount === 1) {
+        expectSlaveCount = 1;
+    } else if (slaveCount > 1 && slaveCount <= 5) {
+        expectSlaveCount = slaveCount - 1;
+    } else if (slaveCount > 5 && slaveCount <= 12) {
+        expectSlaveCount = slaveCount - 2;
+    } else {
+        expectSlaveCount = Math.floor(slaveCount * 0.85);
     }
+    flags.push(`--users ${users}`);
+    flags.push(`--hatch-rate ${rate}`);
+    flags.push(`--run-time ${runTime}`);
+    flags.push("--headless");
+    flags.push(`--expect-workers=${expectSlaveCount}`);
     const command = `nohup locust ${flags.join(" ")} > /dev/null 2>&1`;
     console.log(`Executing ${command} on master at ${machine.ip_address} &`);
     ssh.execCommand(command, { options: { pty: true } });
@@ -425,7 +423,7 @@ export async function startSlave(swarm: Swarm.Swarm, master: Machine.Machine, sl
     console.log("Transferring template to slave at ", slave.ip_address);
     const bashTemplate = `
         #!/bin/bash
-        locust --slave --master-host=${master.ip_address} --logfile=/root/locustlog.log --loglevel=debug &
+        locust --worker --master-host=${master.ip_address} --logfile=/root/locustlog.log --loglevel=debug &
     `;
     const bashPath = `/tmp/${slave.id}.bash`;
     writeFileSync(`/tmp/${slave.id}.bash`, bashTemplate);
@@ -523,10 +521,9 @@ export async function installPackagesOnMachine(machineIp: string, privateKey: st
     const commands: Array<string> = [
         "sysctl -w net.ipv6.conf.all.disable_ipv6=1", // Disable ipv6
         "sysctl -w net.ipv6.conf.default.disable_ipv6=1", // Disable ipv6
-        "export DEBIAN_FRONTEND=noninteractive && apt-mark hold ssh",
         "export DEBIAN_FRONTEND=noninteractive && apt update",
         "export DEBIAN_FRONTEND=noninteractive && apt upgrade -y",
-        "export DEBIAN_FRONTEND=noninteractive && apt-get install -y python2.7 python-pip unzip traceroute"
+        "export DEBIAN_FRONTEND=noninteractive && apt-get install -y python3-pip unzip traceroute"
     ];
     for (const command of commands) {
         console.log(`Executing: ${command} on ${machineIp}`);

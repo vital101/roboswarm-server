@@ -1,5 +1,11 @@
-import * as Stripe from "stripe";
+// import * as Stripe from "stripe";
+import { Stripe } from "stripe";
 import * as User from "../models/User";
+
+const config: Stripe.StripeConfig = {
+    apiVersion: "2020-03-02",
+    typescript: true
+};
 
 const stripePlans: any = {
     development: {
@@ -11,7 +17,10 @@ const stripePlans: any = {
         "kernl-enterprise": "plan_E3aMDZSnshUS25",
         "kernl-startup-2020": "plan_G7f2RZUzKgbWDc",
         "kernl-agency-2020": "plan_G7f27qFQ5US9Tf",
-        "kernl-unlimited-2020": "plan_G7f2WsL5xkB9JO"
+        "kernl-unlimited-2020": "plan_G7f2WsL5xkB9JO",
+        "2020-roboswarm-free": "price_1GwX0hHYMGm9MgfZWNiWCtNB",
+        "2020-roboswarm-startup": "price_1GwX11HYMGm9MgfZTmNxIU5H",
+        "2020-roboswarm-enterprise": "price_1GwX1NHYMGm9MgfZNkJq7X0o"
     },
     production: {
         free: "plan_DsOd6cJgabydY8",
@@ -22,7 +31,10 @@ const stripePlans: any = {
         "kernl-enterprise": "plan_E3ah84PpFz2ecD",
         "kernl-startup-2020": "plan_G7f4xmynKu9LuH",
         "kernl-agency-2020": "plan_G7f4hvjugCZ0pI",
-        "kernl-unlimited-2020": "plan_G7f4YYgxL3W3j7"
+        "kernl-unlimited-2020": "plan_G7f4YYgxL3W3j7",
+        "2020-roboswarm-free": "price_1GwWx3HYMGm9MgfZf6OMt4xZ",
+        "2020-roboswarm-startup": "price_1GwWyAHYMGm9MgfZkfXUFmUb",
+        "2020-roboswarm-enterprise": "price_1GwWykHYMGm9MgfZwpx3V95h"
     }
 };
 
@@ -35,36 +47,36 @@ function getPlanId(planName: string): string {
 }
 
 export async function createStripeCustomer(user: User.User): Promise<void> {
-    const stripe = new Stripe(process.env.STRIPE_API_SECRET);
-    const customerOptions: Stripe.customers.ICustomerCreationOptions = {
+    const stripe = new Stripe(process.env.STRIPE_API_SECRET, config);
+    const customerOptions: Stripe.CustomerCreateParams = {
         email: user.email,
         description: `${user.first_name} ${user.last_name}`
     };
-    const newCustomer: Stripe.customers.ICustomer = await stripe.customers.create(customerOptions);
+    const newCustomer: Stripe.Customer = await stripe.customers.create(customerOptions);
     await User.updateById(user.id, { stripe_id: newCustomer.id });
 }
 
-export async function getUserSubscription(user: User.User): Promise<Stripe.subscriptions.ISubscription> {
-    const stripe = new Stripe(process.env.STRIPE_API_SECRET);
-    const subscriptionListOptions: Stripe.subscriptions.ISubscriptionListOptions = {
+export async function getUserSubscription(user: User.User): Promise<Stripe.Subscription> {
+    const stripe = new Stripe(process.env.STRIPE_API_SECRET, config);
+    const subscriptionListOptions: Stripe.SubscriptionListParams = {
         customer: user.stripe_id
     };
-    const subscriptions: Stripe.IList<Stripe.subscriptions.ISubscription> = await stripe.subscriptions.list(subscriptionListOptions);
+    const subscriptions: Stripe.ApiList<Stripe.Subscription> = await stripe.subscriptions.list(subscriptionListOptions);
     return subscriptions.data[0];
 }
 
 export async function setStripePlan(userId: number, planName: string): Promise<void> {
-    const stripe = new Stripe(process.env.STRIPE_API_SECRET);
+    const stripe = new Stripe(process.env.STRIPE_API_SECRET, config);
     const user: User.User = await User.getById(userId);
-    const subscriptionListOptions: Stripe.subscriptions.ISubscriptionListOptions = {
+    const subscriptionListOptions: Stripe.SubscriptionListParams = {
         customer: user.stripe_id
     };
-    const subscriptions: Stripe.IList<Stripe.subscriptions.ISubscription> = await stripe.subscriptions.list(subscriptionListOptions);
+    const subscriptions: Stripe.ApiList<Stripe.Subscription> = await stripe.subscriptions.list(subscriptionListOptions);
 
     // User has an existing plan. Update it.
     if (subscriptions.data.length > 0) {
-        const subscription: Stripe.subscriptions.ISubscription = await stripe.subscriptions.retrieve(subscriptions.data[0].id);
-        const updateOptions: Stripe.subscriptions.ISubscriptionUpdateOptions = {
+        const subscription: Stripe.Subscription = await stripe.subscriptions.retrieve(subscriptions.data[0].id);
+        const updateOptions: Stripe.SubscriptionUpdateParams = {
             cancel_at_period_end: false,
             items: [{
                 id: subscription.items.data[0].id,
@@ -75,7 +87,7 @@ export async function setStripePlan(userId: number, planName: string): Promise<v
 
     // User does not yet have a plan, create subscription.
     } else {
-        const createOptions: Stripe.subscriptions.ISubscriptionCreationOptions = {
+        const createOptions: Stripe.SubscriptionCreateParams = {
             customer: user.stripe_id,
             items: [{ plan: getPlanId(planName) }]
         };
@@ -90,15 +102,21 @@ export async function setStripePlan(userId: number, planName: string): Promise<v
 }
 
 export async function addCardToCustomer(userId: number, token: string, cardId: string): Promise<void> {
-    const stripe = new Stripe(process.env.STRIPE_API_SECRET);
+    const stripe = new Stripe(process.env.STRIPE_API_SECRET, config);
     const user: User.User = await User.getById(userId);
-    const options: Stripe.customers.ICustomerUpdateOptions = { source: token };
+    const options: Stripe.CustomerUpdateParams = { source: token };
     await stripe.customers.update(user.stripe_id, options);
     await User.updateById(userId, { stripe_card_id: cardId });
 }
 
-export async function getCustomer(userId: number): Promise<Stripe.customers.ICustomer> {
-    const stripe = new Stripe(process.env.STRIPE_API_SECRET);
+export async function deleteCardFromCustomer(userId: number): Promise<void> {
+    const stripe = new Stripe(process.env.STRIPE_API_SECRET, config);
+    const user: User.User = await User.getById(userId);
+    await stripe.customers.deleteSource(user.stripe_id, user.stripe_card_id);
+}
+
+export async function getCustomer(userId: number): Promise<Stripe.Customer|Stripe.DeletedCustomer> {
+    const stripe = new Stripe(process.env.STRIPE_API_SECRET, config);
     const user: User.User = await User.getById(userId);
     return await stripe.customers.retrieve(user.stripe_id);
 }

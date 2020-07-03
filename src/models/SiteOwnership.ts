@@ -1,6 +1,8 @@
 import { resolveTxt } from "dns";
 import { db } from "../lib/db";
 import { v4 as generateUUID } from "uuid";
+import * as request from "request-promise";
+import { isArray } from "util";
 
 export interface SiteOwnership {
     id?: number;
@@ -51,35 +53,59 @@ export async function update(where: Object, fieldsToUpdate: Object): Promise<Sit
     return rows;
 }
 
-export async function verify(siteToVerify: SiteOwnership): Promise<SiteOwnership> {
-    return new Promise(resolve => {
-        const domain: string = siteToVerify.base_url
-            .replace("https://", "")
-            .replace("http://", "")
-            .replace("/", "");
-        resolveTxt(domain, async (err: NodeJS.ErrnoException, addresses: string[][]) => {
+function resolveTxtWrapper(domain: string): Promise<any> {
+    return new Promise((resolve, reject) => {
+        resolveTxt(domain, (err: NodeJS.ErrnoException, addresses: string[][]) => {
             if (err) {
-                resolve(siteToVerify); // Site stays in un-verified state.
+                reject();
             } else {
-                const matchRegex = new RegExp(/^roboswarm-verify-(?<uuid>.+)$/);
-                let verified = false;
-                for (const address of addresses) {
-                    console.log(address);
-                    const [ txtRecord ] = address;
-                    const matchedValues: RegExpMatchArray = txtRecord.match(matchRegex);
-                    if (matchedValues && matchedValues.groups && matchedValues.groups.uuid) {
-                        const uuidToCheck: string = matchedValues.groups.uuid;
-                        if (siteToVerify.uuid === uuidToCheck) {
-                            await update({ id: siteToVerify.id }, { verified: true });
-                            verified = true;
-                        }
-                    }
-                }
-                resolve({
-                    ...siteToVerify,
-                    verified,
-                });
+                resolve(addresses);
             }
         });
     });
+}
+
+export async function verify(siteToVerify: SiteOwnership): Promise<SiteOwnership> {
+    const domain: string = siteToVerify.base_url
+        .replace("https://", "")
+        .replace("http://", "")
+        .replace("/", "");
+    let verified = false;
+    try {
+        // First attempt to verify via DNS text records.
+        const addresses: string[][] = await resolveTxtWrapper(domain);
+        const matchRegex = new RegExp(/^load-test-verify-(?<uuid>.+)$/);
+        for (const address of addresses) {
+            const [txtRecord] = address;
+            const matchedValues: RegExpMatchArray = txtRecord.match(matchRegex);
+            if (matchedValues && matchedValues.groups && matchedValues.groups.uuid) {
+                const uuidToCheck: string = matchedValues.groups.uuid;
+                if (siteToVerify.uuid === uuidToCheck) {
+                    await update({ id: siteToVerify.id }, { verified: true });
+                    verified = true;
+                }
+            }
+        }
+    } catch (err) { /* no-op */ }
+
+    try {
+        // Second attempt to verify via <meta> tags.
+        const resultHTML = await request.get(siteToVerify.base_url, { strictSSL: false });
+        const regex = /\<meta\s*name=["|']?load-test-verify["|']? content=["|']?(.+)["|']?\>/;
+        const verificationValue = resultHTML.match(regex);
+        if (isArray(verificationValue) && verificationValue.length > 0) {
+            const code = verificationValue[1].replace("\"", "");
+            if (code === siteToVerify.uuid) {
+                await update({ id: siteToVerify.id }, { verified: true });
+                verified = true;
+            }
+        }
+
+        return {
+            ...siteToVerify,
+            verified,
+        };
+    } catch (err) { /* no-op */ }
+
+    return siteToVerify;
 }
