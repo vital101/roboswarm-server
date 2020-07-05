@@ -1,5 +1,6 @@
 const node_ssh = require("node-ssh");
 const sftp_client = require("ssh2-sftp-client");
+import * as shell from "shelljs";
 import { writeFileSync } from "fs";
 import { asyncSleep } from "../lib/lib";
 import * as Machine from "../models/Machine";
@@ -19,6 +20,7 @@ import { enqueue } from "./events";
 import { Status } from "../interfaces/shared.interface";
 import { parse as parseURL } from "url";
 import * as swarmProvisionEvents from "./swarmProvisionEvents";
+import * as LoadTestFile from "../models/LoadTestFile";
 
 export async function nextStep(event: MachineProvisionEvent|SwarmProvisionEvent) {
     if (event.steps.length > 0) {
@@ -269,7 +271,9 @@ export async function processMachineProvisionEvent(event: MachineProvisionEvent)
                     break;
                 }
                 case MachineSetupStep.TRANSFER_FILE: {
-                    await transferFileToMachine(event.machine.ip_address, event.swarm.file_path, event.sshKey.private);
+                    const filePath = await LoadTestFile.getLocalFilePathBySwarmId(event.swarm.id);
+                    await transferFileToMachine(event.machine.ip_address, filePath, event.sshKey.private);
+                    shell.exec(`rm ${filePath}`);
                     break;
                 }
                 case MachineSetupStep.UNZIP_AND_PIP_INSTALL: {

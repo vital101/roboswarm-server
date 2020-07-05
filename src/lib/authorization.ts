@@ -75,9 +75,9 @@ export async function isValidSite(user: User, swarm: Swarm.NewSwarm) {
     }
 
     // Don't allow people to create tests without the kernl_test flag.
-    if (swarm.host_url && !swarm.kernl_test) {
-        return false;
-    }
+    // if (swarm.host_url && !swarm.kernl_test) {
+    //     return false;
+    // }
 
     // Now check site id against current user.
     const siteOwnership: SiteOwnership.SiteOwnership = await SiteOwnership.findById(swarm.site_id);
@@ -145,6 +145,7 @@ export async function canCreateSwarm(user: User, swarm: Swarm.NewSwarm, isReliab
 
         return true;
     } catch (err) {
+        console.log(err);
         return {
             err: "There was error verifying your account status. Please reach out to jack@kernl.us",
             status: 500

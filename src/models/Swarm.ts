@@ -13,7 +13,11 @@ import { sendEmail } from "../lib/email";
 import { WorkerEventType, SwarmProvisionEvent, SwarmSetupStep, DeprovisionEvent, DeprovisionEventType } from "../interfaces/provisioning.interface";
 import * as User from "./User";
 import * as SiteOwnership from "./SiteOwnership";
-import { generateLocustFileZip } from "../lib/templateGeneration";
+import { generateAndSaveTemplate } from "../lib/templateGeneration";
+import * as LoadTestFile from "../models/LoadTestFile";
+import { asyncReadFile } from "../lib/lib";
+import * as shell from "shelljs";
+
 const node_ssh = require("node-ssh");
 
 export interface Swarm {
@@ -89,7 +93,7 @@ export async function getByMachineId(machineId: number): Promise<Swarm> {
     return await getById(swarmId);
 }
 
-export async function create(swarm: NewSwarm, userId: number, groupId: number): Promise<Swarm> {
+export async function create(swarm: NewSwarm, userId: number, groupId: number, repeat: boolean): Promise<Swarm> {
     // Create the SSH keys that this swarm will use.
     const key = await SSHKey.create();
 
@@ -102,12 +106,6 @@ export async function create(swarm: NewSwarm, userId: number, groupId: number): 
         host_url = siteOwnership.base_url;
     }
 
-    // Generate the load test if required.
-    if (swarm.generate_test_from_template) {
-        const locustTemplateZipPath = await generateLocustFileZip(Number(swarm.template_id));
-        swarm.file_path = locustTemplateZipPath;
-    }
-
     // Create the container swarm.
     const CORES_PER_MACHINE: number = 2;
     const OVER_PROVISION_MULTIPLIER: number = 1.15;
@@ -117,7 +115,7 @@ export async function create(swarm: NewSwarm, userId: number, groupId: number): 
             group_id: groupId,
             user_id: userId,
             simulated_users: swarm.simulated_users,
-            file_path: swarm.file_path,
+            file_path: "wip", // swarm.file_path,
             host_url,
             spawn_rate: swarm.spawn_rate,
             ssh_key_id: key.id,
@@ -132,6 +130,21 @@ export async function create(swarm: NewSwarm, userId: number, groupId: number): 
 
     const newSwarm = newSwarmResult[0];
     newSwarm.status = getStatus(newSwarm.created_at, newSwarm.ready_at, newSwarm.destroyed_at);
+
+    // Generate the load test if required.
+    if (swarm.generate_test_from_template) {
+        await generateAndSaveTemplate(newSwarm.id, Number(swarm.template_id));
+    }
+
+    // If kernl test and not a repeat, save file to db.
+    if (swarm.kernl_test && !repeat) {
+        const lt_file = await asyncReadFile(swarm.file_path);
+        await LoadTestFile.create({
+            swarm_id: newSwarm.id,
+            lt_file,
+        });
+        shell.exec(`rm ${swarm.file_path}`);
+    }
 
     const startProvisionEvent: SwarmProvisionEvent = {
         eventType: WorkerEventType.SWARM_PROVISION,
@@ -495,7 +508,7 @@ export async function createRepeatSwarmRequest(swarmId: number): Promise<NewSwar
         name: oldSwarm.name,
         duration: oldSwarm.duration,
         simulated_users: oldSwarm.simulated_users,
-        file_path: oldSwarm.file_path,
+        file_path: "wip", // oldSwarm.file_path,
         host_url: oldSwarm.host_url,
         spawn_rate: oldSwarm.spawn_rate,
         machines: [],

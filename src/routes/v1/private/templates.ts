@@ -49,23 +49,6 @@ router.route("/sitemap")
         res.json(sites);
     });
 
-
-//
-// TODO - Use this to test the template generation.
-//
-router.route("/:id/generate-locustfile")
-    .get(async (req: RoboRequest, res: RoboResponse) => {
-        try {
-            const template = await generateLocustFile(Number(req.params.id));
-            res.status(200);
-            res.send(template);
-        } catch (err) {
-            console.log({err});
-            res.status(500);
-            res.json(err);
-        }
-    });
-
 router.route("/:id")
     .delete(async (req: GetTemplateByIdRequest, res: RoboResponse) => {
         await LoadTestTemplate.deleteById(Number(req.params.id));

@@ -109,3 +109,10 @@ export async function verify(siteToVerify: SiteOwnership): Promise<SiteOwnership
 
     return siteToVerify;
 }
+
+export async function getSiteIdByBaseUrl(base_url: string): Promise<number|boolean> {
+    const site: SiteOwnership = await db("site_ownership")
+        .where({ base_url })
+        .first();
+    return site ? site.id : false;
+}

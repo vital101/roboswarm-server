@@ -4,9 +4,11 @@ import * as Machine from "../../../models/Machine";
 import * as SwarmMachine from "../../../models/SwarmMachine";
 import * as LoadTest from "../../../models/LoadTest";
 import * as User from "../../../models/User";
+import * as SiteOwnership from "../../../models/SiteOwnership";
 import { RoboRequest, RoboResponse, RoboError } from "../../../interfaces/shared.interface";
 import { canCreateSwarm } from "../../../lib/authorization";
 import * as multer from "multer";
+import * as LoadTestFile from "../../../models/LoadTestFile";
 
 interface NewSwarmRequest extends RoboRequest {
     body: Swarm.NewSwarm;
@@ -56,7 +58,7 @@ interface GroupedSwarmResponse extends RoboResponse {
 const router = Router();
 
 // Note: This is still used by Kernl. DO NOT REMOVE.
-const dest = process.env.FILE_UPLOAD_PATH || "uploads/";
+const dest = "/tmp";
 const upload = multer({ dest });
 router.route("/file-upload")
     .post(upload.single("loadTestData"),
@@ -148,6 +150,7 @@ router.route("/:id/repeat")
         if (req.body && req.body.kernl_test) { newSwarm.kernl_test = req.body.kernl_test; }
         const user: User.User = await User.getById(req.user.id);
         const isReliabilityTest = !!(newSwarm.simulated_users <= 25 && newSwarm.duration > 120);
+        newSwarm.site_id = await SiteOwnership.getSiteIdByBaseUrl(newSwarm.host_url) as number;
         const canProceed: boolean | RoboError = await canCreateSwarm(user, newSwarm, isReliabilityTest);
         if (canProceed !== true) {
             const err = canProceed as RoboError;
@@ -155,7 +158,12 @@ router.route("/:id/repeat")
             res.send(err.err);
         } else {
             try {
-                const mySwarm: Swarm.Swarm = await Swarm.create(newSwarm, req.user.id, req.user.groupId);
+                const mySwarm: Swarm.Swarm = await Swarm.create(newSwarm, req.user.id, req.user.groupId, true);
+                const ltFile: LoadTestFile.LoadTestFile = await LoadTestFile.getBySwarmId(swarm.id);
+                await LoadTestFile.create({
+                    swarm_id: mySwarm.id,
+                    lt_file: ltFile.lt_file
+                });
                 res.status(201);
                 res.json(mySwarm);
             } catch (err) {
@@ -237,7 +245,7 @@ router.route("/")
             res.send(err.err);
         } else {
             try {
-                const mySwarm: Swarm.Swarm = await Swarm.create(req.body, req.user.id, req.user.groupId);
+                const mySwarm: Swarm.Swarm = await Swarm.create(req.body, req.user.id, req.user.groupId, false);
                 res.status(201);
                 res.json(mySwarm);
             } catch (err) {
