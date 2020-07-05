@@ -2,7 +2,9 @@ import * as swig from "swig";
 import * as shell from "shelljs";
 import { writeFileSync } from "fs";
 import { v1 as generateUUID } from "uuid";
+import { asyncReadFile } from "../lib/lib";
 import * as LoadTestTemplate from "../models/LoadTestTemplate";
+import * as LoadTestFile from "../models/LoadTestFile";
 
 swig.setFilter("increment", input => {
     return input + 1;
@@ -81,8 +83,20 @@ export async function generateLocustFileZip(templateId: number): Promise<string>
     const zipFilePath = `${directory}/load-test.zip`;
     const zipFileDir = `${generateUUID()}`;
     const zipFileNewPathName = `${generateUUID()}.zip`;
-    const saveFilePath = process.env.FILE_UPLOAD_PATH || "uploads/";
+    const saveFilePath = "/tmp/";
     shell.exec(`mkdir -p ${saveFilePath}${zipFileDir}`);
     shell.exec(`mv ${zipFilePath} ${saveFilePath}${zipFileDir}/${zipFileNewPathName}`);
+    shell.exec(`rf -rf ${directory}`);
     return `${saveFilePath}${zipFileDir}/${zipFileNewPathName}`;
+}
+
+export async function generateAndSaveTemplate(swarm_id: number, template_id: number): Promise<number> {
+    const zipFilePath = await generateLocustFileZip(template_id);
+    const fileBuffer = await asyncReadFile(zipFilePath);
+    const ltFile: LoadTestFile.LoadTestFile = await LoadTestFile.create({
+        swarm_id,
+        lt_file: fileBuffer
+    });
+    shell.exec(`rm ${zipFilePath}`);
+    return ltFile.id;
 }
