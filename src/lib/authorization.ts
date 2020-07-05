@@ -67,19 +67,15 @@ export function willExceedMaxUsers(user: User, requestedUsers: number, isReliabi
     }
 }
 
-export async function isValidSite(user: User, swarm: Swarm.NewSwarm) {
+export async function isValidSite(user: User, swarm: Swarm.NewSwarm): Promise<boolean> {
 
     // Legacy Kernl testing hooks.
     if (swarm.kernl_test && swarm.host_url) {
         return true;
     }
 
-    // Don't allow people to create tests without the kernl_test flag.
-    // if (swarm.host_url && !swarm.kernl_test) {
-    //     return false;
-    // }
-
     // Now check site id against current user.
+    if (!swarm.site_id) return false;
     const siteOwnership: SiteOwnership.SiteOwnership = await SiteOwnership.findById(swarm.site_id);
     if (siteOwnership.user_id !== user.id) {
         return false;
