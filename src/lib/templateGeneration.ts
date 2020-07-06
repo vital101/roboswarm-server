@@ -63,12 +63,14 @@ export async function generateLocustFile(templateId: number): Promise<string> {
         });
     }
     const templatePath = `${appRoot}/swig-templates/locustfile.template.py`;
+    console.log(`Generating template from ${templatePath}`);
     const compiledTemplate = swig.renderFile(templatePath, renderContext);
     return compiledTemplate;
 }
 
 async function generateRequirementsFile(): Promise<string> {
     const templatePath = `${appRoot}/swig-templates/requirements.template.txt`;
+    console.log(`Generating requirements from ${templatePath}`);
     const compiledTemplate = swig.renderFile(templatePath);
     return compiledTemplate;
 }
