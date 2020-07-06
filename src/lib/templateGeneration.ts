@@ -10,6 +10,10 @@ swig.setFilter("increment", input => {
     return input + 1;
 });
 
+const appRoot = process.env.NODE_ENV === "production"
+    ? "/var/www/roboswarm/current"
+    : "/Users/jack/repos/roboswarm";
+
 interface SwigTemplateContext {
     username: string;
     password: string;
@@ -58,14 +62,13 @@ export async function generateLocustFile(templateId: number): Promise<string> {
             };
         });
     }
-    const appRoot = process.env.APP_ROOT ? "" : process.env.APP_ROOT;
-    const templatePath = `swig-templates/locustfile.template.py`;
+    const templatePath = `${appRoot}/swig-templates/locustfile.template.py`;
     const compiledTemplate = swig.renderFile(templatePath, renderContext);
     return compiledTemplate;
 }
 
 async function generateRequirementsFile(): Promise<string> {
-    const templatePath = `swig-templates/requirements.template.txt`;
+    const templatePath = `${appRoot}/swig-templates/requirements.template.txt`;
     const compiledTemplate = swig.renderFile(templatePath);
     return compiledTemplate;
 }
