@@ -84,9 +84,13 @@ export async function generateLocustFileZip(templateId: number): Promise<string>
     const zipFileDir = `${generateUUID()}`;
     const zipFileNewPathName = `${generateUUID()}.zip`;
     const saveFilePath = "/tmp/";
+    console.log(1);
     shell.exec(`mkdir -p ${saveFilePath}${zipFileDir}`);
+    console.log(2);
     shell.exec(`mv ${zipFilePath} ${saveFilePath}${zipFileDir}/${zipFileNewPathName}`);
+    console.log(3);
     shell.exec(`rf -rf ${directory}`);
+    console.log(4);
     return `${saveFilePath}${zipFileDir}/${zipFileNewPathName}`;
 }
 
