@@ -75,7 +75,7 @@ export async function generateLocustFileZip(templateId: number): Promise<string>
     const compiledRequirements = await generateRequirementsFile();
     const directoryUUID = generateUUID();
     const directory = `/tmp/roboswarm-${directoryUUID}`;
-    shell.mkdir(directory);
+    shell.exec(`mkdir -p ${directory}`);
     writeFileSync(`${directory}/locustfile.py`, compiledTemplate);
     writeFileSync(`${directory}/requirements.txt`, compiledRequirements);
     shell.cd(directory);
@@ -90,7 +90,7 @@ export async function generateLocustFileZip(templateId: number): Promise<string>
     shell.exec(`mv ${zipFilePath} ${saveFilePath}${zipFileDir}/${zipFileNewPathName}`);
     console.log(3);
     shell.exec(`rf -rf ${directory}`);
-    console.log(4);
+    console.log(`Returning: ${saveFilePath}${zipFileDir}/${zipFileNewPathName}`);
     return `${saveFilePath}${zipFileDir}/${zipFileNewPathName}`;
 }
 
