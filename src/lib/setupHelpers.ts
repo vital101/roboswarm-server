@@ -339,7 +339,7 @@ export async function unzipPackageAndPipInstall(machineId: number, machineIp: st
     });
     const commands: Array<string> = [
         "unzip load_test_data.zip",
-        "pip3 install -r requirements.txt"
+        // "pip3 install -r requirements.txt"
     ];
     await ssh.execCommand(commands.join(" && "));
     ssh.connection.end();
@@ -379,7 +379,7 @@ export async function startMaster(swarm: Swarm.Swarm, machine: Machine.Machine, 
     flags.push(`--run-time ${runTime}`);
     flags.push("--headless");
     flags.push(`--expect-workers=${expectSlaveCount}`);
-    const command = `nohup locust ${flags.join(" ")} > /dev/null 2>&1`;
+    const command = `ulimit -n 200000 && nohup locust ${flags.join(" ")} > /dev/null 2>&1`;
     console.log(`Executing ${command} on master at ${machine.ip_address} &`);
     ssh.execCommand(command, { options: { pty: true } });
     await asyncSleep(10);
@@ -427,7 +427,7 @@ export async function startSlave(swarm: Swarm.Swarm, master: Machine.Machine, sl
     console.log("Transferring template to slave at ", slave.ip_address);
     const bashTemplate = `
         #!/bin/bash
-        locust --worker --master-host=${master.ip_address} --logfile=/root/locustlog.log --loglevel=debug &
+        ulimit -n 200000 && locust --worker --master-host=${master.ip_address} --logfile=/root/locustlog.log --loglevel=debug &
     `;
     const bashPath = `/tmp/${slave.id}.bash`;
     writeFileSync(`/tmp/${slave.id}.bash`, bashTemplate);

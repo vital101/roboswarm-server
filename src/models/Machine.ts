@@ -53,8 +53,8 @@ export async function create(machine: NewMachine, swarm: Swarm, key: SSHKey): Pr
         steps: [
             MachineSetupStep.MACHINE_READY,
             MachineSetupStep.DELAY,
-            MachineSetupStep.OPEN_PORTS,
-            MachineSetupStep.PACKAGE_INSTALL,
+            // MachineSetupStep.OPEN_PORTS,
+            // MachineSetupStep.PACKAGE_INSTALL,
             MachineSetupStep.TRACEROUTE,
             MachineSetupStep.TRANSFER_FILE,
             MachineSetupStep.UNZIP_AND_PIP_INSTALL
@@ -111,7 +111,8 @@ async function createDigitalOceanMachine(machineId: number, region: string, digi
         name: `${machineId}`,
         region,
         size: "s-2vcpu-2gb",
-        image: "ubuntu-20-04-x64",
+        // image: "ubuntu-20-04-x64",
+        image: 66366589, // roboswarm-v1
         backups: false,
         ipv6: true,
         tags: [ "roboswarm" ],
