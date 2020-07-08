@@ -29,7 +29,6 @@ export interface Swarm {
     user?: User.User;
     simulated_users: number;
     ssh_key_id: number;
-    file_path: string;
     host_url: string;
     spawn_rate: number;
     created_at: Date;
@@ -115,7 +114,6 @@ export async function create(swarm: NewSwarm, userId: number, groupId: number, r
             group_id: groupId,
             user_id: userId,
             simulated_users: swarm.simulated_users,
-            file_path: "wip", // swarm.file_path,
             host_url,
             spawn_rate: swarm.spawn_rate,
             ssh_key_id: key.id,
