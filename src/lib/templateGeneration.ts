@@ -89,12 +89,9 @@ export async function generateLocustFileZip(templateId: number): Promise<string>
     const zipFileDir = `${generateUUID()}`;
     const zipFileNewPathName = `${generateUUID()}.zip`;
     const saveFilePath = "/tmp/";
-    console.log(1);
     shell.exec(`mkdir -p ${saveFilePath}${zipFileDir}`);
-    console.log(2);
     shell.exec(`mv ${zipFilePath} ${saveFilePath}${zipFileDir}/${zipFileNewPathName}`);
-    console.log(3);
-    shell.exec(`rf -rf ${directory}`);
+    shell.exec(`rm -rf ${directory}`);
     console.log(`Returning: ${saveFilePath}${zipFileDir}/${zipFileNewPathName}`);
     return `${saveFilePath}${zipFileDir}/${zipFileNewPathName}`;
 }
@@ -106,6 +103,5 @@ export async function generateAndSaveTemplate(swarm_id: number, template_id: num
         swarm_id,
         lt_file: fileBuffer
     });
-    shell.exec(`rm ${zipFilePath}`);
     return ltFile.id;
 }
