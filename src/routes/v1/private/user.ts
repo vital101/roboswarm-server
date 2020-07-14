@@ -3,6 +3,7 @@ import { RoboRequest, RoboResponse } from "../../../interfaces/shared.interface"
 import * as User from "../../../models/User";
 import * as Stripe from "../../../lib/stripe";
 import { getUserResourceAvailability, ResourceAvailability } from "../../../lib/authorization";
+import { Stripe as StripeLib } from "stripe";
 
 interface UserBodyResponse extends RoboResponse {
     json: (user: User.User) => any;
@@ -37,7 +38,40 @@ interface UpdateUserRequest extends RoboRequest {
     };
 }
 
+interface GetInvoicesResponse extends RoboResponse {
+    json: (invoices: StripeLib.ApiList<StripeLib.Invoice|undefined>) => any;
+}
+
+interface PayInvoiceRequest extends RoboRequest {
+    params: {
+        id: string;
+    };
+}
+
+interface PayInvoiceResponse extends RoboResponse {
+    json: (invoice: StripeLib.Invoice) => any;
+}
+
 const router = Router();
+
+router.route("/me/invoices/:id/pay")
+    .post(async (req: PayInvoiceRequest, res: PayInvoiceResponse) => {
+        try {
+            const invoice: StripeLib.Invoice = await Stripe.payInvoice(req.params.id);
+            res.status(200);
+            res.json(invoice);
+        } catch (err) {
+            res.status(200);
+            res.json(undefined);
+        }
+    });
+
+router.route("/me/invoices")
+    .get(async (req: RoboRequest, res: GetInvoicesResponse) => {
+        const invoices: StripeLib.ApiList<StripeLib.Invoice> = await Stripe.getInvoices(req.user.id);
+        res.status(200);
+        res.json(invoices);
+    });
 
 router.route("/me/card")
     .delete(async (req: RoboRequest, res: RoboResponse) => {

@@ -120,3 +120,17 @@ export async function getCustomer(userId: number): Promise<Stripe.Customer|Strip
     const user: User.User = await User.getById(userId);
     return await stripe.customers.retrieve(user.stripe_id);
 }
+
+export async function getInvoices(userId: number): Promise<Stripe.ApiList<Stripe.Invoice>> {
+    const stripe = new Stripe(process.env.STRIPE_API_SECRET, config);
+    const user: User.User = await User.getById(userId);
+    return await stripe.invoices.list({
+        customer: user.stripe_id,
+        limit: 10
+    });
+}
+
+export async function payInvoice(invoiceId: string): Promise<Stripe.Invoice> {
+    const stripe = new Stripe(process.env.STRIPE_API_SECRET, config);
+    return await stripe.invoices.pay(invoiceId);
+}

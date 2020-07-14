@@ -94,7 +94,8 @@ export async function getByUserAndGroup(userId: number, groupId: number): Promis
         .where({
             user_id: userId,
             group_id: groupId
-        });
+        })
+        .orderBy("name");
     return testTemplates;
 }
 
