@@ -1,10 +1,10 @@
 import * as request from "request-promise";
 import { RequestPromise, RequestPromiseOptions } from "request-promise";
 import { db } from "../lib/db";
-import { exec } from "shelljs";
 import { v1 as generateUUID } from "uuid";
 import { readFile } from "fs";
 import { SSHKeyResponse } from "../interfaces/digitalOcean.interface";
+import { execSync } from "child_process";
 
 export interface SSHKey {
     id?: number;
@@ -21,12 +21,8 @@ interface KeyPair {
     uuid: string;
 }
 
-function executeShell(command: string): Promise<any> {
-    return new Promise((resolve, reject) => {
-        exec(command, () => {
-            resolve();
-        });
-    });
+function executeShell(command: string): any {
+    return execSync(command, { cwd: "/tmp" });
 }
 
 function readFileAsync(path: string): Promise<any> {
@@ -47,15 +43,15 @@ async function generateKeys(): Promise<KeyPair> {
     const ssh_public_path = `/tmp/${sshUUID}.pub`;
 
     // Generate the SSH key
-    await executeShell(`ssh-keygen -m PEM -C kernl.us -t rsa -N "" -f /tmp/${sshUUID}`);
+    executeShell(`ssh-keygen -m PEM -C kernl.us -t rsa -N "" -f /tmp/${sshUUID}`);
 
     // Read the SSH keys
     const privateKey = await readFileAsync(ssh_private_path);
     const publicKey = await readFileAsync(ssh_public_path);
 
     // Delete the keys from disk.
-    await executeShell(`rm ${ssh_private_path}`);
-    await executeShell(`rm ${ssh_public_path}`);
+    executeShell(`rm ${ssh_private_path}`);
+    executeShell(`rm ${ssh_public_path}`);
 
     return {
         public: publicKey,

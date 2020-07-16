@@ -16,7 +16,7 @@ import * as SiteOwnership from "./SiteOwnership";
 import { generateAndSaveTemplate } from "../lib/templateGeneration";
 import * as LoadTestFile from "../models/LoadTestFile";
 import { asyncReadFile } from "../lib/lib";
-import * as shell from "shelljs";
+import { execSync } from "child_process";
 
 const node_ssh = require("node-ssh");
 
@@ -141,7 +141,7 @@ export async function create(swarm: NewSwarm, userId: number, groupId: number, r
             swarm_id: newSwarm.id,
             lt_file,
         });
-        shell.exec(`rm ${swarm.file_path}`);
+        execSync(`rm ${swarm.file_path}`, { cwd: "/tmp" });
     }
 
     const startProvisionEvent: SwarmProvisionEvent = {

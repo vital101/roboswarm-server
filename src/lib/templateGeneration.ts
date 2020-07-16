@@ -1,5 +1,5 @@
 import * as swig from "swig";
-import * as shell from "shelljs";
+import { execSync } from "child_process";
 import { writeFileSync } from "fs";
 import { v1 as generateUUID } from "uuid";
 import { asyncReadFile } from "../lib/lib";
@@ -80,18 +80,17 @@ export async function generateLocustFileZip(templateId: number): Promise<string>
     const compiledRequirements = await generateRequirementsFile();
     const directoryUUID = generateUUID();
     const directory = `/tmp/roboswarm-${directoryUUID}`;
-    shell.exec(`mkdir -p ${directory}`);
+    execSync(`mkdir -p ${directory}`, { cwd: "/tmp" });
     writeFileSync(`${directory}/locustfile.py`, compiledTemplate);
     writeFileSync(`${directory}/requirements.txt`, compiledRequirements);
-    shell.cd(directory);
-    shell.exec(`zip -9 -j -r load-test.zip ${directory}/`, { silent: true });
+    execSync(`zip -9 -j -r load-test.zip ${directory}/`, { cwd: directory });
     const zipFilePath = `${directory}/load-test.zip`;
     const zipFileDir = `${generateUUID()}`;
     const zipFileNewPathName = `${generateUUID()}.zip`;
     const saveFilePath = "/tmp/";
-    shell.exec(`mkdir -p ${saveFilePath}${zipFileDir}`);
-    shell.exec(`mv ${zipFilePath} ${saveFilePath}${zipFileDir}/${zipFileNewPathName}`);
-    shell.exec(`rm -rf ${directory}`);
+    execSync(`mkdir -p ${saveFilePath}${zipFileDir}`, { cwd: "/tmp" });
+    execSync(`mv ${zipFilePath} ${saveFilePath}${zipFileDir}/${zipFileNewPathName}`, { cwd: "/tmp" });
+    execSync(`rm -rf ${directory}`, { cwd: "/tmp" });
     console.log(`Returning: ${saveFilePath}${zipFileDir}/${zipFileNewPathName}`);
     return `${saveFilePath}${zipFileDir}/${zipFileNewPathName}`;
 }

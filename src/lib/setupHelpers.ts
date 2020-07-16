@@ -1,6 +1,6 @@
 const node_ssh = require("node-ssh");
 const sftp_client = require("ssh2-sftp-client");
-import * as shell from "shelljs";
+import { execSync } from "child_process";
 import { writeFileSync } from "fs";
 import { asyncSleep } from "../lib/lib";
 import * as Machine from "../models/Machine";
@@ -273,7 +273,7 @@ export async function processMachineProvisionEvent(event: MachineProvisionEvent)
                 case MachineSetupStep.TRANSFER_FILE: {
                     const filePath = await LoadTestFile.getLocalFilePathBySwarmId(event.swarm.id);
                     await transferFileToMachine(event.machine.ip_address, filePath, event.sshKey.private);
-                    shell.exec(`rm ${filePath}`);
+                    execSync(`rm ${filePath}`, { cwd: "/tmp" });
                     break;
                 }
                 case MachineSetupStep.UNZIP_AND_PIP_INSTALL: {
