@@ -74,6 +74,11 @@ export async function isValidSite(user: User, swarm: Swarm.NewSwarm): Promise<bo
         return true;
     }
 
+    // Automatic pass for 5 users or less
+    if (swarm.simulated_users <= 5) {
+        return true;
+    }
+
     // Now check site id against current user.
     if (!swarm.site_id) return false;
     const siteOwnership: SiteOwnership.SiteOwnership = await SiteOwnership.findById(swarm.site_id);

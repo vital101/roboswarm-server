@@ -188,6 +188,16 @@ describe("lib/authorization", () => {
             expect(findByIdStub.callCount).toBe(1);
             expect(findByIdStub.getCall(0).args[0]).toBe(swarm.site_id);
         });
+
+        test("returns true if simulated users is 5 or less", async () => {
+            const swarm: any = {
+                kernl_test: false,
+                host_url: "https://some.url",
+                site_id: undefined,
+                simulated_users: 5
+            };
+            expect(await authorization.isValidSite(user, swarm)).toBe(true);
+        });
     });
 
     describe("canCreateSwarm", () => {
@@ -206,20 +216,6 @@ describe("lib/authorization", () => {
             });
             expect(dropletPoolAvailabilityStub.callCount).toBe(1);
         });
-
-        // test("rejects if not a valid site", async () => {
-        //     const swarm: any = {
-        //         machines: [1, 2, 3, 4],
-        //         kernl_test: false,
-        //         host_url: "https://some.test.url",
-        //         site_id: 9999
-        //     };
-        //     const result: any = await authorization.canCreateSwarm(user, swarm, false);
-        //     expect(result).toEqual({
-        //         err: "The site is not valid. Be sure to verify your ownership.",
-        //         status: 400
-        //     });
-        // });
 
         test("rejects if test will exceed droplet pool availability", async () => {
             const swarm: any = {
@@ -327,6 +323,21 @@ describe("lib/authorization", () => {
                 duration: 30,
                 kernl_test: true,
                 simulated_users: 4000,
+                host_url: "https://some.test.url"
+            };
+            sandbox.stub(Swarm, "willExceedDropletPoolAvailability").resolves(false);
+            sandbox.stub(Swarm, "totalMachineSecondsInPeriod").resolves(10);
+            sandbox.stub(Swarm, "getSwarmsInDateRange").resolves(0);
+            const result: any = await authorization.canCreateSwarm(user, swarm, false);
+            expect(result).toBe(true);
+        });
+        test("resolves if the test is for 5 simulated users, 20 minutes or less, and on free plan", async () => {
+            user.stripe_plan_description = "2020-roboswarm-free";
+            const swarm: any = {
+                machines: [1],
+                duration: 20,
+                kernl_test: true,
+                simulated_users: 5,
                 host_url: "https://some.test.url"
             };
             sandbox.stub(Swarm, "willExceedDropletPoolAvailability").resolves(false);
