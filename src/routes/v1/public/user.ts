@@ -33,7 +33,7 @@ router.route("/")
                 email: newUser.email
             };
             await Stripe.createStripeCustomer(newUser);
-            await Stripe.setStripePlan(newUser.id, "free");
+            await Stripe.setStripePlan(newUser.id, "2020-roboswarm-free");
             sendEmail({
                 to: "jack@kernl.us",
                 from: "jack@kernl.us",
