@@ -140,7 +140,7 @@ export const settings: Settings = {
     },
     "2020-roboswarm-free": {
         maxMachineHours: 100000,
-        maxLoadTests: 2,
+        maxLoadTests: 5,
         maxLoadTestDurationMinutes: 20,
         maxReliabilityTestMinutes: 20,
         maxReliabilityTestUsers: 5,
