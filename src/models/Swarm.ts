@@ -383,7 +383,8 @@ export async function fetchLoadTestMetrics(swarm: Swarm, isFinal?: boolean): Pro
     const requestRows = requests.stdout.split("\n");
 
     if (isFinal) {
-        // For the final request, we store the route path information. Regular JSON object should be fine.
+        // For the final request, we store the route path information.
+        // Regular JSON object should be fine.
         if (requestRows.length > 2) {
             requestRows.shift();
             requestRows.pop();
@@ -405,6 +406,27 @@ export async function fetchLoadTestMetrics(swarm: Swarm, isFinal?: boolean): Pro
                         requests_per_second: Math.floor(parseFloat(splitRow[9]))
                     };
                     await LoadTest.createRequestFinal(data);
+
+                    // Response time distribution per route.
+                    const distributionTotalData: LoadTest.DistributionFinal = {
+                        swarm_id: swarm.id,
+                        method: data.method,
+                        route: data.route,
+                        created_at: new Date(),
+                        requests: data.requests,
+                        percentiles: JSON.stringify({
+                            "50%": parseInt(splitRow[11], 10),
+                            "66%": parseInt(splitRow[12], 10),
+                            "75%": parseInt(splitRow[13], 10),
+                            "80%": parseInt(splitRow[14], 10),
+                            "90%": parseInt(splitRow[15], 10),
+                            "95%": parseInt(splitRow[16], 10),
+                            "98%": parseInt(splitRow[17], 10),
+                            "99%": parseInt(splitRow[18], 10),
+                            "100%": parseInt(splitRow[22], 10),
+                        })
+                    };
+                    await LoadTest.createDistributionFinal(distributionTotalData);
                 } catch (err) {
                     console.log("Request row final error: ", err);
                 }
