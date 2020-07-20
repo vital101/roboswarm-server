@@ -7,7 +7,7 @@ import {
     isValidUserBody
 } from "../../../lib/userHelpers";
 import { TokenizedUser } from "../../../interfaces/shared.interface";
-import { sendEmail } from "../../../lib/email";
+import { sendEmail, sendRegistrationEmail } from "../../../lib/email";
 
 const router = express.Router();
 
@@ -40,6 +40,7 @@ router.route("/")
                 subject: `A new RoboSwarm user has signed up: ${newUser.email}`,
                 text: `${newUser.first_name} ${newUser.last_name} (${newUser.email})`
             });
+            sendRegistrationEmail(newUser);
             res.status(201);
             res.json({
                 token: getUserToken(tokenUser),

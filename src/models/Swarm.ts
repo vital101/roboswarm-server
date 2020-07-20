@@ -9,7 +9,7 @@ import { RequestPromiseOptions } from "request-promise";
 import * as events from "../lib/events";
 import * as LoadTest from "./LoadTest";
 import * as moment from "moment";
-import { sendEmail } from "../lib/email";
+import { sendEmail, sendFirstTestCompleteEmail } from "../lib/email";
 import { WorkerEventType, SwarmProvisionEvent, SwarmSetupStep, DeprovisionEvent, DeprovisionEventType } from "../interfaces/provisioning.interface";
 import * as User from "./User";
 import * as SiteOwnership from "./SiteOwnership";
@@ -217,7 +217,24 @@ export async function destroyById(id: number, group_id: number): Promise<Swarm> 
     };
     await events.enqueue(sshKeyDestroyEvent);
 
+    // Send an email for first swarm if needed.
+    const theSwarm: Swarm = destroyedSwarm[0];
+    const isFirstSwarm: boolean = await isFirstCompleteSwarm(theSwarm.user_id);
+    if (isFirstSwarm) {
+        const usr: User.User = await User.getById(theSwarm.user_id);
+        sendFirstTestCompleteEmail(usr, theSwarm.simulated_users, theSwarm.duration);
+    }
+
     return destroyedSwarm[0];
+}
+
+export async function isFirstCompleteSwarm(userId: number): Promise<boolean> {
+    const swarms: Swarm[] = await db("swarm")
+        .where({ user_id: userId })
+        .whereNotNull("created_at")
+        .whereNotNull("ready_at")
+        .whereNotNull("destroyed_at");
+    return swarms.length === 1;
 }
 
 export async function getById(id: number): Promise<Swarm> {
