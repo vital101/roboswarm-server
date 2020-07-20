@@ -222,7 +222,9 @@ export async function destroyById(id: number, group_id: number): Promise<Swarm> 
     const isFirstSwarm: boolean = await isFirstCompleteSwarm(theSwarm.user_id);
     if (isFirstSwarm) {
         const usr: User.User = await User.getById(theSwarm.user_id);
-        sendFirstTestCompleteEmail(usr, theSwarm.simulated_users, theSwarm.duration);
+        if (!usr.stripe_plan_description.includes("kernl")) {
+            sendFirstTestCompleteEmail(usr, theSwarm.simulated_users, theSwarm.duration);
+        }
     }
 
     return destroyedSwarm[0];
