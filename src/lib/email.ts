@@ -48,3 +48,20 @@ export function sendFirstTestCompleteEmail(user: User, simulated_users: number, 
     sgMail.setApiKey(process.env.SENDGRID_API_KEY);
     sgMail.send(msg);
 }
+
+export function sendPasswordResetEmail(email: string, uuid: string): void {
+    const templateId = "d-ef854018ef2c43d7934f9e87b8ec72ff";
+    const msg = {
+        to: email,
+        from: "jack@kernl.us",
+        templateId,
+        asm: {
+            groupId: 13686
+        },
+        dynamicTemplateData: {
+            uuid,
+        },
+    };
+    sgMail.setApiKey(process.env.SENDGRID_API_KEY);
+    sgMail.send(msg);
+}

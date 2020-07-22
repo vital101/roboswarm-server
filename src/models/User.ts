@@ -35,6 +35,13 @@ async function isValidPassword(password: string, passwordHash: string): Promise<
     return await compare(password, passwordHash);
 }
 
+export async function changePassword(userId: number, password: string): Promise<void> {
+    const passwordHash = await generatePasswordHash(password);
+    await db("user")
+        .update({ password: passwordHash })
+        .where({ id: userId });
+}
+
 export async function createUser(userData: User): Promise<User> {
     const group: Array<Group> = await db("group").insert({ name: userData.email }, "*");
     const passwordHash = await generatePasswordHash(userData.password);

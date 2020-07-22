@@ -1,13 +1,29 @@
 import * as express from "express";
 import * as User from "../../../models/User";
 import * as Stripe from "../../../lib/stripe";
+import * as PasswordResetNonce from "../../../models/PasswordResetNonce";
 import {
     getUserToken,
     isValidAuthBody,
     isValidUserBody
 } from "../../../lib/userHelpers";
 import { TokenizedUser } from "../../../interfaces/shared.interface";
-import { sendEmail, sendRegistrationEmail } from "../../../lib/email";
+import { sendEmail, sendRegistrationEmail, sendPasswordResetEmail } from "../../../lib/email";
+
+interface PasswordResetRequest extends express.Request {
+    body: {
+        email: string;
+    };
+}
+
+interface ChangePasswordRequest extends express.Request {
+    body: {
+        password: string;
+    };
+    params: {
+        nonce: string;
+    };
+}
 
 const router = express.Router();
 
@@ -76,6 +92,31 @@ router.route("/auth")
                 email: authenticatedUser.email
             }));
         }
+    });
+
+router.route("/password-reset/:nonce")
+    .post(async (req: ChangePasswordRequest, res: express.Response) => {
+        try {
+            const userNonce: PasswordResetNonce.PasswordResetNonce = await PasswordResetNonce.getByNonce(req.params.nonce);
+            await User.changePassword(userNonce.user_id, req.body.password);
+            await PasswordResetNonce.invalidate(userNonce.id);
+            res.status(200);
+            res.send("OK");
+        } catch (err) {
+            res.status(500);
+            res.send("There was an error changing your password.");
+        }
+    });
+
+router.route("/password-reset")
+    .post(async (req: PasswordResetRequest, res: express.Response) => {
+        try {
+            const user: User.User = await User.getByEmail(req.body.email);
+            const nonce: PasswordResetNonce.PasswordResetNonce = await PasswordResetNonce.create(user.id);
+            sendPasswordResetEmail(user.email, nonce.nonce);
+        } catch (err) { /* no-op */ }
+        res.status(200);
+        res.send("ok");
     });
 
 export default router;
