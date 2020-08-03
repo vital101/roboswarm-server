@@ -807,8 +807,8 @@
     }
 /* 10. FOOTER SECTION */
     .footer-section{
-        padding-top: 75px;
-        padding-bottom: 55px;
+        padding-top: 25px;
+        padding-bottom: 25px;
         margin-bottom: 0px!important;
         position: relative;
         background-color: #303669;
