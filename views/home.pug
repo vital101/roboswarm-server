@@ -277,12 +277,13 @@ nav#navbar.navbar.fixed-top.navbar-expand-lg.navbar-header.navbar-mobile
       p &copy; 2020 RoboSwarm
 
 //- Footer JS
-script(src='/marketing-static/js/smoothscroll.js')
 script(src='https://ajax.googleapis.com/ajax/libs/jquery/3.4.1/jquery.min.js')
+script(src='/marketing-static/js/smoothscroll.js')
 script(src='https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.7/umd/popper.min.js')
 script(src='https://maxcdn.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.min.js')
 script(src='/marketing-static/js/owl/owl.carousel.js')
 script(src='/marketing-static/js/accordian.js')
+script(src='/marketing-static/js/mixpanel.js')
 
 //- Header Scrolling
 script(type='text/javascript').
@@ -293,7 +294,7 @@ script(type='text/javascript').
       $('#navbar').removeClass('header-scrolled');
     }
   });
-script.
+script(type='text/javascript').
   $(document).ready(function(){
     $(".owl-carousel").owlCarousel({
       items: 4,
