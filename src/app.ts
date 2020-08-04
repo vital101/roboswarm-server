@@ -52,6 +52,11 @@ app.use("/api/v1/swarm", jwt(jwtConfig), _swarmRoutes);
 app.use("/api/v1/template", jwt(jwtConfig), _templateRoutes);
 app.use("/api/v1/user", jwt(jwtConfig), _userRoutes);
 
+// Sitemap
+app.get("/sitemap.xml", (req, res) => {
+    res.sendFile(`${process.env.APP_ROOT}/views/sitemap.xml`);
+});
+
 // Marketing Pages
 app.use("/", marketingRoutes);
 
