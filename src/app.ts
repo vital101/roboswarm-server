@@ -57,6 +57,11 @@ app.get("/sitemap.xml", (req, res) => {
     res.sendFile(`${process.env.APP_ROOT}/views/sitemap.xml`);
 });
 
+// Robots.txt
+app.get("/robots.txt", (req, res) => {
+    res.sendFile(`${process.env.APP_ROOT}/views/robots.txt`);
+});
+
 // Marketing Pages
 app.use("/", marketingRoutes);
 
