@@ -6,6 +6,7 @@ import * as express from "express";
 import * as bodyParser from "body-parser";
 import * as jwt from "express-jwt";
 import * as cors from "cors";
+import * as Sentry from "@sentry/node";
 
 // Private routes
 import _siteOwnershipRoutes from "./routes/v1/private/siteOwnership";
@@ -21,8 +22,20 @@ import userRoutes from "./routes/v1/public/user";
 // JWT Config
 const jwtConfig = { secret: process.env.JWT_SECRET };
 
+// Sentry Config
+if (process.env.NODE_ENV === "production") {
+    Sentry.init({
+        dsn: "https://cd5fd5753af74cf6ba3987e56d95063b@o19973.ingest.sentry.io/5383793"
+    });
+}
+
 // Create Express server
 const app = express();
+
+// Sentry Middleware
+if (process.env.NODE_ENV === "production") {
+    app.use(Sentry.Handlers.requestHandler());
+}
 
 // Express configuration
 app.set("port", process.env.PORT || 3000);
@@ -64,6 +77,15 @@ app.get("/robots.txt", (req, res) => {
 
 // Marketing Pages
 app.use("/", marketingRoutes);
+
+app.get("/debug-sentry", function mainHandler(req, res) {
+    throw new Error("My first Sentry error!");
+});
+
+// Sentry Error Handler
+if (process.env.NODE_ENV === "production") {
+    app.use(Sentry.Handlers.errorHandler());
+}
 
 // Error handler
 app.use((req: any, res: any, next: any) => {
