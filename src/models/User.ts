@@ -1,5 +1,6 @@
 import { db } from "../lib/db";
 import { compare, genSalt, hash } from "bcrypt";
+import * as request from "request-promise";
 
 export interface User {
     id?: number;
@@ -14,6 +15,7 @@ export interface User {
     created_at?: Date;
     is_delinquent: boolean;
     group?: Group;
+    is_kernl_user?: boolean;
 }
 
 export interface Group {
@@ -70,6 +72,24 @@ export async function authenticate(email: string, password: string): Promise<boo
     return await isValidPassword(password, user.password);
 }
 
+export async function authenticateKernl(email: string, password: string): Promise<boolean> {
+    const options: request.RequestPromiseOptions = {
+        body: { email, password },
+        headers: { "Content-Type": "application/json" },
+        json: true
+    };
+    const url = `${process.env.KERNL_BASE_URL}/api/v1/auth`;
+
+    // Note: Any non 200 code throws here, so 201 from the auth
+    //       will return true;
+    try {
+        await request.post(url, options);
+        return true;
+    } catch (err) {
+        return false;
+    }
+}
+
 export async function getByEmail(email: string): Promise<User> {
     const foundUser: Array<User> = await db("user").where({ email });
     const foundUserGroup: Array<UserGroup> = await db("usergroup").where({ user_id: foundUser[0].id });
@@ -77,6 +97,7 @@ export async function getByEmail(email: string): Promise<User> {
     const user = foundUser[0];
     user.password = undefined;
     user.group = foundGroup[0];
+    user.is_kernl_user = user.stripe_plan_description.includes("kernl");
     return user;
 }
 
@@ -87,6 +108,7 @@ export async function getById(id: number): Promise<User> {
     const user = foundUser[0];
     user.password = undefined;
     user.group = foundGroup[0];
+    user.is_kernl_user = user.stripe_plan_description.includes("kernl");
     return user;
 }
 
@@ -98,5 +120,10 @@ export async function updateById(id: number, fields: any): Promise<User> {
 
 export async function getAll(): Promise<User[]> {
     const users: User[] = await db("user").where({});
-    return users;
+    return users.map(u => {
+        return {
+            ...u,
+            is_kernl_user: u.stripe_plan_description.includes("kernl")
+        };
+    });
 }

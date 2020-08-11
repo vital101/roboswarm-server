@@ -79,8 +79,9 @@ router.route("/auth")
             return;
         }
 
-        const valid = await User.authenticate(req.body.email, req.body.password);
-        if (!valid) {
+        const roboswarmValid = await User.authenticate(req.body.email, req.body.password);
+        const kernlValid = await User.authenticateKernl(req.body.email, req.body.password);
+        if (!roboswarmValid && !kernlValid) {
             res.status(400);
             res.send("Invalid email or password.");
         } else {
