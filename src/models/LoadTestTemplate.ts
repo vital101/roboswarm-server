@@ -1,4 +1,5 @@
 import { db } from "../lib/db";
+import * as encryption from "../lib/encryption";
 
 const TABLE_NAME: string = "load_test_template_complex";
 
@@ -55,6 +56,7 @@ function getRouteTypeName(routeType: WordPressRouteType): string {
 function hydrate(template: TemplateComplex): TemplateComplex {
     return {
         ...template,
+        password: encryption.decrypt(template.password),
         routes: JSON.parse(template.routes as string) as WordPressRoute[]
     };
 }
@@ -63,6 +65,7 @@ export async function create(template: TemplateComplex): Promise<TemplateComplex
     const routes: WordPressRoute[] = template.routes as WordPressRoute[];
     const data: TemplateComplex = {
         ...template,
+        password: encryption.encrypt(template.password),
         routes: JSON.stringify(routes),
         scenario_names: routes.map(route => getRouteTypeName(route.routeType)).join(",")
     };
@@ -77,6 +80,7 @@ export async function update(id: number, template: TemplateComplex): Promise<Tem
     const routes: WordPressRoute[] = template.routes as WordPressRoute[];
     const data: TemplateComplex = {
         ...template,
+        password: encryption.encrypt(template.password),
         routes: JSON.stringify(routes),
         scenario_names: routes.map(route => getRouteTypeName(route.routeType)).join(",")
     };
