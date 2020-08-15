@@ -51,7 +51,6 @@ export interface Swarm {
     load_test_started?: boolean;
     template_id?: string;
     template_name?: string;
-    email_when_complete?: boolean;
 }
 
 export interface NewSwarm {
@@ -70,7 +69,6 @@ export interface NewSwarm {
     template_id?: string;
     template_name?: string;
     generate_test_from_template?: boolean;
-    email_when_complete?: boolean;
 }
 
 export interface GroupedSwarm {
@@ -227,15 +225,12 @@ export async function destroyById(id: number, group_id: number): Promise<Swarm> 
     const theSwarm: Swarm = destroyedSwarm[0];
     const isFirstSwarm: boolean = await isFirstCompleteSwarm(theSwarm.user_id);
     const usr: User.User = await User.getById(theSwarm.user_id);
-    if (isFirstSwarm) {
-        if (!usr.stripe_plan_description.includes("kernl")) {
+    if (!usr.stripe_plan_description.includes("kernl")) {
+        if (isFirstSwarm) {
             sendFirstTestCompleteEmail(usr, theSwarm.simulated_users, theSwarm.duration);
+        } else {
+            sendLoadTestCompleteEmail(usr, theSwarm);
         }
-    }
-
-    // Send load test complete email if needed
-    if (theSwarm.email_when_complete) {
-        sendLoadTestCompleteEmail(usr, theSwarm);
     }
 
     return destroyedSwarm[0];
