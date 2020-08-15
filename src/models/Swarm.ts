@@ -9,7 +9,11 @@ import { RequestPromiseOptions } from "request-promise";
 import * as events from "../lib/events";
 import * as LoadTest from "./LoadTest";
 import * as moment from "moment";
-import { sendEmail, sendFirstTestCompleteEmail } from "../lib/email";
+import {
+    sendEmail,
+    sendFirstTestCompleteEmail,
+    sendLoadTestCompleteEmail
+} from "../lib/email";
 import { WorkerEventType, SwarmProvisionEvent, SwarmSetupStep, DeprovisionEvent, DeprovisionEventType } from "../interfaces/provisioning.interface";
 import * as User from "./User";
 import * as SiteOwnership from "./SiteOwnership";
@@ -47,6 +51,7 @@ export interface Swarm {
     load_test_started?: boolean;
     template_id?: string;
     template_name?: string;
+    email_when_complete?: boolean;
 }
 
 export interface NewSwarm {
@@ -65,6 +70,7 @@ export interface NewSwarm {
     template_id?: string;
     template_name?: string;
     generate_test_from_template?: boolean;
+    email_when_complete?: boolean;
 }
 
 export interface GroupedSwarm {
@@ -220,11 +226,16 @@ export async function destroyById(id: number, group_id: number): Promise<Swarm> 
     // Send an email for first swarm if needed.
     const theSwarm: Swarm = destroyedSwarm[0];
     const isFirstSwarm: boolean = await isFirstCompleteSwarm(theSwarm.user_id);
+    const usr: User.User = await User.getById(theSwarm.user_id);
     if (isFirstSwarm) {
-        const usr: User.User = await User.getById(theSwarm.user_id);
         if (!usr.stripe_plan_description.includes("kernl")) {
             sendFirstTestCompleteEmail(usr, theSwarm.simulated_users, theSwarm.duration);
         }
+    }
+
+    // Send load test complete email if needed
+    if (theSwarm.email_when_complete) {
+        sendLoadTestCompleteEmail(usr, theSwarm);
     }
 
     return destroyedSwarm[0];

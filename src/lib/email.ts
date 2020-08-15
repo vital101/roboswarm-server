@@ -1,5 +1,6 @@
 import * as sgMail from "@sendgrid/mail";
 import { User } from "../models/User";
+import { Swarm } from "../models/Swarm";
 
 export interface Message {
     to: string;
@@ -43,6 +44,27 @@ export function sendFirstTestCompleteEmail(user: User, simulated_users: number, 
             name: user.first_name,
             simulated_users,
             duration_in_minutes
+        },
+    };
+    sgMail.setApiKey(process.env.SENDGRID_API_KEY);
+    sgMail.send(msg);
+}
+
+export function sendLoadTestCompleteEmail(user: User, swarm: Swarm): void {
+    const templateId = "d-d20c9ddc3d3f46e69676e8ceee0f24c8";
+    const msg = {
+        to: user.email,
+        from: "jack@kernl.us",
+        templateId,
+        asm: {
+            groupId: 13686
+        },
+        dynamicTemplateData: {
+            first_name: user.first_name,
+            swarm_name: swarm.name,
+            swarm_simulated_users: swarm.simulated_users,
+            swarm_duration: swarm.duration,
+            swarm_id: swarm.id
         },
     };
     sgMail.setApiKey(process.env.SENDGRID_API_KEY);
