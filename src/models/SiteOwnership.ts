@@ -91,7 +91,7 @@ export async function verify(siteToVerify: SiteOwnership): Promise<SiteOwnership
     try {
         // Second attempt to verify via <meta> tags.
         const resultHTML = await request.get(siteToVerify.base_url, { strictSSL: false });
-        const regex = /\<meta\s*name=["|']?load-test-verify["|']? content=["|']?(.+)["|']?\>/;
+        const regex = /\<meta\s*name=["|']?kernl-verify["|']? content=["|']?(.+)["|']?\>/;
         const verificationValue = resultHTML.match(regex);
         if (isArray(verificationValue) && verificationValue.length > 0) {
             const code = verificationValue[1].replace("\"", "");
