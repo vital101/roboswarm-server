@@ -3,6 +3,7 @@ import { db } from "../lib/db";
 import { v4 as generateUUID } from "uuid";
 import * as request from "request-promise";
 import { isArray } from "util";
+import * as cheerio from "cheerio";
 
 export interface SiteOwnership {
     id?: number;
@@ -90,17 +91,16 @@ export async function verify(siteToVerify: SiteOwnership): Promise<SiteOwnership
 
     try {
         // Second attempt to verify via <meta> tags.
-        const resultHTML = await request.get(siteToVerify.base_url, { strictSSL: false });
-        const regex = /\<meta\s*name=["|']?kernl-verify["|']? content=["|']?(.+)["|']?\>/;
-        const verificationValue = resultHTML.match(regex);
-        if (isArray(verificationValue) && verificationValue.length > 0) {
-            const code = verificationValue[1].replace("\"", "");
+        const resultHTML: string = await request.get(siteToVerify.base_url, { strictSSL: false });
+        const $: CheerioStatic = cheerio.load(resultHTML);
+        const metaTags = $('meta[name ="kernl-verify"]');
+        if (metaTags.length > 0) {
+            const code: string = metaTags[0].attribs.content;
             if (code === siteToVerify.uuid) {
                 await update({ id: siteToVerify.id }, { verified: true });
                 verified = true;
             }
         }
-
         return {
             ...siteToVerify,
             verified,
