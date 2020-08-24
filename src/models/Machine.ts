@@ -112,7 +112,7 @@ async function createDigitalOceanMachine(machineId: number, region: string, digi
         region,
         size: "s-2vcpu-2gb",
         // image: "ubuntu-20-04-x64",
-        image: 66366589, // roboswarm-v1
+        image: 68911012, // roboswarm-v2
         backups: false,
         ipv6: true,
         tags: [ "roboswarm" ],

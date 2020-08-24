@@ -375,7 +375,7 @@ export async function startMaster(swarm: Swarm.Swarm, machine: Machine.Machine, 
         expectSlaveCount = Math.floor(slaveCount * 0.85);
     }
     flags.push(`--users ${users}`);
-    flags.push(`--hatch-rate ${rate}`);
+    flags.push(`--spawn-rate ${rate}`);
     flags.push(`--run-time ${runTime}`);
     flags.push("--headless");
     flags.push(`--expect-workers=${expectSlaveCount}`);
