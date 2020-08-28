@@ -448,7 +448,7 @@ export async function fetchLoadTestMetrics(swarm: Swarm, isFinal?: boolean): Pro
                             "95%": parseInt(splitRow[16], 10),
                             "98%": parseInt(splitRow[17], 10),
                             "99%": parseInt(splitRow[18], 10),
-                            "100%": parseInt(splitRow[22], 10),
+                            "100%": parseInt(splitRow[21], 10),
                         })
                     };
                     await LoadTest.createDistributionFinal(distributionTotalData);
@@ -489,7 +489,7 @@ export async function fetchLoadTestMetrics(swarm: Swarm, isFinal?: boolean): Pro
                     "95%": parseInt(requestTotals[16], 10),
                     "98%": parseInt(requestTotals[17], 10),
                     "99%": parseInt(requestTotals[18], 10),
-                    "100%": parseInt(requestTotals[22], 10),
+                    "100%": parseInt(requestTotals[21], 10),
                 })
             };
             await LoadTest.createDistribution(distributionTotalData);
