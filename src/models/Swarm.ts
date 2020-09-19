@@ -404,10 +404,9 @@ export async function fetchLoadTestMetrics(swarm: Swarm, isFinal?: boolean): Pro
         privateKey: sshKey.private
     });
 
-    const requests: SSHCommandResult = await ssh.execCommand("cat /root/status_stats.csv");
-    const requestRows = requests.stdout.split("\n");
-
     if (isFinal) {
+        const requests: SSHCommandResult = await ssh.execCommand("cat /root/status_stats.csv");
+        const requestRows = requests.stdout.split("\n");
         // For the final request, we store the route path information.
         // Regular JSON object should be fine.
         if (requestRows.length > 2) {
@@ -458,46 +457,52 @@ export async function fetchLoadTestMetrics(swarm: Swarm, isFinal?: boolean): Pro
             }
         }
     } else {
-        try {
-            // Request status.
-            const requestTotals = requestRows[requestRows.length - 1].split(",");
-            const requestTotalData: LoadTest.Request = {
-                swarm_id: swarm.id,
-                created_at: new Date(),
-                requests: parseInt(requestTotals[2], 10),
-                failures: parseInt(requestTotals[3], 10),
-                median_response_time: parseInt(requestTotals[4], 10),
-                average_response_time: parseInt(requestTotals[5], 10),
-                min_response_time: parseInt(requestTotals[6], 10),
-                max_response_time: parseInt(requestTotals[7], 10),
-                avg_content_size: parseInt(requestTotals[8], 10),
-                requests_per_second: Math.floor(parseFloat(requestTotals[9]))
-            };
-            await LoadTest.createRequest(requestTotalData);
+        const requests: SSHCommandResult = await ssh.execCommand("cat /root/status_stats_history.csv");
+        const requestRows = requests.stdout.split("\n");
+        if (requestRows.length > 1) {
+            try {
+                // Request status.
+                const requestTotals = requestRows[requestRows.length - 1].split(",");
+                const requestTotalData: LoadTest.Request = {
+                    swarm_id: swarm.id,
+                    created_at: new Date(),
+                    user_count: parseInt(requestTotals[1], 10),
+                    requests: parseInt(requestTotals[17], 10),
+                    failures: parseInt(requestTotals[18], 10),
+                    median_response_time: parseInt(requestTotals[19], 10),
+                    average_response_time: parseInt(requestTotals[20], 10),
+                    min_response_time: parseInt(requestTotals[21], 10),
+                    max_response_time: parseInt(requestTotals[22], 10),
+                    avg_content_size: parseInt(requestTotals[23], 10),
+                    requests_per_second: Math.floor(parseFloat(requestTotals[4])),
+                    failures_per_second: Math.floor(parseFloat(requestTotals[5]))
+                };
+                await LoadTest.createRequest(requestTotalData);
 
-            // Response time distribution.
-            const distributionTotalData: LoadTest.Distribution = {
-                swarm_id: swarm.id,
-                created_at: new Date(),
-                requests: requestTotalData.requests,
-                percentiles: JSON.stringify({
-                    "50%": parseInt(requestTotals[11], 10),
-                    "66%": parseInt(requestTotals[12], 10),
-                    "75%": parseInt(requestTotals[13], 10),
-                    "80%": parseInt(requestTotals[14], 10),
-                    "90%": parseInt(requestTotals[15], 10),
-                    "95%": parseInt(requestTotals[16], 10),
-                    "98%": parseInt(requestTotals[17], 10),
-                    "99%": parseInt(requestTotals[18], 10),
-                    "100%": parseInt(requestTotals[21], 10),
-                })
-            };
-            await LoadTest.createDistribution(distributionTotalData);
-        } catch (err) {
-            console.log("Request Error: ", {
-                err,
-                swarm_id: swarm.id
-            });
+                // Response time distribution.
+                const distributionTotalData: LoadTest.Distribution = {
+                    swarm_id: swarm.id,
+                    created_at: new Date(),
+                    requests: requestTotalData.requests,
+                    percentiles: JSON.stringify({
+                        "50%": parseInt(requestTotals[6], 10),
+                        "66%": parseInt(requestTotals[7], 10),
+                        "75%": parseInt(requestTotals[8], 10),
+                        "80%": parseInt(requestTotals[9], 10),
+                        "90%": parseInt(requestTotals[10], 10),
+                        "95%": parseInt(requestTotals[11], 10),
+                        "98%": parseInt(requestTotals[12], 10),
+                        "99%": parseInt(requestTotals[13], 10),
+                        "100%": parseInt(requestTotals[16], 10),
+                    })
+                };
+                await LoadTest.createDistribution(distributionTotalData);
+            } catch (err) {
+                console.log("Request Error: ", {
+                    err,
+                    swarm_id: swarm.id
+                });
+            }
         }
     }
 
