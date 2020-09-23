@@ -612,19 +612,49 @@ describe("lib/setupHelpers", () => {
             });
         });
 
-        describe("MACHINE_READY", () => {
-            xit("sets the machine on the event if it is ready", async () => {
+        describe.only("MACHINE_READY", () => {
+            it("sets the machine on the event if it is ready", async () => {
+                const stubMachine: Machine.Machine = {
+                    id: 1,
+                    created_at: new Date(),
+                    setup_complete: false,
+                    file_transfer_complete: false,
+                    is_master: false,
+                    dependency_install_complete: false,
+                    port_open_complete: false
+                };
+                const machineReadyStub = sandbox.stub(Machine, "isReady").resolves(true);
+                sandbox.stub(Machine, "findById").resolves(stubMachine);
                 const readyEvent: MachineProvisionEvent = {
                     ...baseMachineProvisionEvent,
                     stepToExecute: MachineSetupStep.MACHINE_READY
                 };
+                await setupHelpers.processMachineProvisionEvent(readyEvent);
+                expect(enqueueStub.callCount).toBe(1);
+                expect(machineReadyStub.callCount).toBe(1);
+                const enqueuedEvent: MachineProvisionEvent = enqueueStub.getCall(0).args[0];
+                expect(enqueuedEvent.machine).toEqual(stubMachine);
 
             });
 
-            xit("sleeps for 5 seconds if the machine is not ready and it should not deprovision", async () => {
-
+            it("sleeps for 5 seconds if the machine is not ready and it should not deprovision", async () => {
+                const machineReadyStub = sandbox.stub(Machine, "isReady").resolves(false);
+                const shouldDeprovisionStub = sandbox.stub(Machine, "shouldDeprovision").resolves(false);
+                const sleepStub: Sinon.SinonStub = sandbox.stub(lib, "asyncSleep").resolves();
+                const readyEvent: MachineProvisionEvent = {
+                    ...baseMachineProvisionEvent,
+                    stepToExecute: MachineSetupStep.MACHINE_READY
+                };
+                await setupHelpers.processMachineProvisionEvent(readyEvent);
+                expect(enqueueStub.callCount).toBe(1);
+                expect(machineReadyStub.callCount).toBe(1);
+                expect(shouldDeprovisionStub.callCount).toBe(1);
+                expect(sleepStub.getCall(0).args[0]).toBe(5);
+                const enqueuedEvent: MachineProvisionEvent = enqueueStub.getCall(0).args[0];
+                expect(enqueuedEvent.stepToExecute).toEqual(MachineSetupStep.MACHINE_READY);
             });
 
+            // WIP -> Do these two tests then commit and move on.
             xit("removes the machine from the swarm and destroys the swarm if it was the last machine", async () => {
 
             });

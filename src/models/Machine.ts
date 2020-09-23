@@ -197,3 +197,18 @@ export async function shouldDeprovision(id: number): Promise<boolean> {
     return diff >= 4;
 
 }
+
+export async function isReady(id: number): Promise<boolean> {
+    console.log(`Checking machine ready: ${id}`);
+    const m = await findById(id);
+    if (m.ready_at === null) {
+        const response = await checkStatus(m);
+        if (response.droplet.status === "active") {
+            const ip_address = response.droplet.networks.v4[0].ip_address;
+            await setReadyAtAndIp(m, ip_address);
+            console.log(`Machine ready: ${id}`);
+            return true;
+        }
+    }
+    return false;
+}

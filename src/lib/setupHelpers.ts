@@ -232,7 +232,7 @@ export async function processMachineProvisionEvent(event: MachineProvisionEvent)
                     break;
                 }
                 case MachineSetupStep.MACHINE_READY: {
-                    const ready = await isMachineReady(event.machine.id);
+                    const ready = await Machine.isReady(event.machine.id);
                     if (ready) {
                         event.machine = await Machine.findById(event.machine.id);
                     } else {
@@ -474,21 +474,6 @@ export async function startSlave(swarm: Swarm.Swarm, master: Machine.Machine, sl
     await Swarm.updateLoadTestStarted(swarm.id, !!(machineCount === setupCompleteCount));
 
     console.log(`Finished starting slave at ${slave.ip_address}`);
-}
-
-export async function isMachineReady(machineId: number): Promise<boolean> {
-    console.log(`Checking machine ready: ${machineId}`);
-    const m = await Machine.findById(machineId);
-    if (m.ready_at === null) {
-        const response = await Machine.checkStatus(m);
-        if (response.droplet.status === "active") {
-            const ip_address = response.droplet.networks.v4[0].ip_address;
-            await Machine.setReadyAtAndIp(m, ip_address);
-            console.log(`Machine ready: ${machineId}`);
-            return true;
-        }
-    }
-    return false;
 }
 
 export async function cleanUpMachineProvisionEvent(event: MachineProvisionEvent): Promise<void> {
