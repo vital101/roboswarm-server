@@ -2,7 +2,7 @@ import { Router } from "express";
 import { RoboRequest, RoboResponse } from "../../../interfaces/shared.interface";
 import * as LoadTestTemplate from "../../../models/LoadTestTemplate";
 import { getSitesFromSitemap, SitemapRoute } from "../../../lib/sitemap";
-import { generateLocustFile } from "../../../lib/templateGeneration";
+import * as WooCommerceTemplate from "../../../models/WooCommerce";
 
 interface GetTemplatesResponse extends RoboResponse {
     json: (data: LoadTestTemplate.TemplateSimple[]) => any;
@@ -40,7 +40,22 @@ interface GetSitemapRequest extends RoboRequest {
     };
 }
 
+interface GetWooCommerceTemplatesResponse extends RoboResponse {
+    json: (data: WooCommerceTemplate.WooCommerceTemplate[]) => any;
+}
+
 const router = Router();
+
+router.route("/woo-commerce")
+    .get(async (req: RoboRequest, res: GetWooCommerceTemplatesResponse) => {
+        const templates: WooCommerceTemplate.WooCommerceTemplate[] = await WooCommerceTemplate.getByGroup(req.user.groupId);
+        res.status(200);
+        res.json(templates);
+    });
+
+    // WIP -> Do we need is_woo_commerce_template: boolean on swarm?
+    // Yes, because then we can just point at the id and build it up from
+    // there in the worker.
 
 router.route("/sitemap")
     .post(async (req: GetSitemapRequest, res: GetSitemapResponse) => {
