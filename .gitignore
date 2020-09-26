@@ -39,3 +39,6 @@ uploads/**/*
 
 # Test coverage folder
 coverage
+
+# Woo Commerce Templates
+woo-templates

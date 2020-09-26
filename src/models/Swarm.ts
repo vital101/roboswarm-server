@@ -51,6 +51,7 @@ export interface Swarm {
     load_test_started?: boolean;
     template_id?: string;
     template_name?: string;
+    is_woo_template?: boolean;
 }
 
 export interface NewSwarm {
@@ -69,6 +70,7 @@ export interface NewSwarm {
     template_id?: string;
     template_name?: string;
     generate_test_from_template?: boolean;
+    is_woo_commerce_template?: boolean;
 }
 
 export interface GroupedSwarm {
@@ -112,6 +114,11 @@ export async function create(swarm: NewSwarm, userId: number, groupId: number, r
     // Create the container swarm.
     const CORES_PER_MACHINE: number = 2;
     const OVER_PROVISION_MULTIPLIER: number = 1.15;
+    const isWooTemplate: boolean = (
+        (swarm.is_woo_commerce_template !== null) &&
+        (swarm.is_woo_commerce_template !== undefined) &&
+        swarm.is_woo_commerce_template === true
+    );
     const newSwarmResult: Array<Swarm> = await db("swarm")
         .insert({
             name: swarm.name,
@@ -126,6 +133,7 @@ export async function create(swarm: NewSwarm, userId: number, groupId: number, r
             swarm_ui_type: swarm.swarm_ui_type,
             template_id: swarm.template_id,
             template_name: swarm.template_name,
+            is_woo_template: isWooTemplate,
             size: Math.ceil(((swarm.machines.length - 1) / CORES_PER_MACHINE) * OVER_PROVISION_MULTIPLIER)
         })
         .returning("*");
@@ -135,7 +143,7 @@ export async function create(swarm: NewSwarm, userId: number, groupId: number, r
 
     // Generate the load test if required.
     if (swarm.generate_test_from_template) {
-        await generateAndSaveTemplate(newSwarm.id, Number(swarm.template_id));
+        await generateAndSaveTemplate(newSwarm.id, Number(swarm.template_id), isWooTemplate);
     }
 
     // If kernl test and not a repeat, save file to db.
@@ -427,7 +435,7 @@ export async function fetchLoadTestMetrics(swarm: Swarm, isFinal?: boolean): Pro
                         min_response_time: parseInt(splitRow[6], 10),
                         max_response_time: parseInt(splitRow[7], 10),
                         avg_content_size: parseInt(splitRow[8], 10),
-                        requests_per_second: Math.floor(parseFloat(splitRow[9]))
+                        requests_per_second: parseFloat(splitRow[9])
                     };
                     await LoadTest.createRequestFinal(data);
 
@@ -567,6 +575,7 @@ export async function createRepeatSwarmRequest(swarmId: number): Promise<NewSwar
     };
     if (oldSwarm.template_id) { newSwarm.template_id = oldSwarm.template_id; }
     if (oldSwarm.template_name) { newSwarm.template_name = oldSwarm.template_name; }
+    if (oldSwarm.is_woo_template) { newSwarm.is_woo_commerce_template = oldSwarm.is_woo_template; }
 
     // Rotate through the old machines and regions evenly distributing the load.
     const oldMachines: Machine.Machine[] = await getSwarmMachines(swarmId);
