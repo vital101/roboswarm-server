@@ -5,6 +5,7 @@ import { v1 as generateUUID } from "uuid";
 import { asyncReadFile } from "../lib/lib";
 import * as LoadTestTemplate from "../models/LoadTestTemplate";
 import * as LoadTestFile from "../models/LoadTestFile";
+import * as WooCommerce from "../models/WooCommerce";
 
 swig.setFilter("increment", input => {
     return input + 1;
@@ -22,50 +23,58 @@ interface SwigTemplateContext {
     unauthenticated_frontend: LoadTestTemplate.TemplateRoute[];
 }
 
-export async function generateLocustFile(templateId: number): Promise<string> {
-    const template = await LoadTestTemplate.getById(templateId);
-    const renderContext: SwigTemplateContext = {
-        username: template.username,
-        password: template.password,
-        authenticated_backend: undefined,
-        authenticated_frontend: undefined,
-        unauthenticated_frontend: undefined
-    };
-    const routes = template.routes as LoadTestTemplate.WordPressRoute[];
+export async function generateLocustFile(templateId: number, isWooTemplate: boolean): Promise<string> {
+    if (isWooTemplate) {
+        const template = await WooCommerce.getById(templateId);
+        const templatePath = `${process.env.WOO_TEMPLATE_ROOT}/${template.file_path}`;
+        console.log(`Generating WooCommerce template from ${templatePath}`);
+        const compiledTemplate = swig.renderFile(templatePath, {});
+        return compiledTemplate;
+    } else {
+        const template = await LoadTestTemplate.getById(templateId);
+        const renderContext: SwigTemplateContext = {
+            username: template.username,
+            password: template.password,
+            authenticated_backend: undefined,
+            authenticated_frontend: undefined,
+            unauthenticated_frontend: undefined
+        };
+        const routes = template.routes as LoadTestTemplate.WordPressRoute[];
 
-    const hasAuthenticatedBackend = routes.find(f => f.routeType === LoadTestTemplate.WordPressRouteType.AUTHENTICATED_ADMIN_NAVIGATE);
-    if (hasAuthenticatedBackend) {
-        renderContext.authenticated_backend = hasAuthenticatedBackend.routes.map((r, idx) => {
-            return {
-                ...r,
-                id: idx + 1
-            };
-        });
-    }
+        const hasAuthenticatedBackend = routes.find(f => f.routeType === LoadTestTemplate.WordPressRouteType.AUTHENTICATED_ADMIN_NAVIGATE);
+        if (hasAuthenticatedBackend) {
+            renderContext.authenticated_backend = hasAuthenticatedBackend.routes.map((r, idx) => {
+                return {
+                    ...r,
+                    id: idx + 1
+                };
+            });
+        }
 
-    const hasAuthenticatedFrontend = routes.find(f => f.routeType === LoadTestTemplate.WordPressRouteType.AUTHENTICATED_FRONTEND_NAVIGATE);
-    if (hasAuthenticatedFrontend) {
-        renderContext.authenticated_frontend = hasAuthenticatedFrontend.routes.map((r, idx) => {
-            return {
-                ...r,
-                id: idx + 1
-            };
-        });
-    }
+        const hasAuthenticatedFrontend = routes.find(f => f.routeType === LoadTestTemplate.WordPressRouteType.AUTHENTICATED_FRONTEND_NAVIGATE);
+        if (hasAuthenticatedFrontend) {
+            renderContext.authenticated_frontend = hasAuthenticatedFrontend.routes.map((r, idx) => {
+                return {
+                    ...r,
+                    id: idx + 1
+                };
+            });
+        }
 
-    const hasUnauthenticatedFrontend = routes.find(f => f.routeType === LoadTestTemplate.WordPressRouteType.UNAUTHENTICATED_FRONTEND_NAVIGATE);
-    if (hasUnauthenticatedFrontend) {
-        renderContext.unauthenticated_frontend = hasUnauthenticatedFrontend.routes.map((r, idx) => {
-            return {
-                ...r,
-                id: idx + 1
-            };
-        });
+        const hasUnauthenticatedFrontend = routes.find(f => f.routeType === LoadTestTemplate.WordPressRouteType.UNAUTHENTICATED_FRONTEND_NAVIGATE);
+        if (hasUnauthenticatedFrontend) {
+            renderContext.unauthenticated_frontend = hasUnauthenticatedFrontend.routes.map((r, idx) => {
+                return {
+                    ...r,
+                    id: idx + 1
+                };
+            });
+        }
+        const templatePath = `${appRoot}/swig-templates/locustfile.template.py`;
+        console.log(`Generating template from ${templatePath}`);
+        const compiledTemplate = swig.renderFile(templatePath, renderContext);
+        return compiledTemplate;
     }
-    const templatePath = `${appRoot}/swig-templates/locustfile.template.py`;
-    console.log(`Generating template from ${templatePath}`);
-    const compiledTemplate = swig.renderFile(templatePath, renderContext);
-    return compiledTemplate;
 }
 
 async function generateRequirementsFile(): Promise<string> {
@@ -75,8 +84,8 @@ async function generateRequirementsFile(): Promise<string> {
     return compiledTemplate;
 }
 
-export async function generateLocustFileZip(templateId: number): Promise<string> {
-    const compiledTemplate = await generateLocustFile(templateId);
+export async function generateLocustFileZip(templateId: number, isWooTemplate: boolean): Promise<string> {
+    const compiledTemplate = await generateLocustFile(templateId, isWooTemplate);
     const compiledRequirements = await generateRequirementsFile();
     const directoryUUID = generateUUID();
     const directory = `/tmp/roboswarm-${directoryUUID}`;
@@ -95,8 +104,11 @@ export async function generateLocustFileZip(templateId: number): Promise<string>
     return `${saveFilePath}${zipFileDir}/${zipFileNewPathName}`;
 }
 
-export async function generateAndSaveTemplate(swarm_id: number, template_id: number): Promise<number> {
-    const zipFilePath = await generateLocustFileZip(template_id);
+export async function generateAndSaveTemplate(swarm_id: number, template_id: number, is_woo_template: boolean): Promise<number> {
+    //
+    // WIP -> generate the woo template data and save.
+    //
+    const zipFilePath = await generateLocustFileZip(template_id, is_woo_template);
     const fileBuffer = await asyncReadFile(zipFilePath);
     const ltFile: LoadTestFile.LoadTestFile = await LoadTestFile.create({
         swarm_id,

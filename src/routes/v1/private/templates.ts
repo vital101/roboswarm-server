@@ -53,10 +53,6 @@ router.route("/woo-commerce")
         res.json(templates);
     });
 
-    // WIP -> Do we need is_woo_commerce_template: boolean on swarm?
-    // Yes, because then we can just point at the id and build it up from
-    // there in the worker.
-
 router.route("/sitemap")
     .post(async (req: GetSitemapRequest, res: GetSitemapResponse) => {
         const sites: SitemapRoute[] = await getSitesFromSitemap(req.body.url);

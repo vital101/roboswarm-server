@@ -8,9 +8,8 @@ export interface WooCommerceTemplate {
     group_id: Number;
     user_id: Number;
     name: string;
-    site_url: string;
-    woo_template_id: number;
     file_path: string;
+    description: string;
 }
 
 export async function create(template: WooCommerceTemplate): Promise<WooCommerceTemplate> {
