@@ -435,7 +435,7 @@ export async function fetchLoadTestMetrics(swarm: Swarm, isFinal?: boolean): Pro
                         min_response_time: parseInt(splitRow[6], 10),
                         max_response_time: parseInt(splitRow[7], 10),
                         avg_content_size: parseInt(splitRow[8], 10),
-                        requests_per_second: Math.floor(parseFloat(splitRow[9]))
+                        requests_per_second: parseFloat(splitRow[9])
                     };
                     await LoadTest.createRequestFinal(data);
 
@@ -575,6 +575,7 @@ export async function createRepeatSwarmRequest(swarmId: number): Promise<NewSwar
     };
     if (oldSwarm.template_id) { newSwarm.template_id = oldSwarm.template_id; }
     if (oldSwarm.template_name) { newSwarm.template_name = oldSwarm.template_name; }
+    if (oldSwarm.is_woo_template) { newSwarm.is_woo_commerce_template = oldSwarm.is_woo_template; }
 
     // Rotate through the old machines and regions evenly distributing the load.
     const oldMachines: Machine.Machine[] = await getSwarmMachines(swarmId);
