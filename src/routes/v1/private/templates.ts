@@ -3,6 +3,8 @@ import { RoboRequest, RoboResponse } from "../../../interfaces/shared.interface"
 import * as LoadTestTemplate from "../../../models/LoadTestTemplate";
 import { getSitesFromSitemap, SitemapRoute } from "../../../lib/sitemap";
 import * as WooCommerceTemplate from "../../../models/WooCommerce";
+import * as email from "../../../lib/email";
+import * as User from "../../../models/User";
 
 interface GetTemplatesResponse extends RoboResponse {
     json: (data: LoadTestTemplate.TemplateSimple[]) => any;
@@ -51,6 +53,12 @@ router.route("/woo-commerce")
         const templates: WooCommerceTemplate.WooCommerceTemplate[] = await WooCommerceTemplate.getByGroup(req.user.groupId);
         res.status(200);
         res.json(templates);
+    })
+    .post(async (req: RoboRequest, res: RoboResponse) => {
+        const user: User.User = await User.getById(req.user.id);
+        await email.sendWooCommerceTemplateRequestEmail(user);
+        res.status(201);
+        res.json({ ok: true });
     });
 
 router.route("/sitemap")

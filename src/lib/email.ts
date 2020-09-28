@@ -87,3 +87,22 @@ export function sendPasswordResetEmail(email: string, uuid: string): void {
     sgMail.setApiKey(process.env.SENDGRID_API_KEY);
     sgMail.send(msg);
 }
+
+export function sendWooCommerceTemplateRequestEmail(user: User): void {
+    const templateId = "d-92c66f525e704c0daa0273928cb94c68";
+    const msg = {
+        to: "jack@kernl.us",
+        from: "jack@kernl.us",
+        templateId,
+        asm: {
+            groupId: 13686
+        },
+        dynamicTemplateData: {
+            first_name: user.first_name,
+            last_name: user.last_name,
+            email: user.email
+        },
+    };
+    sgMail.setApiKey(process.env.SENDGRID_API_KEY);
+    sgMail.send(msg);
+}
