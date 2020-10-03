@@ -32,7 +32,7 @@ interface RegistrationRequest extends express.Request {
         first_name: string;
         last_name: string;
         is_kernl_user?: boolean;
-    }
+    };
 }
 
 const router = express.Router();
