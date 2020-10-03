@@ -25,24 +25,40 @@ interface ChangePasswordRequest extends express.Request {
     };
 }
 
+interface RegistrationRequest extends express.Request {
+    body: {
+        email: string;
+        password: string;
+        first_name: string;
+        last_name: string;
+        is_kernl_user?: boolean;
+    }
+}
+
 const router = express.Router();
 
 router.route("/")
-    .post(async (req: express.Request, res: express.Response) => {
-        if (!isValidUserBody(req.body)) {
+    .post(async (req: RegistrationRequest, res: express.Response) => {
+        const kernlUser: boolean = req.body.is_kernl_user ? true : false;
+        delete req.body.is_kernl_user;
+        const newUserData: User.User = {
+            ...req.body,
+            is_delinquent: false
+        };
+        if (!isValidUserBody(newUserData)) {
             res.status(400);
             res.send("Invalid request. email, first_name, last_name, and password fields are required.");
             return;
         }
 
-        if (await User.exists(req.body.email)) {
+        if (await User.exists(newUserData.email)) {
             res.status(400);
             res.send("A user already exists with that email address.");
             return;
         }
 
         try {
-            const newUser: User.User = await User.createUser(req.body);
+            const newUser: User.User = await User.createUser(newUserData);
             const tokenUser: TokenizedUser = {
                 id: newUser.id,
                 groupId: newUser.group.id,
@@ -50,13 +66,15 @@ router.route("/")
             };
             await Stripe.createStripeCustomer(newUser);
             await Stripe.setStripePlan(newUser.id, "2020-roboswarm-free");
-            sendEmail({
-                to: "jack@kernl.us",
-                from: "jack@kernl.us",
-                subject: `A new RoboSwarm user has signed up: ${newUser.email}`,
-                text: `${newUser.first_name} ${newUser.last_name} (${newUser.email})`
-            });
-            sendRegistrationEmail(newUser);
+            if (!kernlUser) {
+                sendEmail({
+                    to: "jack@kernl.us",
+                    from: "jack@kernl.us",
+                    subject: `A new RoboSwarm user has signed up: ${newUser.email}`,
+                    text: `${newUser.first_name} ${newUser.last_name} (${newUser.email})`
+                });
+                sendRegistrationEmail(newUser);
+            }
             res.status(201);
             res.json({
                 token: getUserToken(tokenUser),
