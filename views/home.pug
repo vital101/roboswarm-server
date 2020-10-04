@@ -4,24 +4,24 @@ head
   meta(name='viewport' content='width=device-width,minimum-scale=1,initial-scale=1')
 
   //- Primary Meta Tags
-  title RoboSwarm - WordPress Load Testing
-  meta(name='title', content='RoboSwarm - WordPress Load Testing')
-  meta(name='description', content='RoboSwarm is a WordPress load testing platform that requires no coding experience to use.')
-  meta(name='keywords' content='roboswarm, wordpress load test, wordpress load testing, wordpress performance testing')
+  title RoboSwarm - WordPress &amp; WooCommerce Load Testing
+  meta(name='title', content='RoboSwarm - WordPress & WooCommerce Load Testing')
+  meta(name='description', content='RoboSwarm is a WordPress & WooCommerce load testing platform that requires no coding experience to use.')
+  meta(name='keywords' content='roboswarm, wordpress load test, wordpress load testing, wordpress performance testing, woocommerce load test, woocommerce load testing, woocommerce performance testing ')
   link(rel='icon' type='image/png' href='/marketing-static/images/favicon.png')
 
   //- Open Graph / Facebook
   meta(property='og:type', content='website')
   meta(property='og:url', content='https://roboswarm.dev/')
-  meta(property='og:title', content='RoboSwarm - WordPress Load Testing')
-  meta(property='og:description', content='RoboSwarm is a WordPress load testing platform that requires no coding experience to use.')
+  meta(property='og:title', content='RoboSwarm - WordPress & WooCommerce Load Testing')
+  meta(property='og:description', content='RoboSwarm is a WordPress & WooCommerce load testing platform that requires no coding experience to use.')
   meta(property='og:image', content='https://roboswarm.dev/marketing-static/images/roboswarm_transparent.png')
 
   //- Twitter
   meta(property='twitter:card', content='summary_large_image')
   meta(property='twitter:url', content='https://roboswarm.dev/')
-  meta(property='twitter:title', content='RoboSwarm - WordPress Load Testing')
-  meta(property='twitter:description', content='RoboSwarm is a WordPress load testing platform that requires no coding experience to use.')
+  meta(property='twitter:title', content='RoboSwarm - WordPress & WooCommerce Load Testing')
+  meta(property='twitter:description', content='RoboSwarm is a WordPress & WooCommerce load testing platform that requires no coding experience to use.')
   meta(property='twitter:image', content='https://roboswarm.dev/marketing-static/images/roboswarm_transparent.png')
 
   //- Styles
@@ -72,9 +72,9 @@ nav#navbar.navbar.fixed-top.navbar-expand-lg.navbar-header.navbar-mobile
       .col-lg-6.header-img-section
         img(src='/marketing-static/images/roboswarm_screenshot_details.png')
       .col-lg-5.offset-lg-1.header-title-section
-        h1.header-title WordPress Load Testing
+        h1.header-title WordPress &amp; WooCommerce Load Testing
         p.header-title-text
-          | RoboSwarm is a WordPress Load Testing service that requires no coding or load testing knowledge. Get started now, for free.
+          | RoboSwarm is a WordPress &amp; WooCommerce Load Testing service that requires no coding or load testing knowledge. Get started now, for free.
         .learn-more-btn-section
           a.nav-link.learn-more-btn.btn-invert(href='https://app.roboswarm.dev/auth/register') Sign Up for Free
   //- STRATEGY SECTION
@@ -87,19 +87,19 @@ nav#navbar.navbar.fixed-top.navbar-expand-lg.navbar-header.navbar-mobile
           //- .strategy-card-icon-section
           //-   img(src='/marketing-static/images/strategy-1.png')
           h2 Performance
-          p Let RoboSwarm help you discover where you WordPress site's limits are.
+          p Let RoboSwarm help you discover where you WordPress site or WooCommerce store limits are.
       .col-lg-4.col-md-6.col-xs-8.offset-xs-2.strategy-card-section
         .strategy-card
           //- .strategy-card-icon-section
           //-   img(src='/marketing-static/images/strategy-2.png')
           h2 Reliability
-          p Does your site experience degrade under heavy load? RoboSwarm can help you find the answer.
+          p Does your site or store experience degrade under heavy load? RoboSwarm can help you find the answer and point your towards solutions.
       .col-lg-4.col-md-6.col-xs-8.offset-xs-2.strategy-card-section
         .strategy-card
           //- .strategy-card-icon-section
           //-   img(src='/marketing-static/images/strategy-3.png')
           h2 Confidence
-          p Can you say "Yes, my WordPress site will handle 500 concurrent users and respond in under 200ms."? If not, RoboSwarm can help.
+          p Can you say "Yes, my site (or store) will handle 500 concurrent users and respond in under 200ms."? If not, RoboSwarm can help.
       //- .col-lg-3.col-md-6.col-xs-8.offset-xs-2.strategy-card-section
       //-   .strategy-card
       //-     .strategy-card-icon-section
@@ -125,8 +125,16 @@ nav#navbar.navbar.fixed-top.navbar-expand-lg.navbar-header.navbar-mobile
         h2.services-title High Scalability
         p.services-text
           | RoboSwarm can take your WordPress load testing to the next level. Be it 20, 200, 2000 users, RoboSwarm can handle whatever you need. Traffic can be distributed around the globe in 8 different data centers.
-        .learn-more-btn-section
-          a.nav-link.learn-more-btn.btn-invert(href='#pricing') View Pricing
+  .services-section
+    .services-section-bg-graphics
+      img(src='/marketing-static/images/services-section-bg.png')
+    .container.services-container
+      .col-lg-5.services-title-section
+        h2.services-title WooCommerce Load Testing
+        p.services-text
+          | With RoboSwarm you can easily determine how many checkouts per second your store can handle. Expecting a traffic spike for "Black Friday"? See how you'll perform #[i before] the big day to give your customers the best experience possible.
+      .col-lg-6.offset-lg-1.services-header-img-section
+        img(src='/marketing-static/images/woo_commerce_checkout.png')
   #pricing
   //- PRICING
   .pricing-section
@@ -163,6 +171,7 @@ nav#navbar.navbar.fixed-top.navbar-expand-lg.navbar-header.navbar-mobile
                 li 20 Load Tests / Month
                 li 2 Hours Max Load Test Duration
                 li 500 Virtual Users
+                li 1 WooCommerce Load Test Template (additional can be purchased)
                 li Schedule Video Chat &amp; Email Support
             a.nav-link.learn-more-btn(href='https://app.roboswarm.dev/auth/register') Start for Free
         .col-lg-4.col-md-8.col-xs-10.pricing-card-section
@@ -175,6 +184,7 @@ nav#navbar.navbar.fixed-top.navbar-expand-lg.navbar-header.navbar-mobile
                 li 50 Load Tests / Month
                 li 4 Hours Max Load Test Duration
                 li 2000 Virtual Users
+                li 3 WooCommerce Load Test Template (additional can be purchased)
                 li Schedule Video Chat &amp; Email Support
             a.nav-link.learn-more-btn(href='https://app.roboswarm.dev/auth/register') Start for Free
   //- SECTION LABEL
