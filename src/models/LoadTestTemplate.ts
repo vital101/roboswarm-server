@@ -66,7 +66,7 @@ export async function create(template: TemplateComplex): Promise<TemplateComplex
     const routes: WordPressRoute[] = template.routes as WordPressRoute[];
     const data: TemplateComplex = {
         ...template,
-        password: encryption.encrypt(template.password),
+        password: template?.password ? encryption.encrypt(template.password) : "",
         routes: JSON.stringify(routes),
         scenario_names: routes.map(route => getRouteTypeName(route.routeType)).join(",")
     };

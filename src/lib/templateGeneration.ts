@@ -13,7 +13,7 @@ swig.setFilter("increment", input => {
 
 const appRoot = process.env.NODE_ENV === "production"
     ? "/var/www/roboswarm/current"
-    : "/Users/jack/repos/roboswarm";
+    : "/Users/jackslingerland/repos/roboswarm";
 
 interface SwigTemplateContext {
     username: string;
