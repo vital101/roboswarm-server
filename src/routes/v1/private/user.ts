@@ -92,7 +92,7 @@ router.route("/me/plan")
     .post(async (req: SetPlanRequest, res: RoboResponse) => {
         try {
             const user: User.User = await User.getById(req.user.id);
-            if (canSelectPlan(user, req.body.planName)) {
+            if (!canSelectPlan(user, req.body.planName)) {
                 res.status(400);
                 res.send("You must have a credit card on file to select this plan.");
             } else {
