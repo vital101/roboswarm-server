@@ -1,6 +1,7 @@
 import { Router } from "express";
 import { RoboRequest, RoboResponse } from "../../../interfaces/shared.interface";
 import * as User from "../../../models/User";
+import { canSelectPlan } from "../../../lib/userHelpers";
 import * as Stripe from "../../../lib/stripe";
 import { getUserResourceAvailability, ResourceAvailability } from "../../../lib/authorization";
 import { Stripe as StripeLib } from "stripe";
@@ -91,8 +92,7 @@ router.route("/me/plan")
     .post(async (req: SetPlanRequest, res: RoboResponse) => {
         try {
             const user: User.User = await User.getById(req.user.id);
-            const requiresCard = ["2020-roboswarm-startup", "2020-roboswarm-enterprise"];
-            if (requiresCard.includes(req.body.planName) && !user.stripe_card_id) {
+            if (canSelectPlan(user, req.body.planName)) {
                 res.status(400);
                 res.send("You must have a credit card on file to select this plan.");
             } else {

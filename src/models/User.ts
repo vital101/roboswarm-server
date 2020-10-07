@@ -16,6 +16,7 @@ export interface User {
     is_delinquent: boolean;
     group?: Group;
     is_kernl_user?: boolean;
+    is_beta?: boolean;
 }
 
 export interface Group {

@@ -25,3 +25,16 @@ export function getUserToken(data: TokenData): string {
         groupId: data.groupId
     }, process.env.JWT_SECRET);
 }
+
+export function canSelectPlan(user: User, plan: string): boolean {
+    const requiresCard = ["2020-roboswarm-startup", "2020-roboswarm-enterprise"];
+    if (requiresCard.includes(plan)) {
+        if (user.is_beta) {
+            return true;
+        } else {
+            return !!(user.stripe_card_id);
+        }
+    } else {
+        return true;
+    }
+}
