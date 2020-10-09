@@ -93,7 +93,7 @@ export async function verify(siteToVerify: SiteOwnership): Promise<SiteOwnership
         // Second attempt to verify via <meta> tags.
         const resultHTML: string = await request.get(siteToVerify.base_url, { strictSSL: false });
         const $: CheerioStatic = cheerio.load(resultHTML);
-        const metaTags = $('meta[name ="kernl-verify"]');
+        const metaTags = $('meta[name ="roboswarm-verify"]');
         if (metaTags.length > 0) {
             const code: string = metaTags[0].attribs.content;
             if (code === siteToVerify.uuid) {
