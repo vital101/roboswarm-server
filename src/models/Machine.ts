@@ -1,6 +1,6 @@
 import * as request from "request-promise";
 import { RequestPromise, RequestPromiseOptions } from "request-promise";
-import { DropletResponse } from "../interfaces/digitalOcean.interface";
+import { DropletResponse, NetworkInterface } from "../interfaces/digitalOcean.interface";
 import { db } from "../lib/db";
 import { Swarm } from "./Swarm";
 import * as SwarmMachine from "./SwarmMachine";
@@ -204,8 +204,8 @@ export async function isReady(id: number): Promise<boolean> {
     if (m.ready_at === null) {
         const response = await checkStatus(m);
         if (response.droplet.status === "active") {
-            const ip_address = response.droplet.networks.v4[0].ip_address;
-            await setReadyAtAndIp(m, ip_address);
+            const nic: NetworkInterface = response.droplet.networks.v4.find(n => n.type === "public");
+            await setReadyAtAndIp(m, nic.ip_address);
             console.log(`Machine ready: ${id}`);
             return true;
         }
