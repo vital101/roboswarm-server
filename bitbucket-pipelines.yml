@@ -1,0 +1,30 @@
+buildAndTest: &buildAndTest
+  step:
+    name: Build & Test
+    image: ubuntu:latest
+    caches:
+      - node
+    script:
+      - apt-get update
+      - apt-get install -y curl git build-essential libssl-dev libevent-dev zip
+      - curl -sL https://deb.nodesource.com/setup_12.x | bash -
+      - apt-get install -y nodejs
+      - npm install
+      - npm run tslint
+      - npm run test
+    services:
+      - redis
+
+pipelines:
+  branches:
+    '**':
+      - <<: *buildAndTest
+    master:
+      - <<: *buildAndTest
+    pull-requests:
+      '**':
+        - <<: *buildAndTest
+definitions:
+  services:
+    redis:
+      image: redis
