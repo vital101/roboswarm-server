@@ -8,8 +8,23 @@ export interface WooCommerceTemplate {
     group_id: Number;
     user_id: Number;
     name: string;
-    file_path: string;
     description: string;
+    shop_url: string;
+    cart_url: string;
+    checkout_url: string;
+    product_a_url: string;
+    product_b_url: string;
+}
+
+export interface AddUpdateWooCommerceTemplate {
+    id?: number;
+    name: string;
+    description: string;
+    shop_url: string;
+    cart_url: string;
+    checkout_url: string;
+    product_a_url: string;
+    product_b_url: string;
 }
 
 export async function create(template: WooCommerceTemplate): Promise<WooCommerceTemplate> {

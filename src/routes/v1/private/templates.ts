@@ -46,6 +46,10 @@ interface GetWooCommerceTemplatesResponse extends RoboResponse {
     json: (data: WooCommerceTemplate.WooCommerceTemplate[]) => any;
 }
 
+interface CreateWooCommerceRequest extends RoboRequest {
+    body: WooCommerceTemplate.AddUpdateWooCommerceTemplate;
+}
+
 const router = Router();
 
 router.route("/woo-commerce")
@@ -54,9 +58,13 @@ router.route("/woo-commerce")
         res.status(200);
         res.json(templates);
     })
-    .post(async (req: RoboRequest, res: RoboResponse) => {
+    .post(async (req: CreateWooCommerceRequest, res: RoboResponse) => {
         const user: User.User = await User.getById(req.user.id);
-        await email.sendWooCommerceTemplateRequestEmail(user);
+        await WooCommerceTemplate.create({
+            ...req.body,
+            user_id: user.id,
+            group_id: user.group.id
+        });
         res.status(201);
         res.json({ ok: true });
     });
