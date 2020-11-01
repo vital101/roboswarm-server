@@ -50,7 +50,41 @@ interface CreateWooCommerceRequest extends RoboRequest {
     body: WooCommerceTemplate.AddUpdateWooCommerceTemplate;
 }
 
+interface WooCommerceRequest extends RoboRequest {
+    params: {
+        id: string;
+    };
+}
+
+interface UpdateWooCommerceRequest extends WooCommerceRequest {
+    body: WooCommerceTemplate.AddUpdateWooCommerceTemplate;
+}
+
+interface GetOrUpdateWooCommerceResponse extends RoboResponse {
+    json: (data: WooCommerceTemplate.WooCommerceTemplate) => any;
+}
+
 const router = Router();
+
+router.route("/woo-commerce/:id")
+    .get(async (req: WooCommerceRequest, res: GetOrUpdateWooCommerceResponse) => {
+        const id: number = Number(req.params.id);
+        const result: WooCommerceTemplate.WooCommerceTemplate = await WooCommerceTemplate.getById(id);
+        res.status(200);
+        res.json(result);
+    })
+    .delete(async (req: WooCommerceRequest, res: RoboResponse) => {
+        const id: number = Number(req.params.id);
+        await WooCommerceTemplate.deleteById(id);
+        res.status(200);
+        res.send("ok");
+    })
+    .put(async (req: UpdateWooCommerceRequest, res: GetOrUpdateWooCommerceResponse) => {
+        const id: number = Number(req.params.id);
+        const result: WooCommerceTemplate.WooCommerceTemplate = await WooCommerceTemplate.update(id, req.body);
+        res.status(200);
+        res.json(result);
+    });
 
 router.route("/woo-commerce")
     .get(async (req: RoboRequest, res: GetWooCommerceTemplatesResponse) => {
