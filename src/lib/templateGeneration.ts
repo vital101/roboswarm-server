@@ -26,9 +26,16 @@ interface SwigTemplateContext {
 export async function generateLocustFile(templateId: number, isWooTemplate: boolean): Promise<string> {
     if (isWooTemplate) {
         const template = await WooCommerce.getById(templateId);
-        const templatePath = `${process.env.WOO_TEMPLATE_ROOT}/${template.file_path}`;
+        const templatePath = `${appRoot}/swig-templates/woocommerce.template.py`;
         console.log(`Generating WooCommerce template from ${templatePath}`);
-        const compiledTemplate = swig.renderFile(templatePath, {});
+        const renderContext = {
+            shop_url: template.shop_url,
+            cart_url: template.cart_url,
+            checkout_url: template.checkout_url,
+            product_a_url: template.product_a_url,
+            product_b_url: template.product_b_url
+        };
+        const compiledTemplate = swig.renderFile(templatePath, renderContext);
         return compiledTemplate;
     } else {
         const template = await LoadTestTemplate.getById(templateId);
@@ -105,9 +112,6 @@ export async function generateLocustFileZip(templateId: number, isWooTemplate: b
 }
 
 export async function generateAndSaveTemplate(swarm_id: number, template_id: number, is_woo_template: boolean): Promise<number> {
-    //
-    // WIP -> generate the woo template data and save.
-    //
     const zipFilePath = await generateLocustFileZip(template_id, is_woo_template);
     const fileBuffer = await asyncReadFile(zipFilePath);
     const ltFile: LoadTestFile.LoadTestFile = await LoadTestFile.create({

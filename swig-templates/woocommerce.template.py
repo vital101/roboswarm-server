@@ -1,14 +1,11 @@
 from locust import HttpUser, SequentialTaskSet, task
 import re
 
-
 def get_product_id(content):
     result = re.search(br"sku\"\:\s*(\d+)", content)
     return int(result.group(1))
 
 # Note: SequentialTaskSet tasks are executed in order of declaration
-
-
 class WooCommerceSequence(SequentialTaskSet):
     headers = {
         "Accept-Encoding": "gzip, deflate",
@@ -24,53 +21,39 @@ class WooCommerceSequence(SequentialTaskSet):
 
     @task
     def shop_page(self):
-        response = self.client.get("/shop", headers=self.headers)
-        # WIP -> Eventually use something like pyquery to parse the response
-        #     look for products, and add go to the page dynamically.
+        response = self.client.get("{{shop_url}}", headers=self.headers)
 
     @task
     def product_a(self):
         response = self.client.get(
-            "/product/big-flowers", headers=self.headers)
+            "{{product_a_url}}", headers=self.headers)
         product_id = get_product_id(response.content)
         data = {
             "quantity": 1,
             "add-to-cart": product_id
         }
         response = self.client.post(
-            "/product/big-flowers", data, headers=self.headers)
+            "{{product_a_url}}", data, headers=self.headers)
 
     @task
     def product_b(self):
-        response = self.client.get("/product/flowers", headers=self.headers)
+        response = self.client.get("{{product_b_url}}", headers=self.headers)
         product_id = get_product_id(response.content)
         data = {
             "quantity": "1",
             "add-to-cart": product_id
         }
         response = self.client.post(
-            "/product/flowers", data, headers=self.headers)
-
-    @task
-    def product_c(self):
-        response = self.client.get(
-            "/product/more-flowers", headers=self.headers)
-        product_id = get_product_id(response.content)
-        data = {
-            "quantity": "1",
-            "add-to-cart": product_id
-        }
-        response = self.client.post(
-            "/product/more-flowers", data, headers=self.headers)
+            "{{product_b_url}}", data, headers=self.headers)
 
     @task
     def cart(self):
-        response = self.client.get("/cart", headers=self.headers)
+        response = self.client.get("{{cart_url}}", headers=self.headers)
 
     @task
     def checkout(self):
         # Go to the cart page.
-        response = self.client.get("/checkout", headers=self.headers)
+        response = self.client.get("{{checkout_url}}", headers=self.headers)
 
         # Extract the checkout none from the form.
         page_content = response.content
@@ -114,9 +97,9 @@ class WooCommerceSequence(SequentialTaskSet):
 
     @task
     def order_confirmed(self):
-        url = "/checkout/order-received/{0}".format(self.redirect_path)
+        url = "{{checkout_url}}/order-received/{0}".format(self.redirect_path)
         self.client.get(url, headers=self.headers,
-                        name="/checkout/order-received/:order_id")
+                        name="{{checkout_url}}/order-received/:order_id")
 
 
 class WooCommerceUser(HttpUser):
