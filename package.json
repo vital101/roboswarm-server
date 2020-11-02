@@ -11,7 +11,7 @@
   "scripts": {
     "start": "TZ=utc npm run serve",
     "build": "TZ=utc npm run build-ts && npm run tslint",
-    "deploy": "npm test && TZ=utc pm2 deploy production update",
+    "deploy": "npm test && npm run build && TZ=utc pm2 deploy production update",
     "serve": "TZ=utc node dist/server.js",
     "worker": "TZ=utc node dist/workers/provisionWorker.js",
     "watch-node": "TZ=utc nodemon dist/server.js",
