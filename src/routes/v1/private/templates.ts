@@ -96,6 +96,7 @@ router.route("/woo-commerce")
         const user: User.User = await User.getById(req.user.id);
         await WooCommerceTemplate.create({
             ...req.body,
+            active: true,
             user_id: user.id,
             group_id: user.group.id
         });
