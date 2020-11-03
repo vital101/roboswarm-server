@@ -23,14 +23,17 @@ class WooCommerceSequence(SequentialTaskSet):
 
     @task
     def home_page(self):
+        self.headers['Referer'] = self.client.base_url
         response = self.client.get("/", headers=self.headers, verify=False)
 
     @task
     def shop_page(self):
+        self.headers['Referer'] = self.client.base_url
         response = self.client.get("{{shop_url}}", headers=self.headers, verify=False)
 
     @task
     def product_a(self):
+        self.headers['Referer'] = self.client.base_url
         response = self.client.get(
             "{{product_a_url}}", headers=self.headers, verify=False)
         product_id = get_product_id(response.content)
@@ -43,6 +46,7 @@ class WooCommerceSequence(SequentialTaskSet):
 
     @task
     def product_b(self):
+        self.headers['Referer'] = self.client.base_url
         response = self.client.get("{{product_b_url}}", headers=self.headers, verify=False)
         product_id = get_product_id(response.content)
         data = {
@@ -54,10 +58,12 @@ class WooCommerceSequence(SequentialTaskSet):
 
     @task
     def cart(self):
+        self.headers['Referer'] = self.client.base_url
         response = self.client.get("{{cart_url}}", headers=self.headers, verify=False)
 
     @task
     def checkout(self):
+        self.headers['Referer'] = self.client.base_url
         # Go to the cart page.
         response = self.client.get("{{checkout_url}}", headers=self.headers, verify=False)
 
@@ -103,6 +109,7 @@ class WooCommerceSequence(SequentialTaskSet):
 
     @task
     def order_confirmed(self):
+        self.headers['Referer'] = self.client.base_url
         url = "{{checkout_url}}/order-received/{0}".format(self.redirect_path)
         self.client.get(url, headers=self.headers, verify=False,
                         name="{{checkout_url}}/order-received/:order_id")
