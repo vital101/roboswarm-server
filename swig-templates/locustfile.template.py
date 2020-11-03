@@ -12,7 +12,7 @@ def route_{{route.id}}(l):
         "Accept-Language": "en-us",
         "User-Agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10.15; rv:77.0) Gecko/20100101 Firefox/77.0"
     }
-    l.client.get("{{route.path}}", headers=headers, timeout=7.0)
+    l.client.get("{{route.path}}", headers=headers, verify=False, timeout=7.0)
     {% endfor %}
 
 class UnauthenticatedFrontend(TaskSet):
@@ -54,12 +54,12 @@ class AuthenticatedFrontendSequence(SequentialTaskSet):
             "log" : self.username,
             "pwd" : self.password
         }
-        self.client.post("/wp-login.php", data, headers=headers)
+        self.client.post("/wp-login.php", data, headers=headers, verify=False)
 
     {% for route in authenticated_frontend %}
     @task
     def page_{{route.id}}(self):
-        self.client.get("{{route.path}}", headers=self.headers)
+        self.client.get("{{route.path}}", headers=self.headers, verify=False)
     {% endfor %}
 
 class AuthenticatedUser(HttpUser):
@@ -95,12 +95,12 @@ class AuthenticatedAdminSequence(SequentialTaskSet):
             "log" : self.username,
             "pwd" : self.password
         }
-        self.client.post("/wp-login.php", data, headers=headers)
+        self.client.post("/wp-login.php", data, headers=headers, verify=False)
 
     {% for route in authenticated_backend %}
     @task
     def page_{{route.id}}(self):
-        self.client.get("{{route.path}}", headers=self.headers)
+        self.client.get("{{route.path}}", headers=self.headers, verify=False)
         {% if route.path === "/wp-admin/upload.php" %}
         '''
         media_body = {
@@ -117,7 +117,7 @@ class AuthenticatedAdminSequence(SequentialTaskSet):
             "Accept-Language": "en-us",
             "User-Agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10.15; rv:77.0) Gecko/20100101 Firefox/77.0"
         }
-        self.client.post("/wp-admin/admin-ajax.php", media_body, headers=headers)
+        self.client.post("/wp-admin/admin-ajax.php", media_body, headers=headers, verify=False)
         '''
         {% endif %}
     {% endfor %}

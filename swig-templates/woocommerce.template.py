@@ -9,51 +9,57 @@ def get_product_id(content):
 class WooCommerceSequence(SequentialTaskSet):
     headers = {
         "Accept-Encoding": "gzip, deflate",
-        "Accept": "*/*",
-        "Accept-Language": "en-us",
-        "User-Agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10.15; rv:79.0) Gecko/20100101 Firefox/79.0"
+        "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8",
+        "Accept-Language": "en-US,en;q=0.5",
+        "Connection": "keep-alive",
+        "Upgrade-Insecure-Requests": "1",
+        "DNT": "1",
+        "Sec-GPC": "1",
+        "Pragma": "no-cache",
+        "Cache-Control": "no-cache",
+        "User-Agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10.15; rv:81.0) Gecko/20100101 Firefox/81.0"
     }
     redirect_path = None
 
     @task
     def home_page(self):
-        response = self.client.get("/", headers=self.headers)
+        response = self.client.get("/", headers=self.headers, verify=False)
 
     @task
     def shop_page(self):
-        response = self.client.get("{{shop_url}}", headers=self.headers)
+        response = self.client.get("{{shop_url}}", headers=self.headers, verify=False)
 
     @task
     def product_a(self):
         response = self.client.get(
-            "{{product_a_url}}", headers=self.headers)
+            "{{product_a_url}}", headers=self.headers, verify=False)
         product_id = get_product_id(response.content)
         data = {
             "quantity": 1,
             "add-to-cart": product_id
         }
         response = self.client.post(
-            "{{product_a_url}}", data, headers=self.headers)
+            "{{product_a_url}}", data, headers=self.headers, verify=False)
 
     @task
     def product_b(self):
-        response = self.client.get("{{product_b_url}}", headers=self.headers)
+        response = self.client.get("{{product_b_url}}", headers=self.headers, verify=False)
         product_id = get_product_id(response.content)
         data = {
             "quantity": "1",
             "add-to-cart": product_id
         }
         response = self.client.post(
-            "{{product_b_url}}", data, headers=self.headers)
+            "{{product_b_url}}", data, headers=self.headers, verify=False)
 
     @task
     def cart(self):
-        response = self.client.get("{{cart_url}}", headers=self.headers)
+        response = self.client.get("{{cart_url}}", headers=self.headers, verify=False)
 
     @task
     def checkout(self):
         # Go to the cart page.
-        response = self.client.get("{{checkout_url}}", headers=self.headers)
+        response = self.client.get("{{checkout_url}}", headers=self.headers, verify=False)
 
         # Extract the checkout none from the form.
         page_content = response.content
@@ -98,7 +104,7 @@ class WooCommerceSequence(SequentialTaskSet):
     @task
     def order_confirmed(self):
         url = "{{checkout_url}}/order-received/{0}".format(self.redirect_path)
-        self.client.get(url, headers=self.headers,
+        self.client.get(url, headers=self.headers, verify=False,
                         name="{{checkout_url}}/order-received/:order_id")
 
 
