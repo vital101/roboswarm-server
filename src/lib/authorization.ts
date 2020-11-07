@@ -49,7 +49,9 @@ export async function willExceedMaxLoadTests(user: User): Promise<boolean> {
 
 export function willExceedMaxLoadTestDuration(user: User, proposedSwarmDuration: number, isReliabilityTest: boolean): boolean {
     // Exception for trusted customers who want to run long tests.
-    if (unlimitedMaxDurationUsers.includes(user.email)) { return false; }
+    if (unlimitedMaxDurationUsers.includes(user.email)) {
+        return false;
+    }
     const plan = getPlan(user);
     if (isReliabilityTest) {
         return proposedSwarmDuration > plan.maxReliabilityTestMinutes;

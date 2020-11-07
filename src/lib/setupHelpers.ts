@@ -1,4 +1,4 @@
-const node_ssh = require("node-ssh");
+import { NodeSSH } from "node-ssh";
 const sftp_client = require("ssh2-sftp-client");
 import { execSync } from "child_process";
 import { writeFileSync } from "fs";
@@ -37,7 +37,7 @@ export async function processDataCaptureEvent(event: DataCaptureEvent): Promise<
             let reEnqueue = true;
             const swarm = await Swarm.getById(event.swarm.id);
             if (swarm.status === Status.destroyed) {
-                console.log("Swarm destroyed. Not re-enqueuing fetchLoadTestMetrics()");
+                console.log("Swarm destroyed. Not re-enqueuing fetchLoadTestMetrics() and fetchErrorMetrics()");
                 reEnqueue = false;
             } else {
                 if (!event.delayUntil) {
@@ -45,21 +45,26 @@ export async function processDataCaptureEvent(event: DataCaptureEvent): Promise<
                     delayTime.setSeconds(delayTime.getSeconds() + 5);
                     event.delayUntil = delayTime;
                     reEnqueue = true;
-                    console.log("No delay set. Re-enqueuing fetchLoadTestMetrics()");
+                    console.log("No delay set. Re-enqueuing fetchLoadTestMetrics() and fetchErrorMetrics()");
                 } else {
                     const now = new Date();
                     const delayTime = new Date(event.delayUntil);
                     reEnqueue = true;
                     if (now.getTime() >= delayTime.getTime()) {
-                        await Swarm.fetchLoadTestMetrics(event.swarm);
+                        await Promise.all([
+                            Swarm.fetchLoadTestMetrics(event.swarm),
+                            Swarm.fetchErrorMetrics(event.swarm)
+                        ]);
                         const delayTime = new Date();
                         delayTime.setSeconds(delayTime.getSeconds() + 5);
                         event.delayUntil = delayTime;
-                        console.log("Load test metrics fetched. Re-enqueuing fetchLoadTestMetrics()");
+                        console.log("Load test metrics fetched. Re-enqueuing fetchLoadTestMetrics() and fetchErrorMetrics()");
                     }
                 }
             }
-            if (reEnqueue === true) { await enqueue(event); }
+            if (reEnqueue === true) {
+                await enqueue(event);
+            }
         } catch (err) {
             console.log("There was an error. Retrying.:", err);
             await asyncSleep(1);
@@ -238,7 +243,9 @@ export async function processMachineProvisionEvent(event: MachineProvisionEvent)
                     } else {
                         const shouldDeprovision = await Machine.shouldDeprovision(event.machine.id);
                         if (shouldDeprovision) {
-                            while (event.steps.length > 0) { event.steps.pop(); }
+                            while (event.steps.length > 0) {
+                                event.steps.pop();
+                            }
                             await SwarmMachine.removeMachineFromSwarm(event.machine.id, event.swarm.id);
                             const updatedSwarm: Swarm.Swarm = await Swarm.decrementSwarmSize(event.swarm.id);
                             if (updatedSwarm.size <= 1) {
@@ -302,7 +309,7 @@ export async function processMachineProvisionEvent(event: MachineProvisionEvent)
 }
 
 export async function traceRoute(machineId: number, machineIp: string, hostUrl: string, privateKey: string): Promise<void> {
-    const ssh = new node_ssh();
+    const ssh = new NodeSSH();
     const domain = parseURL(hostUrl);
     console.log(`Starting traceroute on ${machineIp} to ${domain.host}`);
     await ssh.connect({
@@ -330,7 +337,7 @@ export async function transferFileToMachine(machineIp: string, filePath: string,
 }
 
 export async function unzipPackageAndPipInstall(machineId: number, machineIp: string, privateKey: string): Promise<void> {
-    const ssh = new node_ssh();
+    const ssh = new NodeSSH();
     console.log(`Starting pip install on ${machineIp}`);
     await ssh.connect({
         host: machineIp,
@@ -350,7 +357,7 @@ export async function unzipPackageAndPipInstall(machineId: number, machineIp: st
 
 export async function startMaster(swarm: Swarm.Swarm, machine: Machine.Machine, slaveCount: number, slaveIds: number[], privateKey: string): Promise<void> {
     console.log(`Starting master at ${machine.ip_address}`);
-    const ssh = new node_ssh();
+    const ssh = new NodeSSH();
     await ssh.connect({
         host: machine.ip_address,
         username: "root",
@@ -381,7 +388,11 @@ export async function startMaster(swarm: Swarm.Swarm, machine: Machine.Machine, 
     flags.push(`--expect-workers=${expectSlaveCount}`);
     const command = `ulimit -n 200000 && nohup locust ${flags.join(" ")} > /dev/null 2>&1`;
     console.log(`Executing ${command} on master at ${machine.ip_address} &`);
-    ssh.execCommand(command, { options: { pty: true } });
+    ssh.execCommand(command, {
+        options: {
+            pty: true
+        }
+    } as any);
     await asyncSleep(10);
     ssh.connection.end();
     console.log(`Finished starting master at ${machine.ip_address}`);
@@ -443,7 +454,7 @@ export async function startSlave(swarm: Swarm.Swarm, master: Machine.Machine, sl
     // Two worker processes on each machine.
     for (let i = 1; i <= 2; i++) {
         console.log(`Starting slave at ${slave.ip_address} on process ${i}`);
-        const ssh = new node_ssh();
+        const ssh = new NodeSSH();
         await ssh.connect({
             host: slave.ip_address,
             username: "root",
@@ -454,8 +465,12 @@ export async function startSlave(swarm: Swarm.Swarm, master: Machine.Machine, sl
         console.log(`Executing ${command} on slave at ${slave.ip_address} on process ${i}`);
         ssh.exec(command, [], {
             cwd: "/root",
-            onStdout(chunk: any) { console.log("stdoutChunk", chunk.toString("utf8")); },
-            onStderr(chunk: any) { console.log("stderrChunk", chunk.toString("utf8")); },
+            onStdout(chunk: any) {
+                console.log("stdoutChunk", chunk.toString("utf8"));
+            },
+            onStderr(chunk: any) {
+                console.log("stderrChunk", chunk.toString("utf8"));
+            },
         });
         await asyncSleep(15);
         ssh.connection.end();
@@ -500,7 +515,7 @@ export async function cleanUpMachineProvisionEvent(event: MachineProvisionEvent)
 }
 
 export async function installPackagesOnMachine(machineIp: string, privateKey: string): Promise<void> {
-    const ssh = new node_ssh();
+    const ssh = new NodeSSH();
     console.log(`Starting package install on ${machineIp}`);
     await ssh.connect({
         host: machineIp,
@@ -526,7 +541,7 @@ export async function openPorts(machineId: number, machineIp: string, privateKey
     // Todo try large machine batches without random start. Might not need it.
     const randomStart = Math.floor(Math.random() * 3) + 1;
     asyncSleep(randomStart);
-    const ssh = new node_ssh();
+    const ssh = new NodeSSH();
     console.log(`Opening ports on ${machineIp}`);
     await ssh.connect({
         host: machineIp,

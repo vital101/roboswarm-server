@@ -6,7 +6,7 @@ const connection: any = {
     password: process.env.DB_PASSWORD || undefined,
     database: "roboswarm",
     timezone: "utc"
-  };
+};
 
 const development = {
     client: "pg",

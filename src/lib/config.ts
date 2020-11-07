@@ -28,31 +28,31 @@ export interface Settings {
 export function getPlan(user: User): Plan {
     switch (user.stripe_plan_description) {
         case "free":
-        return settings.free;
+            return settings.free;
         case "startup":
-        return settings.startup;
+            return settings.startup;
         case "enterprise":
-        return settings.enterprise;
+            return settings.enterprise;
         case "kernl-startup-2020":
-        return settings["kernl-startup-2020"];
+            return settings["kernl-startup-2020"];
         case "kernl-agency-2020":
-        return settings["kernl-agency-2020"];
+            return settings["kernl-agency-2020"];
         case "kernl-unlimited-2020":
-        return settings["kernl-unlimited-2020"];
+            return settings["kernl-unlimited-2020"];
         case "kernl-startup":
-        return settings["kernl-startup"];
+            return settings["kernl-startup"];
         case "kernl-agency":
-        return settings["kernl-agency"];
+            return settings["kernl-agency"];
         case "kernl-enterprise":
-        return settings["kernl-enterprise"];
+            return settings["kernl-enterprise"];
         case "2020-roboswarm-free":
-        return settings["2020-roboswarm-free"];
+            return settings["2020-roboswarm-free"];
         case "2020-roboswarm-startup":
-        return settings["2020-roboswarm-startup"];
+            return settings["2020-roboswarm-startup"];
         case "2020-roboswarm-enterprise":
-        return settings["2020-roboswarm-enterprise"];
+            return settings["2020-roboswarm-enterprise"];
         default:
-        return settings.free;
+            return settings.free;
     }
 }
 

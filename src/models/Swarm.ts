@@ -21,8 +21,8 @@ import { generateAndSaveTemplate } from "../lib/templateGeneration";
 import * as LoadTestFile from "../models/LoadTestFile";
 import { asyncReadFile } from "../lib/lib";
 import { execSync } from "child_process";
-
-const node_ssh = require("node-ssh");
+import * as LoadTestError from "../models/LoadTestError";
+import { NodeSSH } from "node-ssh";
 
 export interface Swarm {
     id: number;
@@ -196,7 +196,7 @@ export async function destroyById(id: number, group_id: number): Promise<Swarm> 
 
 
     try {
-        // Fetch the final load test metrics.
+        // Fetch the final load test metrics and
         await fetchLoadTestMetrics(destroyedSwarm[0], true);
     } catch (err) { }
 
@@ -255,8 +255,8 @@ export async function isFirstCompleteSwarm(userId: number): Promise<boolean> {
 
 export async function getById(id: number): Promise<Swarm> {
     const data: Swarm = await db("swarm")
-                                .where("id", id)
-                                .first();
+        .where("id", id)
+        .first();
     data.status = getStatus(
         data.created_at,
         data.ready_at,
@@ -269,9 +269,15 @@ export async function getById(id: number): Promise<Swarm> {
     let file_transfer_complete = true;
     let setup_complete = true;
     machines.forEach(machine => {
-        if (machine.is_master) { data.master_ip = machine.ip_address; }
-        if (!machine.file_transfer_complete) { file_transfer_complete = false; }
-        if (!machine.setup_complete) { setup_complete = false; }
+        if (machine.is_master) {
+            data.master_ip = machine.ip_address;
+        }
+        if (!machine.file_transfer_complete) {
+            file_transfer_complete = false;
+        }
+        if (!machine.setup_complete) {
+            setup_complete = false;
+        }
     });
     data.file_transfer_complete = file_transfer_complete;
     data.setup_complete = setup_complete;
@@ -330,8 +336,12 @@ export async function getByGroupId(groupId: number): Promise<Array<Swarm>> {
         let file_transfer_complete = true;
         let setup_complete = true;
         swarm.machines.forEach(machine => {
-            if (!machine.file_transfer_complete) { file_transfer_complete = false; }
-            if (!machine.setup_complete) { setup_complete = false; }
+            if (!machine.file_transfer_complete) {
+                file_transfer_complete = false;
+            }
+            if (!machine.setup_complete) {
+                setup_complete = false;
+            }
         });
         const size: number = swarm.machines.length;
         return {
@@ -346,10 +356,12 @@ export async function getByGroupId(groupId: number): Promise<Array<Swarm>> {
 }
 
 export async function getSwarmSizeById(swarmId: number): Promise<number> {
-    interface RowCount { count: number; }
+    interface RowCount {
+        count: number;
+    }
     const row: RowCount[] = await db("swarm_machine")
-                        .where("swarm_id", swarmId)
-                        .count();
+        .where("swarm_id", swarmId)
+        .count();
 
     return row[0].count;
 }
@@ -378,7 +390,7 @@ export async function willExceedDropletPoolAvailability(newSwarmSize: number): P
         Authorization: `Bearer ${process.env.DIGITAL_OCEAN_TOKEN}`,
         "Content-Type": "application/json"
     };
-    const url = `https://api.digitalocean.com/v2/droplets`;
+    const url = "https://api.digitalocean.com/v2/droplets";
     const options: RequestPromiseOptions = {
         headers,
         json: true
@@ -405,7 +417,7 @@ export async function fetchLoadTestMetrics(swarm: Swarm, isFinal?: boolean): Pro
     const sshKey: SSHKey.SSHKey = await SSHKey.getById(swarm.ssh_key_id);
     const master: Machine.Machine = await getSwarmMaster(swarm.id);
 
-    const ssh = new node_ssh();
+    const ssh = new NodeSSH();
     await ssh.connect({
         host: master.ip_address,
         username: "root",
@@ -517,6 +529,51 @@ export async function fetchLoadTestMetrics(swarm: Swarm, isFinal?: boolean): Pro
     ssh.connection.end();
 }
 
+export async function fetchErrorMetrics(swarm: Swarm): Promise<void> {
+    const sshKey: SSHKey.SSHKey = await SSHKey.getById(swarm.ssh_key_id);
+    const master: Machine.Machine = await getSwarmMaster(swarm.id);
+
+    const ssh = new NodeSSH();
+    await ssh.connect({
+        host: master.ip_address,
+        username: "root",
+        privateKey: sshKey.private
+    });
+    const data: SSHCommandResult = await ssh.execCommand("cat /root/status_failures.csv");
+    const rows = data.stdout.split("\n");
+    if (rows.length > 1) {
+        rows.splice(0, 1); // Remove header row.
+        const promises: Array<Promise<void>> = [];
+        rows.forEach(r => {
+            const rowData = r.split(",");
+            const error_count = parseInt(rowData.pop(), 10);
+            let message = "";
+            for (let i = 2; i < rowData.length; i++) {
+                message += `,${rowData[i]}`;
+            }
+            const lte: LoadTestError.LoadTestError = {
+                swarm_id: swarm.id,
+                method: rowData[0],
+                path: rowData[1],
+                message,
+                error_count,
+            };
+            promises.push(LoadTestError.create(lte));
+        });
+        try {
+            await Promise.all(promises);
+        } catch (err) {
+            console.log("Error fetching load test errors: ", {
+                err,
+                swarm_id: swarm.id,
+                rows
+            });
+        }
+    }
+
+    ssh.connection.end();
+}
+
 export async function shouldStop(swarm: Swarm): Promise<boolean> {
     const swarmStartTime: Date = swarm.ready_at;
     const swarmDuration: number = swarm.duration; // minutes;
@@ -573,9 +630,15 @@ export async function createRepeatSwarmRequest(swarmId: number): Promise<NewSwar
         region: oldSwarm.region,
         swarm_ui_type: oldSwarm.swarm_ui_type
     };
-    if (oldSwarm.template_id) { newSwarm.template_id = oldSwarm.template_id; }
-    if (oldSwarm.template_name) { newSwarm.template_name = oldSwarm.template_name; }
-    if (oldSwarm.is_woo_template) { newSwarm.is_woo_commerce_template = oldSwarm.is_woo_template; }
+    if (oldSwarm.template_id) {
+        newSwarm.template_id = oldSwarm.template_id;
+    }
+    if (oldSwarm.template_name) {
+        newSwarm.template_name = oldSwarm.template_name;
+    }
+    if (oldSwarm.is_woo_template) {
+        newSwarm.is_woo_commerce_template = oldSwarm.is_woo_template;
+    }
 
     // Rotate through the old machines and regions evenly distributing the load.
     const oldMachines: Machine.Machine[] = await getSwarmMachines(swarmId);

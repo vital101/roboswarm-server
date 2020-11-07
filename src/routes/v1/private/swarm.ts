@@ -101,7 +101,9 @@ router.route("/:id/metrics")
             const requestRowsBetweenPoints: number = LoadTest.getRowsInBetweenPoints(totalRequestRows);
             const distributionRowsBetweenPoints: number = LoadTest.getRowsInBetweenPoints(totalDistributionRows);
             let rowsBetweenPoints: number = requestRowsBetweenPoints > distributionRowsBetweenPoints ? requestRowsBetweenPoints : distributionRowsBetweenPoints;
-            if (req.body.showAll) { rowsBetweenPoints = 1; }
+            if (req.body.showAll) {
+                rowsBetweenPoints = 1;
+            }
             const data: LoadTestMetrics = {
                 requests: await LoadTest.getRequestsInRange(id, rowsBetweenPoints, req.body.lastRequestId, ),
                 distribution: await LoadTest.getDistributionsInRange(id, rowsBetweenPoints, req.body.lastDistributionId)
@@ -147,7 +149,9 @@ router.route("/:id/repeat")
             return;
         }
         const newSwarm: Swarm.NewSwarm = await Swarm.createRepeatSwarmRequest(id);
-        if (req.body && req.body.kernl_test) { newSwarm.kernl_test = req.body.kernl_test; }
+        if (req.body && req.body.kernl_test) {
+            newSwarm.kernl_test = req.body.kernl_test;
+        }
         const user: User.User = await User.getById(req.user.id);
         const isReliabilityTest = !!(newSwarm.simulated_users <= 25 && newSwarm.duration > 120);
         newSwarm.site_id = await SiteOwnership.getSiteIdByBaseUrl(newSwarm.host_url) as number;
