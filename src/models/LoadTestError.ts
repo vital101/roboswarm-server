@@ -20,3 +20,10 @@ export async function create(data: LoadTestError): Promise<void> {
         return trx(TABLE_NAME).insert(data);
     });
 }
+
+export async function getBySwarmId(swarm_id: number): Promise<LoadTestError[]> {
+    const rows: LoadTestError[] = await db(TABLE_NAME)
+        .where({ swarm_id })
+        .orderBy("error_count", "DESC");
+    return rows;
+}
