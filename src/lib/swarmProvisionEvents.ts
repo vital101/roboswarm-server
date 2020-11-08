@@ -33,8 +33,9 @@ export async function cleanUpSwarmProvisionEvent(event: SwarmProvisionEvent): Pr
             // Set the swarm and destroyed. Rely on the cleanup daemon to kill the machines.
             try {
                 await destroySwarmById(event.createdSwarm.id, event.createdSwarm.group_id);
+            } catch (err) {
+                // no-op
             }
-            catch (err) { }
             break;
         }
     }

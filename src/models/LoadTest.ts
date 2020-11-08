@@ -126,7 +126,9 @@ export async function getDistributionsInRange(swarm_id: number, rowsBetweenPoint
 
 export async function getTotalDistributionRows(swarm_id: number, startId?: number): Promise<number> {
     let query = db("load_test_distribution").where({ swarm_id });
-    if (startId) { query = query.andWhere("id", ">", startId); }
+    if (startId) {
+        query = query.andWhere("id", ">", startId);
+    }
     query = query.count();
     const totalDistributionRows = await query;
     return parseInt(totalDistributionRows[0].count, 10);

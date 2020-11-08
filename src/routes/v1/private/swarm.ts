@@ -3,6 +3,7 @@ import * as Swarm from "../../../models/Swarm";
 import * as Machine from "../../../models/Machine";
 import * as SwarmMachine from "../../../models/SwarmMachine";
 import * as LoadTest from "../../../models/LoadTest";
+import * as LoadTestError from "../../../models/LoadTestError";
 import * as User from "../../../models/User";
 import * as SiteOwnership from "../../../models/SiteOwnership";
 import { RoboRequest, RoboResponse, RoboError } from "../../../interfaces/shared.interface";
@@ -17,11 +18,13 @@ interface NewSwarmRequest extends RoboRequest {
 interface LoadTestMetrics {
     requests: LoadTest.Request[];
     distribution: LoadTest.Distribution[];
+    errors: LoadTestError.LoadTestError[];
 }
 
 interface LoadTestMetricsFinal {
     requests: LoadTest.RequestFinal[];
     distribution: LoadTest.DistributionFinal[];
+    errors: LoadTestError.LoadTestError[];
 }
 
 interface LoadTestMetricsQuery {
@@ -70,7 +73,7 @@ router.route("/file-upload")
         });
 
 router.route("/:id/metrics/final")
-    .get(async (req: RoboRequest, res: RoboResponse) => {
+    .get(async (req: LoadTestMetricsRequest, res: LoadTestMetricsResponse) => {
         const id: number = parseInt(req.params.id, 10);
         const swarm: Swarm.Swarm = await Swarm.getById(id);
         if (swarm.group_id !== req.user.groupId) {
@@ -78,12 +81,17 @@ router.route("/:id/metrics/final")
             res.send("Unauthorized.");
             return;
         }
-        const finalData: LoadTestMetricsFinal = {
-            requests: await LoadTest.getRequestsFinal(id),
-            distribution: await LoadTest.getDistributionFinal(id)
-        };
+        const [ requests, distribution ] = await Promise.all([
+            LoadTest.getRequestsFinal(id),
+            LoadTest.getDistributionFinal(id)
+        ]);
+        const errors: LoadTestError.LoadTestError[] = await LoadTestError.getBySwarmId(id);
         res.status(200);
-        res.json(finalData);
+        res.json({
+            requests,
+            distribution,
+            errors
+        });
     });
 
 router.route("/:id/metrics")
@@ -96,19 +104,32 @@ router.route("/:id/metrics")
             return;
         }
         try {
-            const totalRequestRows: number = await LoadTest.getTotalRequestRows(id, req.body.lastRequestId);
-            const totalDistributionRows: number = await LoadTest.getTotalDistributionRows(id, req.body.lastDistributionId);
-            const requestRowsBetweenPoints: number = LoadTest.getRowsInBetweenPoints(totalRequestRows);
-            const distributionRowsBetweenPoints: number = LoadTest.getRowsInBetweenPoints(totalDistributionRows);
+            const [ totalRequestRows, totalDistributionRows ] = await Promise.all([
+                LoadTest.getTotalRequestRows(id, req.body.lastRequestId),
+                LoadTest.getTotalDistributionRows(id, req.body.lastDistributionId)
+            ]);
+            const [ requestRowsBetweenPoints, distributionRowsBetweenPoints ] = await Promise.all([
+                LoadTest.getRowsInBetweenPoints(totalRequestRows),
+                LoadTest.getRowsInBetweenPoints(totalDistributionRows)
+            ]);
+
             let rowsBetweenPoints: number = requestRowsBetweenPoints > distributionRowsBetweenPoints ? requestRowsBetweenPoints : distributionRowsBetweenPoints;
-            if (req.body.showAll) { rowsBetweenPoints = 1; }
-            const data: LoadTestMetrics = {
-                requests: await LoadTest.getRequestsInRange(id, rowsBetweenPoints, req.body.lastRequestId, ),
-                distribution: await LoadTest.getDistributionsInRange(id, rowsBetweenPoints, req.body.lastDistributionId)
-            };
+            if (req.body.showAll) {
+                rowsBetweenPoints = 1;
+            }
+            const [ requests, distribution ] = await Promise.all([
+                LoadTest.getRequestsInRange(id, rowsBetweenPoints, req.body.lastRequestId),
+                LoadTest.getDistributionsInRange(id, rowsBetweenPoints, req.body.lastDistributionId)
+            ]);
+
+            const errors: LoadTestError.LoadTestError[] = await LoadTestError.getBySwarmId(id);
 
             res.status(200);
-            res.json(data);
+            res.json({
+                requests,
+                distribution,
+                errors
+            });
         } catch (err) {
             res.status(500);
             res.json(err);
@@ -147,7 +168,9 @@ router.route("/:id/repeat")
             return;
         }
         const newSwarm: Swarm.NewSwarm = await Swarm.createRepeatSwarmRequest(id);
-        if (req.body && req.body.kernl_test) { newSwarm.kernl_test = req.body.kernl_test; }
+        if (req.body && req.body.kernl_test) {
+            newSwarm.kernl_test = req.body.kernl_test;
+        }
         const user: User.User = await User.getById(req.user.id);
         const isReliabilityTest = !!(newSwarm.simulated_users <= 25 && newSwarm.duration > 120);
         newSwarm.site_id = await SiteOwnership.getSiteIdByBaseUrl(newSwarm.host_url) as number;
