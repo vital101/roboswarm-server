@@ -21,8 +21,8 @@ import { generateAndSaveTemplate } from "../lib/templateGeneration";
 import * as LoadTestFile from "../models/LoadTestFile";
 import { asyncReadFile } from "../lib/lib";
 import { execSync } from "child_process";
-import * as LoadTestError from "../models/LoadTestError";
-import { NodeSSH } from "node-ssh";
+import * as LoadTestError from "./LoadTestError";
+const NodeSSH = require("node-ssh");
 
 export interface Swarm {
     id: number;

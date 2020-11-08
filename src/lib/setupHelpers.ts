@@ -1,4 +1,4 @@
-import { NodeSSH } from "node-ssh";
+const NodeSSH = require("node-ssh");
 const sftp_client = require("ssh2-sftp-client");
 import { execSync } from "child_process";
 import { writeFileSync } from "fs";
