@@ -10,6 +10,7 @@ import { RoboRequest, RoboResponse, RoboError } from "../../../interfaces/shared
 import { canCreateSwarm } from "../../../lib/authorization";
 import * as multer from "multer";
 import * as LoadTestFile from "../../../models/LoadTestFile";
+import { LoadTestRouteSpecificData } from "../../../models/LoadTestRouteSpecificData";
 
 interface NewSwarmRequest extends RoboRequest {
     body: Swarm.NewSwarm;
@@ -37,8 +38,20 @@ interface LoadTestMetricsResponse extends RoboResponse {
     json: (metrics: LoadTestMetrics) => any;
 }
 
+interface LoadTestRouteSpecificMetricsResponse extends RoboResponse {
+    json: (metrics: LoadTestRouteSpecificData[]) => any;
+}
+
 interface LoadTestMetricsRequest extends RoboRequest {
     body: LoadTestMetricsQuery;
+}
+
+interface LoadTestRouteSpecificMetricsRequest extends RoboRequest {
+    body: {
+        showAll: boolean;
+        lastRowId: number;
+        route: string;
+    };
 }
 
 interface RepeatSwarmResponse extends RoboResponse {
@@ -94,6 +107,27 @@ router.route("/:id/metrics/final")
         });
     });
 
+router.route("/:id/metrics/route-specific")
+    .post(async (req: LoadTestRouteSpecificMetricsRequest, res: LoadTestRouteSpecificMetricsResponse) => {
+        const id: number = parseInt(req.params.id, 10);
+        const swarm: Swarm.Swarm = await Swarm.getById(id);
+        if (swarm.group_id !== req.user.groupId) {
+            res.status(401);
+            res.send("Unauthorized.");
+            return;
+        }
+        try {
+            const totalRows = await LoadTest.getTotalRouteSpecificRows(id, req.body.route, req.body.lastRowId);
+            const rowsBetweenPoints = req.body.showAll ? 1 : LoadTest.getRowsInBetweenPoints(totalRows);
+            const data = await LoadTest.getRouteSpecificInRange(id, req.body.route, rowsBetweenPoints, req.body.lastRowId);
+            res.status(200);
+            res.json(data);
+        } catch (err) {
+            res.status(500);
+            res.json(err);
+        }
+    });
+
 router.route("/:id/metrics")
     .post(async (req: LoadTestMetricsRequest, res: LoadTestMetricsResponse) => {
         const id: number = parseInt(req.params.id, 10);
@@ -104,14 +138,12 @@ router.route("/:id/metrics")
             return;
         }
         try {
-            const [ totalRequestRows, totalDistributionRows ] = await Promise.all([
+            const [totalRequestRows, totalDistributionRows ] = await Promise.all([
                 LoadTest.getTotalRequestRows(id, req.body.lastRequestId),
                 LoadTest.getTotalDistributionRows(id, req.body.lastDistributionId)
             ]);
-            const [ requestRowsBetweenPoints, distributionRowsBetweenPoints ] = await Promise.all([
-                LoadTest.getRowsInBetweenPoints(totalRequestRows),
-                LoadTest.getRowsInBetweenPoints(totalDistributionRows)
-            ]);
+            const requestRowsBetweenPoints = LoadTest.getRowsInBetweenPoints(totalRequestRows);
+            const distributionRowsBetweenPoints = LoadTest.getRowsInBetweenPoints(totalDistributionRows);
 
             let rowsBetweenPoints: number = requestRowsBetweenPoints > distributionRowsBetweenPoints ? requestRowsBetweenPoints : distributionRowsBetweenPoints;
             if (req.body.showAll) {
