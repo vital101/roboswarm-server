@@ -22,6 +22,7 @@ import * as LoadTestFile from "../models/LoadTestFile";
 import { asyncReadFile } from "../lib/lib";
 import { execSync } from "child_process";
 import * as LoadTestError from "./LoadTestError";
+import * as LoadTestRouteSpecificData from "./LoadTestRouteSpecificData";
 const NodeSSH = require("node-ssh");
 
 export interface Swarm {
@@ -413,6 +414,61 @@ interface SSHCommandResult {
     stderr: string;
 }
 
+// WIP -> Still need to call this func()
+export async function createRouteSpecificData(swarm: Swarm): Promise<void> {
+    const sshKey: SSHKey.SSHKey = await SSHKey.getById(swarm.ssh_key_id);
+    const master: Machine.Machine = await getSwarmMaster(swarm.id);
+
+    const ssh = new NodeSSH();
+    await ssh.connect({
+        host: master.ip_address,
+        username: "root",
+        privateKey: sshKey.private
+    });
+    const requests: SSHCommandResult = await ssh.execCommand("cat /root/status_stats.csv");
+    const requestRows = requests.stdout.split("\n");
+    // For the final request, we store the route path information.
+    // Regular JSON object should be fine.
+    if (requestRows.length > 2) {
+        requestRows.shift();
+        requestRows.pop();
+        const dataToInsert: LoadTestRouteSpecificData.LoadTestRouteSpecificData[] = [];
+        for (const row of requestRows) {
+            try {
+                const splitRow = row.split(",");
+                dataToInsert.push({
+                    swarm_id: swarm.id,
+                    created_at: new Date(),
+                    user_count: 0,
+                    method: splitRow[0],
+                    route: splitRow[1],
+                    requests: parseInt(splitRow[2], 10),
+                    failures: parseInt(splitRow[3], 10),
+                    median_response_time: parseInt(splitRow[4], 10),
+                    average_response_time: parseInt(splitRow[5], 10),
+                    min_response_time: parseInt(splitRow[6], 10),
+                    max_response_time: parseInt(splitRow[7], 10),
+                    avg_content_size: parseInt(splitRow[8], 10),
+                    requests_per_second: Math.ceil(parseFloat(splitRow[9])),
+                    failures_per_second: Math.ceil(parseFloat(splitRow[10])),
+                    "50_percent": parseInt(splitRow[11], 10),
+                    "66_percent": parseInt(splitRow[12], 10),
+                    "75_percent": parseInt(splitRow[13], 10),
+                    "80_percent": parseInt(splitRow[14], 10),
+                    "90_percent": parseInt(splitRow[15], 10),
+                    "95_percent": parseInt(splitRow[16], 10),
+                    "98_percent": parseInt(splitRow[17], 10),
+                    "99_percent": parseInt(splitRow[18], 10),
+                    "100_percent": parseInt(splitRow[21], 10)
+                });
+            } catch (err) {
+                console.log("LoadTestRouteSpecificData Parse Error: ", err);
+            }
+        }
+        await LoadTestRouteSpecificData.bulkCreate(dataToInsert);
+    }
+}
+
 export async function fetchLoadTestMetrics(swarm: Swarm, isFinal?: boolean): Promise<void> {
     const sshKey: SSHKey.SSHKey = await SSHKey.getById(swarm.ssh_key_id);
     const master: Machine.Machine = await getSwarmMaster(swarm.id);
@@ -525,6 +581,7 @@ export async function fetchLoadTestMetrics(swarm: Swarm, isFinal?: boolean): Pro
             }
         }
     }
+    await createRouteSpecificData(swarm);
 
     ssh.connection.end();
 }

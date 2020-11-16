@@ -1,5 +1,5 @@
 import { db } from "../lib/db";
-import * as moment from "moment";
+import { LoadTestRouteSpecificData } from "./LoadTestRouteSpecificData";
 
 export interface Request {
     id?: number;
@@ -84,8 +84,41 @@ export async function getRequestsInRange(swarm_id: number, rowsBetweenPoints: nu
     return result.rows as Request[];
 }
 
+export async function getRouteSpecificInRange(swarm_id: number, route: string, rowsBetweenPoints: number, startId?: number): Promise<LoadTestRouteSpecificData[]> {
+    rowsBetweenPoints = rowsBetweenPoints === 0 ? 1 : rowsBetweenPoints;
+    let query = `
+        SELECT t.*
+        FROM (
+            select *, row_number() OVER(ORDER BY id ASC) AS row
+            from "load_test_route_specific_data"
+            where "swarm_id" = ? AND "route" = ?
+    `;
+    if (startId) {
+        query += " AND id > ?";
+    }
+    query += `
+            order by "created_at" ASC
+        ) t
+        WHERE t.row % ? = 0
+    `;
+    const result = startId ?
+        await db.raw(query, [swarm_id, route, startId, rowsBetweenPoints]) :
+        await db.raw(query, [swarm_id, route, rowsBetweenPoints]);
+    return result.rows as LoadTestRouteSpecificData[];
+}
+
 export async function getTotalRequestRows(swarm_id: number, startId?: number): Promise<number> {
     let query = db("load_test_requests").where({ swarm_id });
+    if (startId) {
+        query = query.andWhere("id", ">", startId);
+    }
+    query = query.count();
+    const totalRequestRows = await query;
+    return parseInt(totalRequestRows[0].count, 10);
+}
+
+export async function getTotalRouteSpecificRows(swarm_id: number, route: string, startId?: number): Promise<number> {
+    let query = db("load_test_route_specific_data").where({ swarm_id, route });
     if (startId) {
         query = query.andWhere("id", ">", startId);
     }
