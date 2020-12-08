@@ -263,7 +263,7 @@ export async function processMachineProvisionEvent(event: MachineProvisionEvent)
                                 await enqueue(machineDestroyEvent);
                             }
                         } else {
-                            await asyncSleep(5);
+                            await asyncSleep(15);
                             event.steps.unshift(MachineSetupStep.MACHINE_READY);
                         }
                     }
