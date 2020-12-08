@@ -637,7 +637,7 @@ describe("lib/setupHelpers", () => {
 
             });
 
-            it("sleeps for 5 seconds if the machine is not ready and it should not deprovision", async () => {
+            it("sleeps for 15 seconds if the machine is not ready and it should not deprovision", async () => {
                 const machineReadyStub = sandbox.stub(Machine, "isReady").resolves(false);
                 const shouldDeprovisionStub = sandbox.stub(Machine, "shouldDeprovision").resolves(false);
                 const sleepStub: Sinon.SinonStub = sandbox.stub(lib, "asyncSleep").resolves();
@@ -649,7 +649,7 @@ describe("lib/setupHelpers", () => {
                 expect(enqueueStub.callCount).toBe(1);
                 expect(machineReadyStub.callCount).toBe(1);
                 expect(shouldDeprovisionStub.callCount).toBe(1);
-                expect(sleepStub.getCall(0).args[0]).toBe(5);
+                expect(sleepStub.getCall(0).args[0]).toBe(15);
                 const enqueuedEvent: MachineProvisionEvent = enqueueStub.getCall(0).args[0];
                 expect(enqueuedEvent.stepToExecute).toEqual(MachineSetupStep.MACHINE_READY);
             });
