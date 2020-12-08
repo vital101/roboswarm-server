@@ -649,7 +649,7 @@ describe("lib/setupHelpers", () => {
                 expect(enqueueStub.callCount).toBe(1);
                 expect(machineReadyStub.callCount).toBe(1);
                 expect(shouldDeprovisionStub.callCount).toBe(1);
-                expect(sleepStub.getCall(0).args[0]).toBe(15);
+                expect(sleepStub.getCall(0).args[0]).toBe(20);
                 const enqueuedEvent: MachineProvisionEvent = enqueueStub.getCall(0).args[0];
                 expect(enqueuedEvent.stepToExecute).toEqual(MachineSetupStep.MACHINE_READY);
             });
