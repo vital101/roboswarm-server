@@ -10,7 +10,7 @@ buildAndTest: &buildAndTest
       - curl -sL https://deb.nodesource.com/setup_12.x | bash -
       - apt-get install -y nodejs
       - npm install
-      - npm run tslint
+      - npm run lint
       - npm run test
     services:
       - redis
