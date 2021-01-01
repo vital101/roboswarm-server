@@ -19,7 +19,9 @@ module.exports = {
       NODE_ENV: 'production',
       DB_HOST: '10.132.154.214',
       DB_USER: 'roboswarm',
-      DB_PASSWORD: 'red;cog$40'
+      DB_PASSWORD: 'red;cog$40',
+      REDIS_URI: 'redis://10.132.168.38',
+      REDIS_PASSWORD: 'red;cog$40'
     }
   },
   {
@@ -35,7 +37,9 @@ module.exports = {
       NODE_ENV: 'production',
       DB_HOST: '10.132.154.214',
       DB_USER: 'roboswarm',
-      DB_PASSWORD: 'red;cog$40'
+      DB_PASSWORD: 'red;cog$40',
+      REDIS_URI: 'redis://10.132.168.38',
+      REDIS_PASSWORD: 'red;cog$40'
     }
   }],
 

@@ -1,16 +1,17 @@
 import * as redis from "redis";
 const EVENT_QUEUE_NAME = "events";
 
-// For later user:
-// const client = redis.createClient(SETTINGS.REDIS_URI, {
-// password: SETTINGS.REDIS_PASSWORD,
 function log(type: string) {
     return function anon() {
         console.log(`Redis is ${type}.`);
     };
 }
 
-const client = redis.createClient({
+// Make Redis connection
+const url = process.env.REDIS_URL || "redis://localhost";
+const password = process.env.REDIS_PASSWORD || undefined;
+const client = redis.createClient(url, {
+    password,
     retry_strategy: () => {
         return 2000;
     },
