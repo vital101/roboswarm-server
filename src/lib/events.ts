@@ -8,7 +8,7 @@ function log(type: string) {
 }
 
 // Make Redis connection
-const url = process.env.REDIS_URL || "redis://localhost";
+const url = process.env.REDIS_URI || "redis://localhost";
 const password = process.env.REDIS_PASSWORD || undefined;
 const client = redis.createClient(url, {
     password,
