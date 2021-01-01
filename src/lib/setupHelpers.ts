@@ -386,7 +386,7 @@ export async function startMaster(swarm: Swarm.Swarm, machine: Machine.Machine, 
     flags.push(`--run-time ${runTime}`);
     flags.push("--headless");
     flags.push(`--expect-workers=${expectSlaveCount}`);
-    const command = `ulimit -n 200000 && nohup locust ${flags.join(" ")} > /dev/null 2>&1`;
+    const command = `ulimit -n 200000 && PYTHONWARNINGS="ignore:Unverified HTTPS request" nohup locust ${flags.join(" ")} > /dev/null 2>&1`;
     console.log(`Executing ${command} on master at ${machine.ip_address} &`);
     ssh.execCommand(command, {
         options: {
@@ -438,6 +438,7 @@ export async function startSlave(swarm: Swarm.Swarm, master: Machine.Machine, sl
     console.log("Transferring template to slave at ", slave.ip_address);
     const bashTemplate = `
         #!/bin/bash
+        export PYTHONWARNINGS="ignore:Unverified HTTPS request"
         ulimit -n 200000 && locust --worker --master-host=${master.ip_address} --logfile=/root/locustlog.log --loglevel=debug &
     `;
     const bashPath = `/tmp/${slave.id}.bash`;
