@@ -36,7 +36,7 @@ describe("lib/authorization", () => {
 
     describe("isEventQueueAvailable", () => {
         test("it returns the status of the Redis connection", () => {
-            expect(events.isEventQueueAvailable()).toBe(false);
+            expect(events.isEventQueueAvailable()).toBe(true);
         });
     })
 });

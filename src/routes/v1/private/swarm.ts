@@ -11,6 +11,7 @@ import { canCreateSwarm } from "../../../lib/authorization";
 import * as multer from "multer";
 import * as LoadTestFile from "../../../models/LoadTestFile";
 import { LoadTestRouteSpecificData } from "../../../models/LoadTestRouteSpecificData";
+import { isEventQueueAvailable } from "../../../lib/events";
 
 interface NewSwarmRequest extends RoboRequest {
     body: Swarm.NewSwarm;
@@ -192,6 +193,14 @@ router.route("/:id/ip-addresses")
 
 router.route("/:id/repeat")
     .post(async (req: RoboRequest, res: RepeatSwarmResponse) => {
+        // Alway check if the event queue is available.
+        if (!isEventQueueAvailable()) {
+            res.status(500);
+            res.send("The event queue system is offline. Please try again later.");
+            return;
+        }
+
+        // Validate ownership of swarm.
         const id: number = parseInt(req.params.id, 10);
         const swarm: Swarm.Swarm = await Swarm.getById(id);
         if (swarm.group_id !== req.user.groupId) {
@@ -290,6 +299,14 @@ router.route("/")
         res.json(swarms);
     })
     .post(async (req: NewSwarmRequest, res: RoboResponse) => {
+
+        // Alway check if the event queue is available.
+        if (!isEventQueueAvailable()) {
+            res.status(500);
+            res.send("The event queue system is offline. Please try again later.");
+            return;
+        }
+
         // Always add one machine to the pool so it can be master.
         req.body.machines.push({ region: req.body.machines[0].region });
         const user: User.User = await User.getById(req.user.id);
