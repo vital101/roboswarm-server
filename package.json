@@ -10,6 +10,7 @@
   "author": "Jack Slingerland",
   "scripts": {
     "start": "TZ=utc npm run serve",
+    "debug": "TZ=utc npm run build-ts && TZ=utc PORT=3002 node --inspect-brk dist/server.js ",
     "build": "TZ=utc npm run build-ts && npm run lint",
     "deploy": "TZ=utc npm test && npm run build && TZ=utc pm2 deploy production update",
     "serve": "TZ=utc node dist/server.js",

@@ -59,7 +59,7 @@ export interface NewSwarm {
     name: string;
     duration: number;
     simulated_users: number;
-    file_path: string;
+    file_path?: string;
     host_url?: string;
     site_id?: number;
     spawn_rate: number;
@@ -120,6 +120,7 @@ export async function create(swarm: NewSwarm, userId: number, groupId: number, r
         (swarm.is_woo_commerce_template !== undefined) &&
         swarm.is_woo_commerce_template === true
     );
+
     const newSwarmResult: Array<Swarm> = await db("swarm")
         .insert({
             name: swarm.name,
@@ -680,7 +681,6 @@ export async function createRepeatSwarmRequest(swarmId: number): Promise<NewSwar
         name: oldSwarm.name,
         duration: oldSwarm.duration,
         simulated_users: oldSwarm.simulated_users,
-        file_path: "wip", // oldSwarm.file_path,
         host_url: oldSwarm.host_url,
         spawn_rate: oldSwarm.spawn_rate,
         machines: [],
