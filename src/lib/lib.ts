@@ -1,7 +1,7 @@
 import * as fs from "fs";
 
 export function asyncSleep(timeInSeconds: number): Promise<any> {
-    return new Promise((resolve) => {
+    return new Promise<void>((resolve) => {
         setTimeout(() => {
             resolve();
         }, timeInSeconds * 1000);

@@ -23,7 +23,7 @@ import { asyncReadFile } from "../lib/lib";
 import { execSync } from "child_process";
 import * as LoadTestError from "./LoadTestError";
 import * as LoadTestRouteSpecificData from "./LoadTestRouteSpecificData";
-const NodeSSH = require("node-ssh");
+import { NodeSSH } from "node-ssh";
 
 export interface Swarm {
     id: number;

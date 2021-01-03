@@ -13,7 +13,8 @@
                 "src/types/*"
             ]
         },
-        "types": ["jest", "node"]
+        "types": ["jest", "node"],
+        "allowSyntheticDefaultImports": true
     },
     "include": [
         "src/**/*"

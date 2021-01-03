@@ -3,7 +3,7 @@ import { Stripe } from "stripe";
 import * as User from "../models/User";
 
 const config: Stripe.StripeConfig = {
-    apiVersion: "2020-03-02",
+    apiVersion: "2020-08-27",
     typescript: true
 };
 
