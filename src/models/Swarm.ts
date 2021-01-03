@@ -26,9 +26,9 @@ import * as LoadTestRouteSpecificData from "./LoadTestRouteSpecificData";
 import { NodeSSH } from "node-ssh";
 
 export interface Swarm {
-    id: number;
+    id?: number;
     name: string;
-    status: Status;
+    status?: Status;
     group_id: number;
     user_id: number;
     user?: User.User;
@@ -36,9 +36,9 @@ export interface Swarm {
     ssh_key_id: number;
     host_url: string;
     spawn_rate: number;
-    created_at: Date;
-    ready_at: Date;
-    destroyed_at: Date;
+    created_at?: Date;
+    ready_at?: Date;
+    destroyed_at?: Date;
     region: string;
     duration: number;
     setup_complete: boolean;
@@ -132,8 +132,8 @@ export async function create(swarm: NewSwarm, userId: number, groupId: number, r
             region: swarm.region,
             duration: swarm.duration,
             swarm_ui_type: swarm.swarm_ui_type,
-            template_id: swarm.template_id,
-            template_name: swarm.template_name,
+            template_id: swarm.file_path ? undefined : swarm.template_id,
+            template_name: swarm.file_path ? undefined : swarm.template_name,
             is_woo_template: isWooTemplate,
             size: Math.ceil(((swarm.machines.length - 1) / CORES_PER_MACHINE) * OVER_PROVISION_MULTIPLIER)
         })

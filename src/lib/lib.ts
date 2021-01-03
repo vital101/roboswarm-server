@@ -25,3 +25,8 @@ export function asyncWriteFile(path: string, data: Buffer): Promise<void> {
         });
     });
 }
+
+export function getSwarmSize(machines: number): number {
+    // wip.
+    return 0;
+}
