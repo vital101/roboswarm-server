@@ -1,7 +1,7 @@
 import * as fs from "fs";
 
 export function asyncSleep(timeInSeconds: number): Promise<any> {
-    return new Promise((resolve) => {
+    return new Promise<void>((resolve) => {
         setTimeout(() => {
             resolve();
         }, timeInSeconds * 1000);
@@ -24,4 +24,9 @@ export function asyncWriteFile(path: string, data: Buffer): Promise<void> {
             resolve();
         });
     });
+}
+
+export function getSwarmSize(machines: number): number {
+    // wip.
+    return 0;
 }

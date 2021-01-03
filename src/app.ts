@@ -20,7 +20,10 @@ import marketingRoutes from "./routes/v1/public/marketing";
 import userRoutes from "./routes/v1/public/user";
 
 // JWT Config
-const jwtConfig = { secret: process.env.JWT_SECRET };
+const jwtConfig: jwt.Options = {
+    algorithms: ["HS256"],
+    secret: process.env.JWT_SECRET
+};
 
 // Sentry Config
 if (process.env.NODE_ENV === "production") {
