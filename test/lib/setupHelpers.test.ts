@@ -84,7 +84,7 @@ describe("lib/setupHelpers", () => {
         });
     });
 
-    describe("processDataCaptureEvent", () => {
+    describe("DataCaptureEvent", () => {
         let baseCaptureEvent: DataCaptureEvent;
 
         beforeEach(() => {
@@ -149,6 +149,7 @@ describe("lib/setupHelpers", () => {
                 status: Status.ready
             } as Swarm.Swarm);
             const fetchMetricsStub: Sinon.SinonStub = sandbox.stub(Swarm, "fetchLoadTestMetrics").resolves();
+            const errorMetricsStub: Sinon.SinonStub = sandbox.stub(Swarm, "fetchErrorMetrics").resolves();
             await setupHelpers.processDataCaptureEvent({
                 ...baseCaptureEvent,
                 delayUntil: moment().subtract(1, "day").toDate()
@@ -156,6 +157,8 @@ describe("lib/setupHelpers", () => {
             expect(enqueueStub.callCount).toEqual(1);
             expect(fetchMetricsStub.callCount).toEqual(1);
             expect(fetchMetricsStub.getCall(0).args[0]).toEqual({ status: Status.ready });
+            expect(errorMetricsStub.callCount).toEqual(1);
+            expect(errorMetricsStub.getCall(0).args[0]).toEqual({ status: Status.ready });
         });
     });
 
@@ -612,7 +615,7 @@ describe("lib/setupHelpers", () => {
             });
         });
 
-        describe.only("MACHINE_READY", () => {
+        describe("MACHINE_READY", () => {
             it("sets the machine on the event if it is ready", async () => {
                 const stubMachine: Machine.Machine = {
                     id: 1,
