@@ -312,11 +312,27 @@ export async function getById(id: number): Promise<Swarm> {
     return data;
 }
 
-export async function getByGroupId(groupId: number): Promise<Array<Swarm>> {
+export async function getCountByGroupId(groupId: number): Promise<number> {
+    interface CountResult {
+        count: number;
+    }
+    const query = {
+        group_id: groupId,
+        soft_delete: false
+    };
+    const result: CountResult[] = await db("swarm").where(query).count();
+    return result.pop().count;
+}
+
+export async function getByGroupId(groupId: number, page?: number): Promise<Array<Swarm>> {
+    const limit = 12;
+    const offset = page ? limit * (page - 1) : 0;
+    const paginate: boolean = page !== undefined;
+
     interface SwarmQueryResult {
         rows: Array<Swarm>;
     }
-    const query = `
+    let query = `
         SELECT
             s.*,
             array(
@@ -332,6 +348,15 @@ export async function getByGroupId(groupId: number): Promise<Array<Swarm>> {
             soft_delete = false
         ORDER BY s.created_at DESC
     `;
+
+    if (paginate) {
+        query = `
+            ${query}
+            OFFSET ${offset}
+            LIMIT ${limit}
+        `;
+    }
+
     const result: SwarmQueryResult = await db.raw(query);
     const swarmRaw: Swarm[] = result.rows;
     return swarmRaw.map(swarm => {

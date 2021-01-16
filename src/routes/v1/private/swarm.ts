@@ -23,12 +23,6 @@ interface LoadTestMetrics {
     errors: LoadTestError.LoadTestError[];
 }
 
-interface LoadTestMetricsFinal {
-    requests: LoadTest.RequestFinal[];
-    distribution: LoadTest.DistributionFinal[];
-    errors: LoadTestError.LoadTestError[];
-}
-
 interface LoadTestMetricsQuery {
     lastDistributionId: number;
     lastRequestId: number;
@@ -68,8 +62,10 @@ interface LoadTestIpAddressesResponse extends RoboResponse {
     json: (ips: IPAddress[]) => any;
 }
 
-interface GroupedSwarmResponse extends RoboResponse {
-    json: (swarms: Swarm.GroupedSwarm[]) => any;
+interface SwarmListRequest extends RoboRequest {
+    query: {
+        page?: string;
+    };
 }
 
 const router = Router();
@@ -293,8 +289,13 @@ router.route("/:id")
     });
 
 router.route("/")
-    .get(async (req: RoboRequest, res: RoboResponse) => {
-        const swarms: Array<Swarm.Swarm> = await Swarm.getByGroupId(req.user.groupId);
+    .get(async (req: SwarmListRequest, res: RoboResponse) => {
+        const page: number = req.query.page ? Number(req.query.page) : undefined;
+        const swarms: Array<Swarm.Swarm> = await Swarm.getByGroupId(req.user.groupId, page);
+        const totalSwarms: number = await Swarm.getCountByGroupId(req.user.groupId);
+        res.set("Access-Control-Expose-Headers", "X-TOTAL-SWARMS,X-PAGE-SIZE");
+        res.set("X-TOTAL-SWARMS", totalSwarms.toString());
+        res.set("X-PAGE-SIZE", "12");
         res.status(200);
         res.json(swarms);
     })
