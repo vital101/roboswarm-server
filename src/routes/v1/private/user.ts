@@ -59,6 +59,7 @@ router.route("/me/invoices/:id/pay")
     .post(async (req: PayInvoiceRequest, res: PayInvoiceResponse) => {
         try {
             const invoice: StripeLib.Invoice = await Stripe.payInvoice(req.params.id);
+            await User.updateById(req.user.id, { is_delinquent: false });
             res.status(200);
             res.json(invoice);
         } catch (err) {
