@@ -559,7 +559,7 @@ export async function fetchLoadTestMetrics(swarm: Swarm, isFinal?: boolean): Pro
             }
         }
     } else {
-        const requests: SSHCommandResult = await ssh.execCommand("cat /root/status_stats_history.csv");
+        const requests: SSHCommandResult = await ssh.execCommand("tail /root/status_stats_history.csv");
         const requestRows = requests.stdout.split("\n");
         if (requestRows.length > 1) {
             try {
