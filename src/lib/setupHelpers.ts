@@ -344,6 +344,9 @@ export async function unzipPackageAndPipInstall(machineId: number, machineIp: st
         username: "root",
         privateKey,
     });
+    /*
+    * Note: pip install is done in the image before it is minted
+    */
     const commands: Array<string> = [
         "unzip load_test_data.zip",
         // "pip3 install -r requirements.txt"

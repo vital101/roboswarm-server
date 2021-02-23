@@ -23,8 +23,7 @@ class UnauthenticatedFrontend(TaskSet):
 
 class UnauthenticatedUser(HttpUser):
     tasks = {UnauthenticatedFrontend:1}
-    min_wait = 1000
-    max_wait = 1000
+    wait_time = lambda x: 1
 {% endif %}
 
 ###
@@ -64,8 +63,7 @@ class AuthenticatedFrontendSequence(SequentialTaskSet):
 
 class AuthenticatedUser(HttpUser):
     tasks = {AuthenticatedFrontendSequence:1}
-    min_wait = 1000
-    max_wait = 1000
+    wait_time = lambda x: 1
 {% endif %}
 
 ###
@@ -124,6 +122,5 @@ class AuthenticatedAdminSequence(SequentialTaskSet):
 
 class AuthenticatedAdmin(HttpUser):
     tasks = {AuthenticatedAdminSequence:1}
-    min_wait = 1000
-    max_wait = 1000
+    wait_time = lambda x: 1
 {% endif %}

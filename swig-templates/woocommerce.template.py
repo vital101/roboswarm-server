@@ -117,5 +117,4 @@ class WooCommerceSequence(SequentialTaskSet):
 
 class WooCommerceUser(HttpUser):
     tasks = {WooCommerceSequence: 1}
-    min_wait = 1000
-    max_wait = 1000
+    wait_time = lambda x: 1
