@@ -1,4 +1,5 @@
-from locust import HttpUser, SequentialTaskSet, task
+from locust import SequentialTaskSet, task
+from locust.contrib.fasthttp import FastHttpUser
 import re
 
 def get_product_id(content):
@@ -115,6 +116,6 @@ class WooCommerceSequence(SequentialTaskSet):
                         name="{{checkout_url}}/order-received/:order_id")
 
 
-class WooCommerceUser(HttpUser):
+class WooCommerceUser(FastHttpUser):
     tasks = {WooCommerceSequence: 1}
     wait_time = lambda x: 1

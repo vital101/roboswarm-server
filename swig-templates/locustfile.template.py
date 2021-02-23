@@ -1,4 +1,5 @@
-from locust import HttpUser, TaskSet, SequentialTaskSet, task
+from locust import TaskSet, SequentialTaskSet, task
+from locust.contrib.fasthttp import FastHttpUser
 
 ###
 ## Unauthenticated frontend scenario
@@ -21,7 +22,7 @@ class UnauthenticatedFrontend(TaskSet):
         {% endfor %}
     }
 
-class UnauthenticatedUser(HttpUser):
+class UnauthenticatedUser(FastHttpUser):
     tasks = {UnauthenticatedFrontend:1}
     wait_time = lambda x: 1
 {% endif %}
@@ -61,7 +62,7 @@ class AuthenticatedFrontendSequence(SequentialTaskSet):
         self.client.get("{{route.path}}", headers=self.headers, verify=False)
     {% endfor %}
 
-class AuthenticatedUser(HttpUser):
+class AuthenticatedUser(FastHttpUser):
     tasks = {AuthenticatedFrontendSequence:1}
     wait_time = lambda x: 1
 {% endif %}
@@ -120,7 +121,7 @@ class AuthenticatedAdminSequence(SequentialTaskSet):
         {% endif %}
     {% endfor %}
 
-class AuthenticatedAdmin(HttpUser):
+class AuthenticatedAdmin(FastHttpUser):
     tasks = {AuthenticatedAdminSequence:1}
     wait_time = lambda x: 1
 {% endif %}
