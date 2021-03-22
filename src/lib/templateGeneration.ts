@@ -3,6 +3,7 @@ import { execSync } from "child_process";
 import { writeFileSync } from "fs";
 import { v1 as generateUUID } from "uuid";
 import { asyncReadFile } from "../lib/lib";
+import * as Swarm from "../models/Swarm";
 import * as LoadTestTemplate from "../models/LoadTestTemplate";
 import * as LoadTestFile from "../models/LoadTestFile";
 import * as WooCommerce from "../models/WooCommerce";
@@ -23,17 +24,29 @@ interface SwigTemplateContext {
     unauthenticated_frontend: LoadTestTemplate.TemplateRoute[];
 }
 
-export async function generateLocustFile(templateId: number, isWooTemplate: boolean): Promise<string> {
+export function getRoutePath(baseUrl: string, path: string): string {
+    let output;
+    if (baseUrl[baseUrl.length - 1] === "/") {
+        // If baseUrl has a trailing slash make sure path does not start with one.
+        output = path[0] === "/" ? path.substring(1) : path;
+    } else {
+        // If baseUrl does not have trailing slash, make sure path starts with one
+        output = path[0] !== "/" ? `/${path}` : path;
+    }
+    return output;
+}
+
+export async function generateLocustFile(templateId: number, isWooTemplate: boolean, swarm: Swarm.Swarm): Promise<string> {
     if (isWooTemplate) {
         const template = await WooCommerce.getById(templateId);
         const templatePath = `${appRoot}/swig-templates/woocommerce.template.py`;
         console.log(`Generating WooCommerce template from ${templatePath}`);
         const renderContext = {
-            shop_url: template.shop_url,
-            cart_url: template.cart_url,
-            checkout_url: template.checkout_url,
-            product_a_url: template.product_a_url,
-            product_b_url: template.product_b_url
+            shop_url: getRoutePath(swarm.host_url, template.shop_url),
+            cart_url: getRoutePath(swarm.host_url, template.cart_url),
+            checkout_url: getRoutePath(swarm.host_url, template.checkout_url),
+            product_a_url: getRoutePath(swarm.host_url, template.product_a_url),
+            product_b_url: getRoutePath(swarm.host_url, template.product_b_url)
         };
         const compiledTemplate = swig.renderFile(templatePath, renderContext);
         return compiledTemplate;
@@ -53,16 +66,19 @@ export async function generateLocustFile(templateId: number, isWooTemplate: bool
             renderContext.authenticated_backend = hasAuthenticatedBackend.routes.map((r, idx) => {
                 return {
                     ...r,
+                    path: getRoutePath(swarm.host_url, r.path),
                     id: idx + 1
                 };
             });
         }
 
         const hasAuthenticatedFrontend = routes.find(f => f.routeType === LoadTestTemplate.WordPressRouteType.AUTHENTICATED_FRONTEND_NAVIGATE);
+        console.log({ routes });
         if (hasAuthenticatedFrontend) {
             renderContext.authenticated_frontend = hasAuthenticatedFrontend.routes.map((r, idx) => {
                 return {
                     ...r,
+                    path: getRoutePath(swarm.host_url, r.path),
                     id: idx + 1
                 };
             });
@@ -73,6 +89,7 @@ export async function generateLocustFile(templateId: number, isWooTemplate: bool
             renderContext.unauthenticated_frontend = hasUnauthenticatedFrontend.routes.map((r, idx) => {
                 return {
                     ...r,
+                    path: getRoutePath(swarm.host_url, r.path),
                     id: idx + 1
                 };
             });
@@ -91,8 +108,8 @@ async function generateRequirementsFile(): Promise<string> {
     return compiledTemplate;
 }
 
-export async function generateLocustFileZip(templateId: number, isWooTemplate: boolean): Promise<string> {
-    const compiledTemplate = await generateLocustFile(templateId, isWooTemplate);
+export async function generateLocustFileZip(templateId: number, isWooTemplate: boolean, swarm: Swarm.Swarm): Promise<string> {
+    const compiledTemplate = await generateLocustFile(templateId, isWooTemplate, swarm);
     const compiledRequirements = await generateRequirementsFile();
     const directoryUUID = generateUUID();
     const directory = `/tmp/roboswarm-${directoryUUID}`;
@@ -112,7 +129,8 @@ export async function generateLocustFileZip(templateId: number, isWooTemplate: b
 }
 
 export async function generateAndSaveTemplate(swarm_id: number, template_id: number, is_woo_template: boolean): Promise<number> {
-    const zipFilePath = await generateLocustFileZip(template_id, is_woo_template);
+    const swarm = await Swarm.getById(swarm_id);
+    const zipFilePath = await generateLocustFileZip(template_id, is_woo_template, swarm);
     const fileBuffer = await asyncReadFile(zipFilePath);
     const ltFile: LoadTestFile.LoadTestFile = await LoadTestFile.create({
         swarm_id,
