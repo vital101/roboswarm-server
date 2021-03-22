@@ -25,13 +25,15 @@ interface SwigTemplateContext {
 }
 
 export function getRoutePath(baseUrl: string, path: string): string {
+    let output;
     if (baseUrl[baseUrl.length - 1] === "/") {
         // If baseUrl has a trailing slash make sure path does not start with one.
-        return path[0] === "/" ? path.substring(1) : path;
+        output = path[0] === "/" ? path.substring(1) : path;
     } else {
         // If baseUrl does not have trailing slash, make sure path starts with one
-        return path[0] !== "/" ? `/${path}` : path;
+        output = path[0] !== "/" ? `/${path}` : path;
     }
+    return output;
 }
 
 export async function generateLocustFile(templateId: number, isWooTemplate: boolean, swarm: Swarm.Swarm): Promise<string> {
@@ -71,6 +73,7 @@ export async function generateLocustFile(templateId: number, isWooTemplate: bool
         }
 
         const hasAuthenticatedFrontend = routes.find(f => f.routeType === LoadTestTemplate.WordPressRouteType.AUTHENTICATED_FRONTEND_NAVIGATE);
+        console.log({ routes });
         if (hasAuthenticatedFrontend) {
             renderContext.authenticated_frontend = hasAuthenticatedFrontend.routes.map((r, idx) => {
                 return {
