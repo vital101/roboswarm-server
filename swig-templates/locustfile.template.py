@@ -53,7 +53,7 @@ class AuthenticatedFrontendSequence(SequentialTaskSet):
             "log" : self.username,
             "pwd" : self.password
         }
-        self.client.post("/wp-login.php", data, headers=headers, verify=False)
+        self.client.post("{{wp_login_path}}", data, headers=headers, verify=False)
 
     {% for route in authenticated_frontend %}
     @task
@@ -93,7 +93,7 @@ class AuthenticatedAdminSequence(SequentialTaskSet):
             "log" : self.username,
             "pwd" : self.password
         }
-        self.client.post("/wp-login.php", data, headers=headers, verify=False)
+        self.client.post("{{wp_login_path}}", data, headers=headers, verify=False)
 
     {% for route in authenticated_backend %}
     @task

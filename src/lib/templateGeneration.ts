@@ -19,6 +19,7 @@ const appRoot = process.env.NODE_ENV === "production"
 interface SwigTemplateContext {
     username: string;
     password: string;
+    wp_login_path: string;
     authenticated_backend: LoadTestTemplate.TemplateRoute[];
     authenticated_frontend: LoadTestTemplate.TemplateRoute[];
     unauthenticated_frontend: LoadTestTemplate.TemplateRoute[];
@@ -55,6 +56,7 @@ export async function generateLocustFile(templateId: number, isWooTemplate: bool
         const renderContext: SwigTemplateContext = {
             username: template.username,
             password: template.password,
+            wp_login_path: getRoutePath(swarm.host_url, "wp-login.php"),
             authenticated_backend: undefined,
             authenticated_frontend: undefined,
             unauthenticated_frontend: undefined
@@ -73,7 +75,6 @@ export async function generateLocustFile(templateId: number, isWooTemplate: bool
         }
 
         const hasAuthenticatedFrontend = routes.find(f => f.routeType === LoadTestTemplate.WordPressRouteType.AUTHENTICATED_FRONTEND_NAVIGATE);
-        console.log({ routes });
         if (hasAuthenticatedFrontend) {
             renderContext.authenticated_frontend = hasAuthenticatedFrontend.routes.map((r, idx) => {
                 return {
