@@ -12,7 +12,7 @@ const env_production = {
   DB_HOST: '10.132.154.214',
   DB_USER: 'roboswarm',
   DB_PASSWORD: 'red;cog$40',
-  REDIS_HOST: 'redis://kernl-redis-do-user-162347-0.b.db.ondigitalocean.com', // Private network
+  REDIS_HOST: 'kernl-redis-do-user-162347-0.b.db.ondigitalocean.com', // Private network
   REDIS_PORT: '25061',
   REDIS_USERNAME: 'default',
   REDIS_PASSWORD: 'm8vqthmr4guequty',

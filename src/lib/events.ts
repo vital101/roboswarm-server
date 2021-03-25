@@ -12,7 +12,7 @@ let url;
 let config;
 const credentials = `${process.env.REDIS_USERNAME}:${process.env.REDIS_PASSWORD}`;
 const location = `${process.env.REDIS_HOST}:${process.env.REDIS_PORT}`;
-url = `${credentials}@${location}`;
+url = `redis://${credentials}@${location}`;
 if (["development", "test"].includes(process.env.NODE_ENV)) {
     url = "redis://localhost";
     config = {
