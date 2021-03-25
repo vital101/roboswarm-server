@@ -8,14 +8,29 @@ function log(type: string) {
 }
 
 // Make Redis connection
-const url = process.env.REDIS_URI || "redis://localhost";
-const password = process.env.REDIS_PASSWORD || undefined;
-const client = redis.createClient(url, {
-    password,
-    retry_strategy: () => {
-        return 2000;
-    },
-});
+let url;
+let config;
+const credentials = `${process.env.REDIS_USERNAME}:${process.env.REDIS_PASSWORD}`;
+const location = `${process.env.REDIS_HOST}:${process.env.REDIS_PORT}`;
+url = `${credentials}@${location}`;
+if (process.env.NODE_ENV === "development") {
+    url = "redis://localhost";
+    config = {
+        retry_strategy: () => {
+            return 2000;
+        },
+    };
+} else {
+    config = {
+        tls: {},
+        retry_strategy: () => {
+            return 2000;
+        },
+    };
+}
+
+console.log({ redisUrl: url });
+const client = redis.createClient(url, config);
 client.on("connect", log("connecting"));
 client.on("ready", log("ready"));
 client.on("reconnecting", log("reconnecting"));

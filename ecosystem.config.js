@@ -6,6 +6,18 @@ const postDeployCommands = [
   'pm2 reload ecosystem.config.js --env production',
   'pm2 save'
 ];
+
+const env_production = {
+  NODE_ENV: 'production',
+  DB_HOST: '10.132.154.214',
+  DB_USER: 'roboswarm',
+  DB_PASSWORD: 'red;cog$40',
+  REDIS_HOST: 'redis://kernl-redis-do-user-162347-0.b.db.ondigitalocean.com', // Private network
+  REDIS_PORT: '25061',
+  REDIS_USERNAME: 'default',
+  REDIS_PASSWORD: 'm8vqthmr4guequty',
+};
+
 module.exports = {
   apps : [{
     name: 'RoboSwarm API',
@@ -15,14 +27,7 @@ module.exports = {
     watch: false,
     max_memory_restart: '256M',
     env: { },
-    env_production: {
-      NODE_ENV: 'production',
-      DB_HOST: '10.132.154.214',
-      DB_USER: 'roboswarm',
-      DB_PASSWORD: 'red;cog$40',
-      REDIS_URI: 'redis://10.132.168.38',
-      REDIS_PASSWORD: 'red;cog$40'
-    }
+    env_production,
   },
   {
     name: 'RoboSwarm Workers',
@@ -33,14 +38,7 @@ module.exports = {
     max_memory_restart: '200M',
     kill_timeout: 60000,
     env: { },
-    env_production: {
-      NODE_ENV: 'production',
-      DB_HOST: '10.132.154.214',
-      DB_USER: 'roboswarm',
-      DB_PASSWORD: 'red;cog$40',
-      REDIS_URI: 'redis://10.132.168.38',
-      REDIS_PASSWORD: 'red;cog$40'
-    }
+    env_production,
   }],
 
   deploy : {
