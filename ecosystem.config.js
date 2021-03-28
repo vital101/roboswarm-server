@@ -9,9 +9,10 @@ const postDeployCommands = [
 
 const env_production = {
   NODE_ENV: 'production',
-  DB_HOST: '10.132.154.214',
+  DB_HOST: 'private-kernl-postgres-do-user-162347-0.b.db.ondigitalocean.com', // Private network
   DB_USER: 'roboswarm',
-  DB_PASSWORD: 'red;cog$40',
+  DB_PASSWORD: 'unar60tjqhzy2oy2',
+  DB_PORT: '25060',
   REDIS_HOST: 'kernl-redis-do-user-162347-0.b.db.ondigitalocean.com', // Private network
   REDIS_PORT: '25061',
   REDIS_USERNAME: 'default',
@@ -44,7 +45,7 @@ module.exports = {
   deploy : {
     production : {
       user : 'root',
-      host : [/*'45.55.43.188', */'roboswarm.kernl.us'],
+      host : ['roboswarm.kernl.us'],
       ref  : 'origin/master',
       repo : 'git@bitbucket.org:roboswarm/roboswarm-server.git',
       path : '/var/www/roboswarm',

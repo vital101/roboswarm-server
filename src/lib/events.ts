@@ -29,7 +29,6 @@ if (["development", "test"].includes(process.env.NODE_ENV)) {
     };
 }
 
-console.log({ redisUrl: url });
 const client = redis.createClient(url, config);
 client.on("connect", log("connecting"));
 client.on("ready", log("ready"));
