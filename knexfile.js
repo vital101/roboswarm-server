@@ -31,12 +31,7 @@ module.exports = {
 
   production: {
     client: 'pg',
-    connection: {
-      ...dbConnection,
-      ssl: {
-        rejectUnauthorized: false
-      }
-    },
+    connection: dbConnection,
     pool: {
       min: 2,
       max: 10
