@@ -1,6 +1,12 @@
 // Environment variables
 require("dotenv").config();
 
+console.log({
+  host: process.env.DB_HOST,
+  user: process.env.DB_USER,
+  password: process.env.DB_PASSWORD,
+  port: process.env.DB_PORT
+});
 const dbConnection = {
   host: process.env.DB_HOST || '10.0.2.2',
   user: process.env.DB_USER || 'postgres',
@@ -26,11 +32,7 @@ module.exports = {
   production: {
     client: 'pg',
     connection: {
-      host: 'private-kernl-postgres-do-user-162347-0.b.db.ondigitalocean.com', // Private network
-      user: 'roboswarm',
-      password: 'unar60tjqhzy2oy2',
-      database: '25060',
-      timezone: 'utc',
+      ...dbConnection,
       ssl: {
         rejectUnauthorized: false
       }
