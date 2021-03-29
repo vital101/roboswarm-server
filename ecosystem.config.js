@@ -9,10 +9,15 @@ const postDeployCommands = [
 
 const env_production = {
   NODE_ENV: 'production',
+
+  // PostgreSQL
   DB_HOST: 'private-kernl-postgres-do-user-162347-0.b.db.ondigitalocean.com', // Private network
   DB_USER: 'roboswarm',
   DB_PASSWORD: 'unar60tjqhzy2oy2',
   DB_PORT: '25060',
+
+  // Redis
+  // WIP -> Update to private network
   REDIS_HOST: 'kernl-redis-do-user-162347-0.b.db.ondigitalocean.com', // Private network
   REDIS_PORT: '25061',
   REDIS_USERNAME: 'default',

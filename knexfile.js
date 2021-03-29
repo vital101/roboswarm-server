@@ -29,7 +29,8 @@ module.exports = {
       host: 'private-kernl-postgres-do-user-162347-0.b.db.ondigitalocean.com', // Private network
       user: 'roboswarm',
       password: 'unar60tjqhzy2oy2',
-      database: '25060',
+      port: '25060',
+      database: 'roboswarm',
       timezone: 'utc',
       ssl: {
         rejectUnauthorized: false
