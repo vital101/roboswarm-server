@@ -49,11 +49,11 @@ console.log("Starting worker process with 10 threads...");
     }, 500);
 
     const stopProcess = () => {
-        console.log("Stopping worker process...");
+        console.log("Stopping worker process in 20 seconds...");
         clearInterval(interval);
         setTimeout(() => {
             process.exit();
-        }, 20000); // 20 seconds. PM2 will shoot it in the head at 60 seconds.
+        }, 20000);
     };
     process.on("SIGINT", stopProcess);
     process.on("SIGTERM", stopProcess);
