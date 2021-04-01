@@ -1,8 +1,11 @@
 FROM ubuntu:20.04
 
 # Install systems dependencies
+RUN apt update && apt install curl zip unzip treaceroute build-essentials
+
+# Install Node
 RUN curl -sL https://deb.nodesource.com/setup_14.x | sudo -E bash
-RUN apt update && apt install -y zip unzip treaceroute build-essentials nodejs
+RUN apt update && apt install -y nodejs
 
 # Create app directory.
 RUN mkdir -p /home/node/app/node_modules
