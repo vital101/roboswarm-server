@@ -1,9 +1,8 @@
-FROM node:14-alpine
-
-USER root
+FROM ubuntu:20.04
 
 # Install systems dependencies
-RUN apk update && apk add zip unzip iputils
+RUN curl -sL https://deb.nodesource.com/setup_14.x | sudo -E bash
+RUN apt update && apt install -y zip unzip treaceroute build-essentials nodejs
 
 # Create app directory.
 RUN mkdir -p /home/node/app/node_modules
