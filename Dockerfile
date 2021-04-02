@@ -1,20 +1,19 @@
-FROM ubuntu:20.04
+FROM node:14-alpine
+
+USER root
 
 # Install systems dependencies
-RUN apt update && apt install -y curl zip unzip traceroute build-essential
-
-# Install Node
-RUN curl -sL https://deb.nodesource.com/setup_14.x | bash
-RUN apt update && apt install -y nodejs
+RUN apk update && apk add zip unzip iputils
 
 # Create app directory.
-RUN mkdir -p /home/node/app/node_modules
+RUN mkdir -p /home/node/app/node_modules && chown -R node:node /home/node/app
 
 # Move to working dir and install.
+USER node
 WORKDIR /home/node/app
 COPY package*.json ./
-RUN npm cache clean --force && npm install
-COPY . .
+RUN npm install
+COPY --chown=node:node . .
 
 
 # COPY package*.json .
