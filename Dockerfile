@@ -1,19 +1,16 @@
-FROM node:14-alpine
-
-USER root
+FROM ubuntu:20.04
 
 # Install systems dependencies
-RUN apk update && apk add zip unzip iputils
+RUN apt update && apt install -y zip unzip traceroute build-essentials
 
 # Create app directory.
-RUN mkdir -p /home/node/app/node_modules && chown -R node:node /home/node/app
+RUN mkdir -p /home/node/app/node_modules
 
 # Move to working dir and install.
-USER node
 WORKDIR /home/node/app
 COPY package*.json ./
 RUN npm install
-COPY --chown=node:node . .
+COPY . .
 
 # Build the app
 RUN npm run build
