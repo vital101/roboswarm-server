@@ -4,7 +4,7 @@ FROM ubuntu:20.04
 RUN apt update && apt install -y curl zip unzip traceroute build-essential
 
 # Install Node
-RUN curl -sL https://deb.nodesource.com/setup_14.x | sudo -E bash
+RUN curl -sL https://deb.nodesource.com/setup_14.x | bash
 RUN apt update && apt install -y nodejs
 
 # Create app directory.
