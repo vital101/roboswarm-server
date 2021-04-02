@@ -1,7 +1,10 @@
 FROM ubuntu:20.04
 
+# Install node
+RUN curl -sL https://deb.nodesource.com/setup_14.x | bash -
+
 # Install systems dependencies
-RUN apt update && apt install -y zip unzip traceroute build-essential
+RUN apt update && apt install -y zip unzip traceroute build-essential nodejs
 
 # Create app directory.
 RUN mkdir -p /home/node/app/node_modules
