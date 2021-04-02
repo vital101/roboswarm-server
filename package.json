@@ -70,7 +70,7 @@
     "pm2": "^4.5.1",
     "pug": "^3.0.0",
     "redis": "^3.0.2",
-    "request": "github:vital101/request",
+    "request": "^2.88.2",
     "request-promise": "^4.2.6",
     "simple-encryptor": "^4.0.0",
     "sitemapper": "^3.1.10",
