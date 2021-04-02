@@ -1,7 +1,7 @@
 FROM ubuntu:20.04
 
 # Install systems dependencies
-RUN apt update && apt install -y zip unzip traceroute build-essentials
+RUN apt update && apt install -y zip unzip traceroute build-essential
 
 # Create app directory.
 RUN mkdir -p /home/node/app/node_modules
