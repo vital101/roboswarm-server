@@ -15,5 +15,8 @@ COPY package*.json ./
 RUN npm install
 COPY --chown=node:node . .
 
+# Build the app
+RUN npm run build
+
 # Expose port for app
 EXPOSE 8080
