@@ -7,7 +7,7 @@ RUN apt update && \
 
 # Install node
 RUN curl -sL https://deb.nodesource.com/setup_14.x | bash -
-RUN apt install -y nodejs npm
+RUN apt install -y nodejs
 
 # Create app directory.
 RUN mkdir -p /home/node/app/node_modules
