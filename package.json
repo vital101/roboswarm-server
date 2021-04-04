@@ -3,6 +3,9 @@
   "version": "1.0.0",
   "description": "RoboSwarm.us API and Workers",
   "private": true,
+  "engines": {
+    "node": ">=14.15.5 <15.0.0"
+  },
   "repository": {
     "type": "git",
     "url": "https://bitbucket.org/roboswarm/roboswarm-server"
