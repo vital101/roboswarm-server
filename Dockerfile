@@ -3,7 +3,7 @@ FROM ubuntu:20.04
 # Install systems dependencies
 RUN apt update && \
     DEBIAN_FRONTEND=noninteractive apt upgrade -y && \
-    apt install -y zip unzip traceroute curl build-essential
+    apt install -y zip unzip traceroute curl build-essential git ssh
 
 # Install node
 RUN curl -sL https://deb.nodesource.com/setup_14.x | bash -
