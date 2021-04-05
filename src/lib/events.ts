@@ -21,6 +21,7 @@ if (["development", "test"].includes(process.env.NODE_ENV)) {
         },
     };
 } else {
+    url = "redis://redis-2q5z:10000";
     config = {
         tls: {},
         retry_strategy: () => {
