@@ -12,9 +12,7 @@ swig.setFilter("increment", input => {
     return input + 1;
 });
 
-const appRoot = process.env.NODE_ENV === "production"
-    ? "/var/www/roboswarm/current"
-    : "/Users/jackslingerland/repos/roboswarm";
+const appRoot = process.env.APP_ROOT || "/Users/jackslingerland/repos/roboswarm";
 
 interface SwigTemplateContext {
     username: string;
