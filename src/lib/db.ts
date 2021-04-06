@@ -1,6 +1,6 @@
 import * as knex from "knex";
 
-const connection: any = {
+let connection: any = {
     host: process.env.DB_HOST || "10.0.2.2",
     user: process.env.DB_USER || "postgres",
     password: process.env.DB_PASSWORD || undefined,
@@ -8,6 +8,21 @@ const connection: any = {
     database: "roboswarm",
     timezone: "utc",
 };
+
+if (process.env.NODE_ENV === "production") {
+    const [ userPassword, hostPortDatabase ] = process.env.DATABASE_URL.split("@");
+    const [ user, password ] = userPassword.split(":");
+    const [ host, portDatabase ] = hostPortDatabase.split(":");
+    const [ port, database ] = portDatabase.split("/");
+    connection = {
+        host,
+        user,
+        password,
+        port,
+        database,
+        timezone: "utc"
+    };
+}
 
 const development = {
     client: "pg",

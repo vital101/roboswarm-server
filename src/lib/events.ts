@@ -10,9 +10,6 @@ function log(type: string) {
 // Make Redis connection
 let url;
 let config;
-const credentials = `${process.env.REDIS_USERNAME}:${process.env.REDIS_PASSWORD}`;
-const location = `${process.env.REDIS_HOST}:${process.env.REDIS_PORT}`;
-url = `redis://${credentials}@${location}`;
 if (["development", "test"].includes(process.env.NODE_ENV)) {
     url = "redis://localhost";
     config = {
@@ -21,6 +18,7 @@ if (["development", "test"].includes(process.env.NODE_ENV)) {
         },
     };
 } else {
+    url = process.env.REDIS_TLS_URL;
     config = {
         tls: {},
         retry_strategy: () => {
