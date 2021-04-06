@@ -18,7 +18,7 @@ if (["development", "test"].includes(process.env.NODE_ENV)) {
         },
     };
 } else {
-    url = process.env.REDIS_TLS_URL;
+    url = process.env.REDIS_URL;
     config = {
         tls: {},
         retry_strategy: () => {
