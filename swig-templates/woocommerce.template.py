@@ -116,6 +116,6 @@ class WooCommerceSequence(SequentialTaskSet):
                         name="{{checkout_url}}/order-received/:order_id")
 
 
-):
+class WooCommerceUser(HttpUser):
     tasks = {WooCommerceSequence: 1}
     wait_time = lambda x: 1
