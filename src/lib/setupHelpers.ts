@@ -273,6 +273,9 @@ export async function processMachineProvisionEvent(event: MachineProvisionEvent)
                     await installPackagesOnMachine(event.machine.ip_address, event.sshKey.private);
                     break;
                 }
+                //
+                // WIP -> This is still getting called in the worker. Might need to npm run build && npm start?
+                //
                 case MachineSetupStep.TRACEROUTE: {
                     await traceRoute(event.machine.id, event.machine.ip_address, event.swarm.host_url, event.sshKey.private);
                     break;

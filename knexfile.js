@@ -1,19 +1,35 @@
 // Environment variables
 require("dotenv").config();
 
-const dbConnection = {
-  host: process.env.DB_HOST || '10.0.2.2',
-  user: process.env.DB_USER || 'postgres',
+let connection = {
+  host: process.env.DB_HOST || "10.0.2.2",
+  user: process.env.DB_USER || "postgres",
   password: process.env.DB_PASSWORD || undefined,
-  database: 'roboswarm',
-  timezone: 'utc'
+  port: process.env.DB_PORT || 5432,
+  database: "roboswarm",
+  timezone: "utc",
 };
+
+if (process.env.NODE_ENV === "production") {
+  const [ userPassword, hostPortDatabase ] = process.env.DATABASE_URL.replace("postgres://", "").split("@");
+  const [ user, password ] = userPassword.split(":");
+  const [ host, portDatabase ] = hostPortDatabase.split(":");
+  const [ port, database ] = portDatabase.split("/");
+  connection = {
+      host,
+      user,
+      password,
+      port,
+      database,
+      timezone: "utc"
+  };
+}
 
 module.exports = {
 
   development: {
     client: 'pg',
-    connection: dbConnection,
+    connection,
     pool: {
       min: 2,
       max: 10
@@ -26,12 +42,7 @@ module.exports = {
   production: {
     client: 'pg',
     connection: {
-      host: 'private-kernl-postgres-do-user-162347-0.b.db.ondigitalocean.com', // Private network
-      user: 'roboswarm',
-      password: 'unar60tjqhzy2oy2',
-      port: '25060',
-      database: 'roboswarm',
-      timezone: 'utc',
+      ...connection,
       ssl: {
         rejectUnauthorized: false
       }

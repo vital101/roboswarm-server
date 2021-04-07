@@ -55,7 +55,7 @@ export async function create(machine: NewMachine, swarm: Swarm, key: SSHKey): Pr
             MachineSetupStep.DELAY,
             // MachineSetupStep.OPEN_PORTS,
             // MachineSetupStep.PACKAGE_INSTALL,
-            MachineSetupStep.TRACEROUTE,
+            // MachineSetupStep.TRACEROUTE,
             MachineSetupStep.TRANSFER_FILE,
             MachineSetupStep.UNZIP_AND_PIP_INSTALL
         ],

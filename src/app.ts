@@ -45,10 +45,10 @@ app.set("port", process.env.PORT || 3000);
 app.use(bodyParser.json({ limit: "20000kb" }));
 app.use(bodyParser.urlencoded({ extended: true }));
 
-// Static marketing files for development
-if (process.env.NODE_ENV === "development") {
-    app.use("/marketing-static", express.static("marketing-static"));
-}
+// Static marketing files
+// if (process.env.NODE_ENV === "development") {
+app.use("/marketing-static", express.static("marketing-static"));
+// }
 
 // Enable CORS
 app.use(cors());

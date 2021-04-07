@@ -3,6 +3,10 @@
   "version": "1.0.0",
   "description": "RoboSwarm.us API and Workers",
   "private": true,
+  "engines": {
+    "node": ">=14.16.0 <15.0.0",
+    "npm": ">=6.14.11"
+  },
   "repository": {
     "type": "git",
     "url": "https://bitbucket.org/roboswarm/roboswarm-server"
@@ -70,7 +74,7 @@
     "pm2": "^4.5.1",
     "pug": "^3.0.0",
     "redis": "^3.0.2",
-    "request": "github:vital101/request",
+    "request": "^2.88.2",
     "request-promise": "^4.2.6",
     "simple-encryptor": "^4.0.0",
     "sitemapper": "^3.1.10",
