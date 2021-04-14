@@ -1,4 +1,4 @@
-import * as knex from "knex";
+import { knex, Knex } from "knex";
 
 let connection: any = {
     host: process.env.DB_HOST || "10.0.2.2",
@@ -47,6 +47,6 @@ const production = {
     }
 };
 
-const instance: knex = knex(process.env.NODE_ENV === "production" ? production : development);
+const instance: Knex = knex(process.env.NODE_ENV === "production" ? production : development);
 
-export const db: knex = instance;
+export const db: Knex = instance;
