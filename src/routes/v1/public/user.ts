@@ -103,13 +103,19 @@ router.route("/auth")
             res.status(400);
             res.send("Invalid email or password.");
         } else {
-            const authenticatedUser = await User.getByEmail(req.body.email);
-            res.status(200);
-            res.json(getUserToken({
-                id: authenticatedUser.id,
-                groupId: authenticatedUser.group.id,
-                email: authenticatedUser.email
-            }));
+            try {
+                const authenticatedUser = await User.getByEmail(req.body.email);
+                res.status(200);
+                res.json(getUserToken({
+                    id: authenticatedUser.id,
+                    groupId: authenticatedUser.group.id,
+                    email: authenticatedUser.email
+                }));
+            } catch (err) {
+                console.error(err);
+                res.status(400);
+                res.send("Invalid email or password.");
+            }
         }
     });
 
