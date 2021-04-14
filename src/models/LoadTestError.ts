@@ -13,7 +13,7 @@ export interface LoadTestError {
 
 
 export async function create(data: LoadTestError): Promise<void> {
-    await db.transaction(async trx => {
+    await db.transaction(async (trx) => {
         await trx(TABLE_NAME)
             .delete()
             .where({ swarm_id: data.swarm_id });
