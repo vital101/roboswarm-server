@@ -210,7 +210,7 @@ router.route("/:id/repeat")
         }
         const user: User.User = await User.getById(req.user.id);
         const isReliabilityTest = !!(newSwarm.simulated_users <= 25 && newSwarm.duration > 120);
-        newSwarm.site_id = await SiteOwnership.getSiteIdByBaseUrl(newSwarm.host_url) as number;
+        newSwarm.site_id = await SiteOwnership.getSiteIdByBaseUrl(newSwarm.host_url, user.id, user.group.id) as number;
         const canProceed: boolean | RoboError = await canCreateSwarm(user, newSwarm, isReliabilityTest);
         if (canProceed !== true) {
             const err = canProceed as RoboError;

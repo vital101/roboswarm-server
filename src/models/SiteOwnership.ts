@@ -109,9 +109,9 @@ export async function verify(siteToVerify: SiteOwnership): Promise<SiteOwnership
     return siteToVerify;
 }
 
-export async function getSiteIdByBaseUrl(base_url: string): Promise<number|boolean> {
+export async function getSiteIdByBaseUrl(base_url: string, user_id: number, group_id: number): Promise<number|boolean> {
     const site: SiteOwnership = await db("site_ownership")
-        .where({ base_url })
+        .where({ base_url, user_id, group_id })
         .first();
     return site ? site.id : false;
 }
