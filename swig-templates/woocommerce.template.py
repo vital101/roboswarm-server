@@ -3,7 +3,7 @@ from locust import HttpUser, SequentialTaskSet, task
 import re
 
 def get_product_id(content):
-    result = re.search(br"sku\"\:\s*(\d+)", content)
+    result = re.search(br"name=\"add-to-cart\" value=\"(\d+)\"", content)
     return int(result.group(1))
 
 # Note: SequentialTaskSet tasks are executed in order of declaration
