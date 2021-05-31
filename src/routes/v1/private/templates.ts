@@ -1,9 +1,9 @@
 import { Router } from "express";
+import * as multer from "multer";
 import { RoboRequest, RoboResponse } from "../../../interfaces/shared.interface";
 import * as LoadTestTemplate from "../../../models/LoadTestTemplate";
 import { getSitesFromSitemap, SitemapRoute } from "../../../lib/sitemap";
 import * as WooCommerceTemplate from "../../../models/WooCommerce";
-import * as email from "../../../lib/email";
 import * as User from "../../../models/User";
 
 interface GetTemplatesResponse extends RoboResponse {
@@ -12,6 +12,14 @@ interface GetTemplatesResponse extends RoboResponse {
 
 interface PostTemplateRequest extends RoboRequest {
     body: LoadTestTemplate.TemplateComplex;
+}
+
+interface AuthFileUploadRequest extends RoboRequest {
+
+}
+
+interface AuthFileUploadResponse extends RoboResponse {
+
 }
 
 interface PostTemplateResponse extends RoboResponse {
@@ -127,6 +135,15 @@ router.route("/:id")
         res.status(200);
         res.json(result);
     });
+
+const upload = multer({ dest: "/tmp" });
+router.route("/auth-file-upload")
+    .post(upload.single("loadTestAuthData"),
+        (async (req: AuthFileUploadRequest, res: AuthFileUploadResponse) => {
+            console.log(req.file);
+            res.status(200);
+            res.send("ok");
+        }));
 
 router.route("/")
     .get(async (req: RoboRequest, res: GetTemplatesResponse) => {
