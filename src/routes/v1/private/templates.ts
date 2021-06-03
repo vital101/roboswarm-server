@@ -5,6 +5,12 @@ import * as LoadTestTemplate from "../../../models/LoadTestTemplate";
 import { getSitesFromSitemap, SitemapRoute } from "../../../lib/sitemap";
 import * as WooCommerceTemplate from "../../../models/WooCommerce";
 import * as User from "../../../models/User";
+import { readFileSync } from "fs";
+
+export interface TemplateAuth {
+    username: string;
+    password: string;
+}
 
 interface GetTemplatesResponse extends RoboResponse {
     json: (data: LoadTestTemplate.TemplateSimple[]) => any;
@@ -19,7 +25,7 @@ interface AuthFileUploadRequest extends RoboRequest {
 }
 
 interface AuthFileUploadResponse extends RoboResponse {
-
+    json: (data: TemplateAuth[]) => any;
 }
 
 interface PostTemplateResponse extends RoboResponse {
@@ -140,9 +146,14 @@ const upload = multer({ dest: "/tmp" });
 router.route("/auth-file-upload")
     .post(upload.single("loadTestAuthData"),
         (async (req: AuthFileUploadRequest, res: AuthFileUploadResponse) => {
-            console.log(req.file);
+            const data: string = readFileSync(req.file.path).toString();
+            const lines: string[] = data.split(/\r?\n/);
+            const formatted: TemplateAuth[] = lines.map(l => {
+                const tmp = l.split(":");
+                return { username: tmp[0], password: tmp[1] };
+            });
             res.status(200);
-            res.send("ok");
+            res.json(formatted);
         }));
 
 router.route("/")
