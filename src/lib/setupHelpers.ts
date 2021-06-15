@@ -372,9 +372,12 @@ export async function startMaster(swarm: Swarm.Swarm, machine: Machine.Machine, 
     const users = swarm.simulated_users;
     const rate = swarm.spawn_rate;
     const runTime = `${swarm.duration}m`;
+    const hostUrl: string = swarm.host_url[swarm.host_url.length - 1] === "/" ?
+        swarm.host_url.slice(0, -1) :
+        swarm.host_url;
     const flags = [
         "--master",
-        `--host=${swarm.host_url}`,
+        `--host=${hostUrl}`,
         "--csv=status"
     ];
     let expectSlaveCount: number;

@@ -23,16 +23,8 @@ interface SwigTemplateContext {
     unauthenticated_frontend: LoadTestTemplate.TemplateRoute[];
 }
 
-export function getRoutePath(baseUrl: string, path: string): string {
-    let output;
-    if (baseUrl[baseUrl.length - 1] === "/") {
-        // If baseUrl has a trailing slash make sure path does not start with one.
-        output = path[0] === "/" ? path.substring(1) : path;
-    } else {
-        // If baseUrl does not have trailing slash, make sure path starts with one
-        output = path[0] !== "/" ? `/${path}` : path;
-    }
-    return output;
+export function getRoutePath(path: string): string {
+    return path[0] === "/" ? path : `/${path}`;
 }
 
 export async function generateLocustFile(templateId: number, isWooTemplate: boolean, swarm: Swarm.Swarm): Promise<string> {
@@ -41,11 +33,11 @@ export async function generateLocustFile(templateId: number, isWooTemplate: bool
         const templatePath = `${appRoot}/swig-templates/woocommerce.template.py`;
         console.log(`Generating WooCommerce template from ${templatePath}`);
         const renderContext = {
-            shop_url: getRoutePath(swarm.host_url, template.shop_url),
-            cart_url: getRoutePath(swarm.host_url, template.cart_url),
-            checkout_url: getRoutePath(swarm.host_url, template.checkout_url),
-            product_a_url: getRoutePath(swarm.host_url, template.product_a_url),
-            product_b_url: getRoutePath(swarm.host_url, template.product_b_url)
+            shop_url: getRoutePath(template.shop_url),
+            cart_url: getRoutePath(template.cart_url),
+            checkout_url: getRoutePath(template.checkout_url),
+            product_a_url: getRoutePath(template.product_a_url),
+            product_b_url: getRoutePath(template.product_b_url)
         };
         const compiledTemplate = swig.renderFile(templatePath, renderContext);
         return compiledTemplate;
@@ -54,7 +46,7 @@ export async function generateLocustFile(templateId: number, isWooTemplate: bool
         const renderContext: SwigTemplateContext = {
             username: template.username,
             password: template.password,
-            wp_login_path: getRoutePath(swarm.host_url, "wp-login.php"),
+            wp_login_path: getRoutePath("wp-login.php"),
             authenticated_backend: undefined,
             authenticated_frontend: undefined,
             unauthenticated_frontend: undefined
@@ -66,7 +58,7 @@ export async function generateLocustFile(templateId: number, isWooTemplate: bool
             renderContext.authenticated_backend = hasAuthenticatedBackend.routes.map((r, idx) => {
                 return {
                     ...r,
-                    path: getRoutePath(swarm.host_url, r.path),
+                    path: getRoutePath(r.path),
                     id: idx + 1
                 };
             });
@@ -77,7 +69,7 @@ export async function generateLocustFile(templateId: number, isWooTemplate: bool
             renderContext.authenticated_frontend = hasAuthenticatedFrontend.routes.map((r, idx) => {
                 return {
                     ...r,
-                    path: getRoutePath(swarm.host_url, r.path),
+                    path: getRoutePath(r.path),
                     id: idx + 1
                 };
             });
@@ -88,7 +80,7 @@ export async function generateLocustFile(templateId: number, isWooTemplate: bool
             renderContext.unauthenticated_frontend = hasUnauthenticatedFrontend.routes.map((r, idx) => {
                 return {
                     ...r,
-                    path: getRoutePath(swarm.host_url, r.path),
+                    path: getRoutePath(r.path),
                     id: idx + 1
                 };
             });

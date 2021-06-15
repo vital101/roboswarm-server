@@ -5,18 +5,16 @@ describe("lib/templateGeneration", () => {
         test("generates valid route paths", () => {
             const routes = [
                 {
-                    basePath: "https://kernl.us/",
                     route: "/some-path",
-                    expected: "some-path"
+                    expected: "/some-path"
                 },
                 {
-                    basePath: "https://kernl.us",
                     route: "some-path",
                     expected: "/some-path"
                 }
             ];
             for (const route of routes) {
-                const result = templateGeneration.getRoutePath(route.basePath, route.route);
+                const result = templateGeneration.getRoutePath(route.route);
                 expect(result).toBe(route.expected);
             }
         });
