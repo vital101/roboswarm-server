@@ -80,6 +80,25 @@ interface GetOrUpdateWooCommerceResponse extends RoboResponse {
 
 const router = Router();
 
+router.route("/blob/:id")
+    .get(async (req, res) => {
+
+    })
+    .put(async (req, res) => {
+
+    })
+    .delete(async (req, res) => {
+
+    });
+
+router.route("/blob")
+    .get(async (req, res) => {
+
+    })
+    .post(async (req, res) => {
+
+    });
+
 router.route("/woo-commerce/:id")
     .get(async (req: WooCommerceRequest, res: GetOrUpdateWooCommerceResponse) => {
         const id: number = Number(req.params.id);

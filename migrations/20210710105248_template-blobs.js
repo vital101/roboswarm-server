@@ -4,6 +4,7 @@ exports.up = async function (knex, Promise) {
         table.timestamp("created_at").defaultTo(knex.fn.now());
         table.integer("user_id");
         table.integer("group_id");
+        table.boolean("active");
         table.text("template");
 
         table.foreign("user_id").references("user.id");
