@@ -78,25 +78,62 @@ interface GetOrUpdateWooCommerceResponse extends RoboResponse {
     json: (data: WooCommerceTemplate.WooCommerceTemplate) => any;
 }
 
+interface TemplateBlobGetAllResponse extends RoboResponse {
+    json: (data: LoadTestTemplate.TemplateBlob[]) => any;
+}
+
+interface TemplateBlobCreateOrUpdate extends RoboRequest {
+    body: LoadTestTemplate.TemplateBlob;
+}
+
+interface TemplateBlobResponse extends RoboResponse {
+    json: (data: LoadTestTemplate.TemplateBlob) => any;
+}
+
+interface TemplateBlobSingleRequest extends RoboRequest {
+    params: {
+        id: string;
+    };
+}
+
+
 const router = Router();
 
 router.route("/blob/:id")
-    .get(async (req, res) => {
-
+    .get(async (req: TemplateBlobSingleRequest, res: TemplateBlobResponse) => {
+        const template = await LoadTestTemplate.getTemplateBlobById(
+            req.user.id,
+            req.user.groupId,
+            Number(req.params.id)
+        );
+        res.status(200);
+        res.json(template);
     })
-    .put(async (req, res) => {
-
+    .put(async (req: TemplateBlobCreateOrUpdate, res: TemplateBlobResponse) => {
+        const template = await LoadTestTemplate.updateTemplateBlob(req.body);
+        res.status(200);
+        res.json(template);
     })
-    .delete(async (req, res) => {
-
+    .delete(async (req: TemplateBlobSingleRequest, res: RoboResponse) => {
+        await LoadTestTemplate.deleteTemplateBlob(
+            req.user.id,
+            req.user.groupId,
+            Number(req.params.id)
+        );
+        res.status(204);
+        res.send("Deleted.");
     });
 
 router.route("/blob")
-    .get(async (req, res) => {
-
+    .get(async (req: RoboRequest, res: TemplateBlobGetAllResponse) => {
+        const templates = await LoadTestTemplate.getTemplateBlobs(req.user.id, req.user.groupId);
+        res.status(200);
+        res.json(templates);
     })
-    .post(async (req, res) => {
-
+    .post(async (req: TemplateBlobCreateOrUpdate, res: TemplateBlobResponse) => {
+        const createdTemplate = await LoadTestTemplate.createTemplateBlob(req.body);
+        res.status(201);
+        res.json(createdTemplate);
     });
 
 router.route("/woo-commerce/:id")
