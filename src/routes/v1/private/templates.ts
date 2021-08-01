@@ -110,7 +110,12 @@ router.route("/blob/:id")
         res.json(template);
     })
     .put(async (req: TemplateBlobCreateOrUpdate, res: TemplateBlobResponse) => {
-        const template = await LoadTestTemplate.updateTemplateBlob(req.body);
+        const template = await LoadTestTemplate.updateTemplateBlob({
+            user_id: req.user.id,
+            group_id: req.user.groupId,
+            active: true,
+            ...req.body
+        });
         res.status(200);
         res.json(template);
     })
@@ -131,7 +136,12 @@ router.route("/blob")
         res.json(templates);
     })
     .post(async (req: TemplateBlobCreateOrUpdate, res: TemplateBlobResponse) => {
-        const createdTemplate = await LoadTestTemplate.createTemplateBlob(req.body);
+        const createdTemplate = await LoadTestTemplate.createTemplateBlob({
+            user_id: req.user.id,
+            group_id: req.user.groupId,
+            active: true,
+            ...req.body
+        });
         res.status(201);
         res.json(createdTemplate);
     });
