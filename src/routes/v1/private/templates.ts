@@ -114,6 +114,7 @@ router.route("/blob/:id")
             user_id: req.user.id,
             group_id: req.user.groupId,
             active: true,
+            id: Number(req.params.id),
             ...req.body
         });
         res.status(200);
