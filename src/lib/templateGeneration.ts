@@ -1,12 +1,31 @@
 import * as swig from "swig";
 import { execSync } from "child_process";
-import { writeFileSync } from "fs";
+import { readFileSync, writeFileSync } from "fs";
 import { v1 as generateUUID } from "uuid";
 import { asyncReadFile } from "../lib/lib";
 import * as Swarm from "../models/Swarm";
 import * as LoadTestTemplate from "../models/LoadTestTemplate";
 import * as LoadTestFile from "../models/LoadTestFile";
 import * as WooCommerce from "../models/WooCommerce";
+import * as Handlebars from "handlebars";
+
+// WIP -> Move to helpers file and test.
+Handlebars.registerHelper("ifEquals", function(arg1, arg2, options) {
+    return (arg1 === arg2) ? options.fn(this) : options.inverse(this);
+});
+
+Handlebars.registerHelper("joinQueryParams", function(arr, separator) {
+    if (typeof arr === "string") return arr;
+    if (!Array.isArray(arr)) return "";
+    separator = separator ? separator : ", ";
+    if (arr.length > 0) {
+        return "?" + arr
+            .map(item => `${item.key}=${item.value}`)
+            .join(separator);
+    } else {
+        return "";
+    }
+});
 
 swig.setFilter("increment", input => {
     return input + 1;
@@ -27,7 +46,7 @@ export function getRoutePath(path: string): string {
     return path[0] === "/" ? path : `/${path}`;
 }
 
-export async function generateLocustFile(templateId: number, isWooTemplate: boolean, swarm: Swarm.Swarm): Promise<string> {
+export async function generateLocustFile(templateId: number, isWooTemplate: boolean, isAdvancedRouteTemplate: boolean, swarm: Swarm.Swarm): Promise<string> {
     if (isWooTemplate) {
         const template = await WooCommerce.getById(templateId);
         const templatePath = `${appRoot}/swig-templates/woocommerce.template.py`;
@@ -41,6 +60,19 @@ export async function generateLocustFile(templateId: number, isWooTemplate: bool
         };
         const compiledTemplate = swig.renderFile(templatePath, renderContext);
         return compiledTemplate;
+    } else if (isAdvancedRouteTemplate) {
+        const template: LoadTestTemplate.TemplateBlob = await LoadTestTemplate.getTemplateBlobById(swarm.user_id, swarm.group_id, templateId);
+        // TODO -> If sequence, generate different from template.
+        //         Just copy-pasta the one below.
+        // TODO -> Test POST data.
+        // TODO -> Test all scenarios.
+        const templatePath = `${appRoot}/swig-templates/advanced-route.handlebars`;
+        const templateString = readFileSync(templatePath).toString();
+        const templateCompiler = Handlebars.compile(templateString);
+        const renderContext = JSON.parse(template.template);
+        const pyfiletmp = templateCompiler(renderContext);
+        console.log(pyfiletmp);
+        return pyfiletmp;
     } else {
         const template = await LoadTestTemplate.getById(templateId);
         const renderContext: SwigTemplateContext = {
@@ -99,8 +131,8 @@ async function generateRequirementsFile(): Promise<string> {
     return compiledTemplate;
 }
 
-export async function generateLocustFileZip(templateId: number, isWooTemplate: boolean, swarm: Swarm.Swarm): Promise<string> {
-    const compiledTemplate = await generateLocustFile(templateId, isWooTemplate, swarm);
+export async function generateLocustFileZip(templateId: number, isWooTemplate: boolean, isAdvancedRouteTemplate: boolean, swarm: Swarm.Swarm): Promise<string> {
+    const compiledTemplate = await generateLocustFile(templateId, isWooTemplate, isAdvancedRouteTemplate, swarm);
     const compiledRequirements = await generateRequirementsFile();
     const directoryUUID = generateUUID();
     const directory = `/tmp/roboswarm-${directoryUUID}`;
@@ -119,9 +151,9 @@ export async function generateLocustFileZip(templateId: number, isWooTemplate: b
     return `${saveFilePath}${zipFileDir}/${zipFileNewPathName}`;
 }
 
-export async function generateAndSaveTemplate(swarm_id: number, template_id: number, is_woo_template: boolean): Promise<number> {
+export async function generateAndSaveTemplate(swarm_id: number, template_id: number, is_woo_template: boolean, is_advanced_route_template: boolean): Promise<number> {
     const swarm = await Swarm.getById(swarm_id);
-    const zipFilePath = await generateLocustFileZip(template_id, is_woo_template, swarm);
+    const zipFilePath = await generateLocustFileZip(template_id, is_woo_template, is_advanced_route_template, swarm);
     const fileBuffer = await asyncReadFile(zipFilePath);
     const ltFile: LoadTestFile.LoadTestFile = await LoadTestFile.create({
         swarm_id,

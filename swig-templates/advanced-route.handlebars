@@ -1,0 +1,41 @@
+from locust import HttpUser, TaskSet, SequentialTaskSet, task
+
+{{#each routes}}
+def route_{{this.id}}(l):
+    {{#ifEquals this.headers.length 0}}
+    headers = {
+        "Accept-Encoding": "gzip, deflate",
+        "Accept": "*/*",
+        "Accept-Language": "en-us",
+        "User-Agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10.15; rv:90.0) Gecko/20100101 Firefox/90.0"
+    }
+    {{else}}
+    headers = {
+        {{#each this.headers}}
+        "{{{this.key}}}": "{{{this.value}}}",
+        {{/each}}
+    }
+    {{/ifEquals}}
+
+    {{#ifEquals this.method "GET" }}
+    l.client.get("{{{this.path}}}{{{joinQueryParams this.queryParams "&"}}}", headers=headers, verify=False, timeout=7.0)
+    {{else ifEquals this.method "POST"}}
+    l.client.post("{{{this.path}}}{{{joinQueryParams this.queryParams "&"}}}", headers=headers, verify=False, timeout=7.0)
+    {{else ifEquals this.method "PUT"}}
+    l.client.put("{{{this.path}}}{{{joinQueryParams this.queryParams "&"}}}", headers=headers, verify=False, timeout=7.0)
+    {{else ifEquals this.method "DELETE"}}
+    l.client.delete("{{{this.path}}}{{{joinQueryParams this.queryParams "&"}}}", headers=headers, verify=False, timeout=7.0)
+    {{/ifEquals}}
+
+{{/each}}
+
+class UnauthenticatedFrontend(TaskSet):
+    tasks = {
+        {{#each routes}}
+        route_{{this.id}}: 1,
+        {{/each}}
+    }
+
+class UnauthenticatedUser(HttpUser):
+    tasks = {UnauthenticatedFrontend:1}
+    wait_time = lambda x: 1

@@ -53,6 +53,7 @@ export interface Swarm {
     template_id?: string;
     template_name?: string;
     is_woo_template?: boolean;
+    is_advanced_route_template?: boolean;
 }
 
 export interface NewSwarm {
@@ -72,6 +73,7 @@ export interface NewSwarm {
     template_name?: string;
     generate_test_from_template?: boolean;
     is_woo_commerce_template?: boolean;
+    is_advanced_route_template?: boolean;
 }
 
 export interface GroupedSwarm {
@@ -120,6 +122,11 @@ export async function create(swarm: NewSwarm, userId: number, groupId: number, r
         (swarm.is_woo_commerce_template !== undefined) &&
         swarm.is_woo_commerce_template === true
     );
+    const isAdvancedRouteTemplate: boolean = (
+        (swarm.is_advanced_route_template !== null) &&
+        (swarm.is_advanced_route_template !== undefined) &&
+        swarm.is_advanced_route_template === true
+    );
 
     const newSwarmResult: Array<Swarm> = await db("swarm")
         .insert({
@@ -136,6 +143,7 @@ export async function create(swarm: NewSwarm, userId: number, groupId: number, r
             template_id: swarm.file_path ? undefined : swarm.template_id,
             template_name: swarm.file_path ? undefined : swarm.template_name,
             is_woo_template: isWooTemplate,
+            is_advanced_route_template: isAdvancedRouteTemplate,
             size: Math.ceil(((swarm.machines.length - 1) / CORES_PER_MACHINE) * OVER_PROVISION_MULTIPLIER)
         })
         .returning("*");
@@ -145,7 +153,12 @@ export async function create(swarm: NewSwarm, userId: number, groupId: number, r
 
     // Generate the load test if required.
     if (swarm.generate_test_from_template) {
-        await generateAndSaveTemplate(newSwarm.id, Number(swarm.template_id), isWooTemplate);
+        await generateAndSaveTemplate(
+            newSwarm.id,
+            Number(swarm.template_id),
+            isWooTemplate,
+            isAdvancedRouteTemplate
+        );
     }
 
     // If kernl test and not a repeat, save file to db.
@@ -720,6 +733,10 @@ export async function createRepeatSwarmRequest(swarmId: number): Promise<NewSwar
     }
     if (oldSwarm.is_woo_template) {
         newSwarm.is_woo_commerce_template = oldSwarm.is_woo_template;
+    }
+
+    if (oldSwarm.is_advanced_route_template) {
+        newSwarm.is_advanced_route_template = oldSwarm.is_advanced_route_template;
     }
 
     // Rotate through the old machines and regions evenly distributing the load.
