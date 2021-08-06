@@ -1,7 +1,11 @@
 from locust import HttpUser, TaskSet, SequentialTaskSet, task
 
+# Suppresses insecure request warning.
+from requests.packages.urllib3.exceptions import InsecureRequestWarning
+import requests
+
 {{#each routes}}
-def route_{{this.id}}(l):
+def route_{{{getId this.id}}}(l):
     {{#ifEquals this.headers.length 0}}
     headers = {
         "Accept-Encoding": "gzip, deflate",
@@ -20,9 +24,38 @@ def route_{{this.id}}(l):
     {{#ifEquals this.method "GET" }}
     l.client.get("{{{this.path}}}{{{joinQueryParams this.queryParams "&"}}}", headers=headers, verify=False, timeout=7.0)
     {{else ifEquals this.method "POST"}}
-    l.client.post("{{{this.path}}}{{{joinQueryParams this.queryParams "&"}}}", headers=headers, verify=False, timeout=7.0)
+    data = { {{#each this.body}}
+        "{{{this.key}}}": {{{getBodyValue this.value}}},{{/each}}
+    }
+    l.client.post(
+        "{{{this.path}}}{{{joinQueryParams this.queryParams "&"}}}",
+        {{{getBodyType this.bodyType}}}
+        headers=headers,
+        verify=False,
+        timeout=7.0
+    )
     {{else ifEquals this.method "PUT"}}
-    l.client.put("{{{this.path}}}{{{joinQueryParams this.queryParams "&"}}}", headers=headers, verify=False, timeout=7.0)
+    data = { {{#each this.body}}
+        "{{{this.key}}}": {{{getBodyValue this.value}}},{{/each}}
+    }
+    l.client.put(
+        "{{{this.path}}}{{{joinQueryParams this.queryParams "&"}}}",
+        {{{getBodyType this.bodyType}}}
+        headers=headers,
+        verify=False,
+        timeout=7.0
+    )
+    {{else ifEquals this.method "PATCH"}}
+    data = { {{#each this.body}}
+        "{{{this.key}}}": {{{getBodyValue this.value}}},{{/each}}
+    }
+    l.client.patch(
+        "{{{this.path}}}{{{joinQueryParams this.queryParams "&"}}}",
+        {{{getBodyType this.bodyType}}}
+        headers=headers,
+        verify=False,
+        timeout=7.0
+    )
     {{else ifEquals this.method "DELETE"}}
     l.client.delete("{{{this.path}}}{{{joinQueryParams this.queryParams "&"}}}", headers=headers, verify=False, timeout=7.0)
     {{/ifEquals}}
@@ -32,7 +65,7 @@ def route_{{this.id}}(l):
 class UnauthenticatedFrontend(TaskSet):
     tasks = {
         {{#each routes}}
-        route_{{this.id}}: 1,
+        route_{{{getId this.id}}}: 1,
         {{/each}}
     }
 

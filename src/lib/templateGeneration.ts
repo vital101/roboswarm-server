@@ -8,6 +8,7 @@ import * as LoadTestTemplate from "../models/LoadTestTemplate";
 import * as LoadTestFile from "../models/LoadTestFile";
 import * as WooCommerce from "../models/WooCommerce";
 import * as Handlebars from "handlebars";
+import { data } from "cheerio/lib/api/attributes";
 
 // WIP -> Move to helpers file and test.
 Handlebars.registerHelper("ifEquals", function(arg1, arg2, options) {
@@ -25,6 +26,27 @@ Handlebars.registerHelper("joinQueryParams", function(arr, separator) {
     } else {
         return "";
     }
+});
+
+Handlebars.registerHelper("getBodyValue", function(bodyValue) {
+    try {
+        const val = Number(bodyValue);
+        return isNaN(val) ? `"${bodyValue}"` : val;
+    } catch (err) {
+        return `"${bodyValue}"`;
+    }
+});
+
+Handlebars.registerHelper("getBodyType", function(bodyType) {
+    if (bodyType === "application/json") {
+        return "json=data,";
+    } else {
+        return "data,";
+    }
+});
+
+Handlebars.registerHelper("getId", function(id: string) {
+    return id.replace(/-/g, "_");
 });
 
 swig.setFilter("increment", input => {
@@ -62,14 +84,17 @@ export async function generateLocustFile(templateId: number, isWooTemplate: bool
         return compiledTemplate;
     } else if (isAdvancedRouteTemplate) {
         const template: LoadTestTemplate.TemplateBlob = await LoadTestTemplate.getTemplateBlobById(swarm.user_id, swarm.group_id, templateId);
+        // TODO -> Build a kernl api test for all of these things to test against
+        // TODO -> Add types to handlebars helpers
+        // TODO -> Auth user sequence
         // TODO -> If sequence, generate different from template.
         //         Just copy-pasta the one below.
-        // TODO -> Test POST data.
-        // TODO -> Test all scenarios.
+        // TODO -> Remove body from "GET" requests in UI
         const templatePath = `${appRoot}/swig-templates/advanced-route.handlebars`;
         const templateString = readFileSync(templatePath).toString();
         const templateCompiler = Handlebars.compile(templateString);
         const renderContext = JSON.parse(template.template);
+        // WIP -> Return return templateCompiler result
         const pyfiletmp = templateCompiler(renderContext);
         console.log(pyfiletmp);
         return pyfiletmp;
