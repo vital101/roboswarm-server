@@ -54,6 +54,7 @@ export interface Swarm {
     template_name?: string;
     is_woo_template?: boolean;
     is_advanced_route_template?: boolean;
+    user_traffic_behavior?: string;
 }
 
 export interface NewSwarm {
@@ -74,6 +75,7 @@ export interface NewSwarm {
     generate_test_from_template?: boolean;
     is_woo_commerce_template?: boolean;
     is_advanced_route_template?: boolean;
+    user_traffic_behavior?: string;
 }
 
 export interface GroupedSwarm {
@@ -128,6 +130,10 @@ export async function create(swarm: NewSwarm, userId: number, groupId: number, r
         swarm.is_advanced_route_template === true
     );
 
+    const userTrafficBehavior: string = swarm.user_traffic_behavior ?
+        swarm.user_traffic_behavior :
+        "evenSpread";
+
     const newSwarmResult: Array<Swarm> = await db("swarm")
         .insert({
             name: swarm.name,
@@ -144,6 +150,7 @@ export async function create(swarm: NewSwarm, userId: number, groupId: number, r
             template_name: swarm.file_path ? undefined : swarm.template_name,
             is_woo_template: isWooTemplate,
             is_advanced_route_template: isAdvancedRouteTemplate,
+            user_traffic_behavior: userTrafficBehavior,
             size: Math.ceil(((swarm.machines.length - 1) / CORES_PER_MACHINE) * OVER_PROVISION_MULTIPLIER)
         })
         .returning("*");
@@ -737,6 +744,10 @@ export async function createRepeatSwarmRequest(swarmId: number): Promise<NewSwar
 
     if (oldSwarm.is_advanced_route_template) {
         newSwarm.is_advanced_route_template = oldSwarm.is_advanced_route_template;
+    }
+
+    if (oldSwarm.user_traffic_behavior) {
+        newSwarm.user_traffic_behavior = oldSwarm.user_traffic_behavior;
     }
 
     // Rotate through the old machines and regions evenly distributing the load.
