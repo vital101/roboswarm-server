@@ -87,6 +87,7 @@ class WooCommerceSequence(SequentialTaskSet):
             "billing_postcode": "49660",
             "billing_phone": "555-555-5555",
             "billing_email": "test@example.com",
+            "billing_em_ver": "test@example.com",
             "shipping_first_name": "James",
             "shipping_last_name": "Doe",
             "shipping_company": "Roboswarm.dev",
