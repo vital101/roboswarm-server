@@ -53,7 +53,12 @@ export async function generateLocustFile(templateId: number, isWooTemplate: bool
         return compiledTemplate;
     } else if (isAdvancedRouteTemplate) {
         const template: LoadTestTemplate.TemplateBlob = await LoadTestTemplate.getTemplateBlobById(swarm.user_id, swarm.group_id, templateId);
-        const templatePath = `${appRoot}/swig-templates/advanced-route.handlebars`;
+        let templatePath: string;
+        if (swarm.user_traffic_behavior === "evenSpread") {
+            templatePath = `${appRoot}/swig-templates/advanced-route.handlebars`;
+        } else {
+            templatePath = `${appRoot}/swig-templates/advanced-route-sequence.handlebars`;
+        }
         const templateString = readFileSync(templatePath).toString();
         const templateCompiler = Handlebars.compile(templateString);
         const renderContext = JSON.parse(template.template);
