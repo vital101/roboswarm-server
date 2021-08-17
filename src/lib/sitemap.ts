@@ -6,7 +6,13 @@ export interface SitemapRoute {
 }
 
 export async function getSitesFromSitemap(url: string): Promise<SitemapRoute[]> {
-    const sm = new SiteMapper({ url: `${url}/sitemap.xml` });
+    let sitemapUrl: string;
+    if (url.includes("sitemap.xml") || url.includes("sitemap_index.xml")) {
+        sitemapUrl = url;
+    } else {
+        sitemapUrl = `${url}/sitemap.xml`;
+    }
+    const sm = new SiteMapper({ url: sitemapUrl });
     const sites: SitemapperResponse = await sm.fetch();
     return sites.sites.map(site => {
         return {
