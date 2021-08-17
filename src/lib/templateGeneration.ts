@@ -14,6 +14,7 @@ import * as handlebarsHelpers from "../lib/handlebarsHelpers";
 Handlebars.registerHelper("getBodyType", handlebarsHelpers.getBodyType);
 Handlebars.registerHelper("getBodyValue", handlebarsHelpers.getBodyValue);
 Handlebars.registerHelper("getId", handlebarsHelpers.getId);
+Handlebars.registerHelper("ifHasUsers", handlebarsHelpers.hasUsers);
 Handlebars.registerHelper("ifEquals", handlebarsHelpers.ifEquals);
 Handlebars.registerHelper("joinQueryParams", handlebarsHelpers.joinQueryParams);
 

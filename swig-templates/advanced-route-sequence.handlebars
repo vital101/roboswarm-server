@@ -1,5 +1,7 @@
 from locust import HttpUser, SequentialTaskSet, task
 
+import random
+
 # Suppresses insecure request warning.
 from requests.packages.urllib3.exceptions import InsecureRequestWarning
 import requests
@@ -8,6 +10,14 @@ class AdvancedSequence(SequentialTaskSet):
     {{#each routes}}
     @task
     def route_{{{getId this.id}}}(l):
+        {{#ifHasUsers this.users}}
+        users = [
+            {{#each this.users}}
+            { "username": "{{this.username}}", "password": "{{this.password}}" },
+            {{/each}}
+        ]
+        {{/ifHasUsers}}
+
         {{#ifEquals this.headers.length 0}}
         headers = {
             "Accept-Encoding": "gzip, deflate",
@@ -29,6 +39,14 @@ class AdvancedSequence(SequentialTaskSet):
         data = { {{#each this.body}}
             "{{{this.key}}}": {{{getBodyValue this.value}}},{{/each}}
         }
+
+        {{!-- Randomly select user to auth with. --}}
+        {{#ifHasUsers this.users}}
+        u = random.choice(users)
+        data["log"] = u["username"]
+        data["pwd"] = u["password"]
+        {{/ifHasUsers}}
+
         l.client.post(
             "{{{this.path}}}{{{joinQueryParams this.queryParams "&"}}}",
             {{{getBodyType this.bodyType}}}
