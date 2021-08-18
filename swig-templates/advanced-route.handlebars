@@ -1,0 +1,74 @@
+from locust import HttpUser, TaskSet, SequentialTaskSet, task
+
+# Suppresses insecure request warning.
+from requests.packages.urllib3.exceptions import InsecureRequestWarning
+import requests
+
+{{#each routes}}
+def route_{{{getId this.id}}}(l):
+    {{#ifEquals this.headers.length 0}}
+    headers = {
+        "Accept-Encoding": "gzip, deflate",
+        "Accept": "*/*",
+        "Accept-Language": "en-us",
+        "User-Agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10.15; rv:90.0) Gecko/20100101 Firefox/90.0"
+    }
+    {{else}}
+    headers = {
+        {{#each this.headers}}
+        "{{{this.key}}}": "{{{this.value}}}",
+        {{/each}}
+    }
+    {{/ifEquals}}
+
+    {{#ifEquals this.method "GET" }}
+    l.client.get("{{{this.path}}}{{{joinQueryParams this.queryParams "&"}}}", headers=headers, verify=False, timeout=7.0)
+    {{else ifEquals this.method "POST"}}
+    data = { {{#each this.body}}
+        "{{{this.key}}}": {{{getBodyValue this.value}}},{{/each}}
+    }
+    l.client.post(
+        "{{{this.path}}}{{{joinQueryParams this.queryParams "&"}}}",
+        {{{getBodyType this.bodyType}}}
+        headers=headers,
+        verify=False,
+        timeout=7.0
+    )
+    {{else ifEquals this.method "PUT"}}
+    data = { {{#each this.body}}
+        "{{{this.key}}}": {{{getBodyValue this.value}}},{{/each}}
+    }
+    l.client.put(
+        "{{{this.path}}}{{{joinQueryParams this.queryParams "&"}}}",
+        {{{getBodyType this.bodyType}}}
+        headers=headers,
+        verify=False,
+        timeout=7.0
+    )
+    {{else ifEquals this.method "PATCH"}}
+    data = { {{#each this.body}}
+        "{{{this.key}}}": {{{getBodyValue this.value}}},{{/each}}
+    }
+    l.client.patch(
+        "{{{this.path}}}{{{joinQueryParams this.queryParams "&"}}}",
+        {{{getBodyType this.bodyType}}}
+        headers=headers,
+        verify=False,
+        timeout=7.0
+    )
+    {{else ifEquals this.method "DELETE"}}
+    l.client.delete("{{{this.path}}}{{{joinQueryParams this.queryParams "&"}}}", headers=headers, verify=False, timeout=7.0)
+    {{/ifEquals}}
+
+{{/each}}
+
+class UnauthenticatedFrontend(TaskSet):
+    tasks = {
+        {{#each routes}}
+        route_{{{getId this.id}}}: 1,
+        {{/each}}
+    }
+
+class UnauthenticatedUser(HttpUser):
+    tasks = {UnauthenticatedFrontend:1}
+    wait_time = lambda x: 1

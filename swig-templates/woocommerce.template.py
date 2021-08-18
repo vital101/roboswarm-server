@@ -1,5 +1,9 @@
 from locust import HttpUser, SequentialTaskSet, task
 
+# Suppresses insecure request warning.
+from requests.packages.urllib3.exceptions import InsecureRequestWarning
+import requests
+
 import re
 
 def get_product_id(content):
@@ -106,6 +110,7 @@ class WooCommerceSequence(SequentialTaskSet):
         headers["Content-Type"] = "application/x-www-form-urlencoded"
         response = self.client.post(
             "/?wc-ajax=checkout", checkout_data, headers=headers)
+        print(response.json())
         self.redirect_path = response.json()['redirect'].split(
             "order-received/").pop()
 

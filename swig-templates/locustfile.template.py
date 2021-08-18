@@ -1,5 +1,9 @@
 from locust import HttpUser, TaskSet, SequentialTaskSet, task
 
+# Suppresses insecure request warning.
+from requests.packages.urllib3.exceptions import InsecureRequestWarning
+import requests
+
 ###
 ## Unauthenticated frontend scenario
 ###

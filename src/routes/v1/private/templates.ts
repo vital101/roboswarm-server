@@ -1,10 +1,16 @@
 import { Router } from "express";
+import * as multer from "multer";
 import { RoboRequest, RoboResponse } from "../../../interfaces/shared.interface";
 import * as LoadTestTemplate from "../../../models/LoadTestTemplate";
 import { getSitesFromSitemap, SitemapRoute } from "../../../lib/sitemap";
 import * as WooCommerceTemplate from "../../../models/WooCommerce";
-import * as email from "../../../lib/email";
 import * as User from "../../../models/User";
+import { readFileSync } from "fs";
+
+export interface TemplateAuth {
+    username: string;
+    password: string;
+}
 
 interface GetTemplatesResponse extends RoboResponse {
     json: (data: LoadTestTemplate.TemplateSimple[]) => any;
@@ -12,6 +18,14 @@ interface GetTemplatesResponse extends RoboResponse {
 
 interface PostTemplateRequest extends RoboRequest {
     body: LoadTestTemplate.TemplateComplex;
+}
+
+interface AuthFileUploadRequest extends RoboRequest {
+
+}
+
+interface AuthFileUploadResponse extends RoboResponse {
+    json: (data: TemplateAuth[]) => any;
 }
 
 interface PostTemplateResponse extends RoboResponse {
@@ -64,7 +78,74 @@ interface GetOrUpdateWooCommerceResponse extends RoboResponse {
     json: (data: WooCommerceTemplate.WooCommerceTemplate) => any;
 }
 
+interface TemplateBlobGetAllResponse extends RoboResponse {
+    json: (data: LoadTestTemplate.TemplateBlob[]) => any;
+}
+
+interface TemplateBlobCreateOrUpdate extends RoboRequest {
+    body: LoadTestTemplate.TemplateBlob;
+}
+
+interface TemplateBlobResponse extends RoboResponse {
+    json: (data: LoadTestTemplate.TemplateBlob) => any;
+}
+
+interface TemplateBlobSingleRequest extends RoboRequest {
+    params: {
+        id: string;
+    };
+}
+
+
 const router = Router();
+
+router.route("/blob/:id")
+    .get(async (req: TemplateBlobSingleRequest, res: TemplateBlobResponse) => {
+        const template = await LoadTestTemplate.getTemplateBlobById(
+            req.user.id,
+            req.user.groupId,
+            Number(req.params.id)
+        );
+        res.status(200);
+        res.json(template);
+    })
+    .put(async (req: TemplateBlobCreateOrUpdate, res: TemplateBlobResponse) => {
+        const template = await LoadTestTemplate.updateTemplateBlob({
+            user_id: req.user.id,
+            group_id: req.user.groupId,
+            active: true,
+            id: Number(req.params.id),
+            ...req.body
+        });
+        res.status(200);
+        res.json(template);
+    })
+    .delete(async (req: TemplateBlobSingleRequest, res: RoboResponse) => {
+        await LoadTestTemplate.deleteTemplateBlob(
+            req.user.id,
+            req.user.groupId,
+            Number(req.params.id)
+        );
+        res.status(204);
+        res.send("Deleted.");
+    });
+
+router.route("/blob")
+    .get(async (req: RoboRequest, res: TemplateBlobGetAllResponse) => {
+        const templates = await LoadTestTemplate.getTemplateBlobs(req.user.id, req.user.groupId);
+        res.status(200);
+        res.json(templates);
+    })
+    .post(async (req: TemplateBlobCreateOrUpdate, res: TemplateBlobResponse) => {
+        const createdTemplate = await LoadTestTemplate.createTemplateBlob({
+            user_id: req.user.id,
+            group_id: req.user.groupId,
+            active: true,
+            ...req.body
+        });
+        res.status(201);
+        res.json(createdTemplate);
+    });
 
 router.route("/woo-commerce/:id")
     .get(async (req: WooCommerceRequest, res: GetOrUpdateWooCommerceResponse) => {
@@ -127,6 +208,20 @@ router.route("/:id")
         res.status(200);
         res.json(result);
     });
+
+const upload = multer({ dest: "/tmp" });
+router.route("/auth-file-upload")
+    .post(upload.single("loadTestAuthData"),
+        (async (req: AuthFileUploadRequest, res: AuthFileUploadResponse) => {
+            const data: string = readFileSync(req.file.path).toString();
+            const lines: string[] = data.split(/\r?\n/);
+            const formatted: TemplateAuth[] = lines.map(l => {
+                const tmp = l.split(":");
+                return { username: tmp[0], password: tmp[1] };
+            });
+            res.status(200);
+            res.json(formatted);
+        }));
 
 router.route("/")
     .get(async (req: RoboRequest, res: GetTemplatesResponse) => {

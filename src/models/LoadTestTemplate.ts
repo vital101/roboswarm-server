@@ -43,6 +43,15 @@ export enum WordPressRouteType {
     UNAUTHENTICATED_FRONTEND_NAVIGATE
 }
 
+export interface TemplateBlob {
+    id?: number;
+    group_id: number;
+    user_id: number;
+    created_at: Date;
+    active: boolean;
+    template: string;
+}
+
 function getRouteTypeName(routeType: WordPressRouteType): string {
     switch (routeType) {
         case WordPressRouteType.AUTHENTICATED_ADMIN_NAVIGATE:
@@ -113,4 +122,40 @@ export async function getById(id: number): Promise<TemplateComplex> {
         .where({ id })
         .first();
     return hydrate(template);
+}
+
+export async function createTemplateBlob(template: TemplateBlob): Promise<TemplateBlob> {
+    const savedRows: TemplateBlob[] = await db("template_blob")
+        .insert(template)
+        .returning("*");
+    return savedRows[0];
+}
+
+export async function getTemplateBlobs(userId: number, groupId: number): Promise<TemplateBlob[]> {
+    const rows: TemplateBlob[] = await db("template_blob")
+        .select("*")
+        .where({ user_id: userId, group_id: groupId, active: true });
+
+    return rows;
+}
+
+export async function getTemplateBlobById(userId: number, groupId: number, id: number): Promise<TemplateBlob> {
+    const template: TemplateBlob = await db("template_blob")
+        .where({ id, user_id: userId, group_id: groupId, active: true })
+        .first();
+    return template;
+}
+
+export async function updateTemplateBlob(template: TemplateBlob): Promise<TemplateBlob> {
+    const updatedTemplate: TemplateBlob[] = await db("template_blob")
+        .update(template)
+        .where({ id: template.id, user_id: template.user_id, group_id: template.group_id })
+        .returning("*");
+    return updatedTemplate[0];
+}
+
+export async function deleteTemplateBlob(userId: number, groupId: number, id: number): Promise<void> {
+    await db("template_blob")
+        .update({ active: false })
+        .where({ id, user_id: userId, group_id: groupId });
 }
