@@ -1,11 +1,14 @@
 To Create a New Image
 =====================
 
+## Perform updates
+apt update
+apt upgrade -y
+
 ## System level
 ufw allow 8000:65535/tcp
 sysctl -w net.ipv6.conf.all.disable_ipv6=1
 sysctl -w net.ipv6.conf.default.disable_ipv6=1
-apt-get update
 export DEBIAN_FRONTEND=noninteractive && apt-get install -y python3-pip unzip traceroute emacs
 
 ## Python level
@@ -14,7 +17,7 @@ pip3 install -r requirements.txt
 
 ## SnapShot Naming Format
 
-roboswarm-nyc3-02-2020
+roboswarm-v[number]
 
 ## TODO
 - Update the new image python version

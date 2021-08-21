@@ -111,7 +111,7 @@ async function createDigitalOceanMachine(machineId: number, region: string, digi
         name: `${machineId}`,
         region,
         size: "s-2vcpu-2gb",
-        image: 79183847, // roboswarm-v3
+        image: 90250818, // roboswarm-v4 // 79183847, // roboswarm-v3
         backups: false,
         ipv6: true,
         tags: [ "roboswarm" ],
