@@ -104,7 +104,7 @@ export const settings: Settings = {
     },
     "kernl-enterprise": {
         maxMachineHours: 100,
-        maxLoadTests: 100,
+        maxLoadTests: 150,
         maxLoadTestDurationMinutes: 300,
         maxReliabilityTestMinutes: 3000,
         maxReliabilityTestUsers: 25,
