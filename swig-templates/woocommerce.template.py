@@ -34,43 +34,43 @@ class WooCommerceSequence(SequentialTaskSet):
     @task
     def shop_page(self):
         self.headers['Referer'] = self.client.base_url
-        response = self.client.get("{{shop_url}}", headers=self.headers, verify=False)
+        response = self.client.get("{{shop_url|safe}}", headers=self.headers, verify=False)
 
     @task
     def product_a(self):
         self.headers['Referer'] = self.client.base_url
         response = self.client.get(
-            "{{product_a_url}}", headers=self.headers, verify=False)
+            "{{product_a_url|safe}}", headers=self.headers, verify=False)
         product_id = get_product_id(response.content)
         data = {
             "quantity": 1,
             "add-to-cart": product_id
         }
         response = self.client.post(
-            "{{product_a_url}}", data, headers=self.headers, verify=False)
+            "{{product_a_url|safe}}", data, headers=self.headers, verify=False)
 
     @task
     def product_b(self):
         self.headers['Referer'] = self.client.base_url
-        response = self.client.get("{{product_b_url}}", headers=self.headers, verify=False)
+        response = self.client.get("{{product_b_url|safe}}", headers=self.headers, verify=False)
         product_id = get_product_id(response.content)
         data = {
             "quantity": "1",
             "add-to-cart": product_id
         }
         response = self.client.post(
-            "{{product_b_url}}", data, headers=self.headers, verify=False)
+            "{{product_b_url|safe}}", data, headers=self.headers, verify=False)
 
     @task
     def cart(self):
         self.headers['Referer'] = self.client.base_url
-        response = self.client.get("{{cart_url}}", headers=self.headers, verify=False)
+        response = self.client.get("{{cart_url|safe}}", headers=self.headers, verify=False)
 
     @task
     def checkout(self):
         self.headers['Referer'] = self.client.base_url
         # Go to the cart page.
-        response = self.client.get("{{checkout_url}}", headers=self.headers, verify=False)
+        response = self.client.get("{{checkout_url|safe}}", headers=self.headers, verify=False)
 
         # Extract the checkout none from the form.
         page_content = response.content
@@ -117,9 +117,9 @@ class WooCommerceSequence(SequentialTaskSet):
     @task
     def order_confirmed(self):
         self.headers['Referer'] = self.client.base_url
-        url = "{{checkout_url}}/order-received/{0}".format(self.redirect_path)
+        url = "{{checkout_url|safe}}/order-received/{0}".format(self.redirect_path)
         self.client.get(url, headers=self.headers, verify=False,
-                        name="{{checkout_url}}/order-received/:order_id")
+                        name="{{checkout_url|safe}}/order-received/:order_id")
 
 
 class WooCommerceUser(HttpUser):
