@@ -3,6 +3,7 @@ from locust import HttpUser, SequentialTaskSet, task
 # Suppresses insecure request warning.
 from requests.packages.urllib3.exceptions import InsecureRequestWarning
 import requests
+import uuid
 
 import re
 
@@ -79,6 +80,7 @@ class WooCommerceSequence(SequentialTaskSet):
         checkout_nonce = result.group(1)
 
         # Data for update_order_review_nonce
+        email = "test-{0}@example.com".format(str(uuid.uuid4()))
         checkout_data = {
             "billing_first_name": "James",
             "billing_last_name": "Doe",
@@ -90,8 +92,8 @@ class WooCommerceSequence(SequentialTaskSet):
             "billing_state": "MI",
             "billing_postcode": "49660",
             "billing_phone": "555-555-5555",
-            "billing_email": "test@example.com",
-            "billing_em_ver": "test@example.com",
+            "billing_email": email,
+            "billing_em_ver": email,
             "shipping_first_name": "James",
             "shipping_last_name": "Doe",
             "shipping_company": "Roboswarm.dev",
