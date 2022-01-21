@@ -104,6 +104,7 @@ class WooCommerceSequence(SequentialTaskSet):
             "order_comments": "",
             "shipping_method[0]": "flat_rate:1",
             "payment_method": "cod",
+            "privacy_policy": "1",
             "woocommerce-process-checkout-nonce": checkout_nonce
         }
         headers = self.headers
