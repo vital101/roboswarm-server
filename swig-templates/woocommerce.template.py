@@ -47,6 +47,9 @@ class WooCommerceSequence(SequentialTaskSet):
             "quantity": 1,
             "add-to-cart": product_id
         }
+{% for attr in product_a_attributes %}
+        data["{{attr.name|safe}}"] = "{{attr.value|safe}}"
+{% endfor %}
         response = self.client.post(
             "{{product_a_url|safe}}", data, headers=self.headers, verify=False)
 
@@ -59,6 +62,9 @@ class WooCommerceSequence(SequentialTaskSet):
             "quantity": "1",
             "add-to-cart": product_id
         }
+{% for attr in product_b_attributes %}
+        data["{{attr.name|safe}}"] = "{{attr.value|safe}}"
+{% endfor %}
         response = self.client.post(
             "{{product_b_url|safe}}", data, headers=self.headers, verify=False)
 

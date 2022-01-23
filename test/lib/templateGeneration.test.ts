@@ -19,4 +19,26 @@ describe("lib/templateGeneration", () => {
             }
         });
     });
+
+    describe("getAttributes", () => {
+        test("returns an empty array if there are no query params on the URL", () => {
+            const routePath = "/some/url";
+            const attributes = templateGeneration.getAttributes(routePath);
+            expect(attributes.length).toBe(0);
+        });
+
+        test("returns an array of attributes based on the querystring", () => {
+            const routePath = "/some/url?color=green&size=10";
+            const attributes = templateGeneration.getAttributes(routePath);
+            expect(attributes).toHaveLength(2);
+            expect(attributes[0]).toStrictEqual({
+                name: "color",
+                value: "green"
+            });
+            expect(attributes[1]).toStrictEqual({
+                name: "size",
+                value: "10"
+            });
+        });
+    });
 });

@@ -34,8 +34,31 @@ interface SwigTemplateContext {
     unauthenticated_frontend: LoadTestTemplate.TemplateRoute[];
 }
 
+interface WooCommerceAttribute {
+    name: string;
+    value: any;
+}
+
 export function getRoutePath(path: string): string {
     return path[0] === "/" ? path : `/${path}`;
+}
+
+export function getAttributes(path: string): WooCommerceAttribute[] {
+    const urlParts = path.split("?");
+    if (urlParts.length === 2) {
+        const queryParams = new URLSearchParams(urlParts[1]);
+        const attributes: WooCommerceAttribute[] = [];
+        for (const pair of queryParams.entries()) {
+            const attribute: WooCommerceAttribute = {
+                name: pair[0],
+                value: pair[1]
+            };
+            attributes.push(attribute);
+        }
+        return attributes;
+    } else {
+        return [];
+    }
 }
 
 export async function generateLocustFile(templateId: number, isWooTemplate: boolean, isAdvancedRouteTemplate: boolean, swarm: Swarm.Swarm): Promise<string> {
@@ -48,7 +71,9 @@ export async function generateLocustFile(templateId: number, isWooTemplate: bool
             cart_url: getRoutePath(template.cart_url),
             checkout_url: getRoutePath(template.checkout_url),
             product_a_url: getRoutePath(template.product_a_url),
-            product_b_url: getRoutePath(template.product_b_url)
+            product_b_url: getRoutePath(template.product_b_url),
+            product_a_attributes: getAttributes(template.product_a_url),
+            product_b_attributes: getAttributes(template.product_b_url)
         };
         const compiledTemplate = swig.renderFile(templatePath, renderContext);
         return compiledTemplate;
