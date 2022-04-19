@@ -47,6 +47,6 @@ const production = {
     }
 };
 
-const instance: Knex = Knex(process.env.NODE_ENV === "production" ? production : development);
+const instance: Knex.Knex = Knex.knex(process.env.NODE_ENV === "production" ? production : development);
 
-export const db: Knex = instance;
+export const db: Knex.Knex = instance;
