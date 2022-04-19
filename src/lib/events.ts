@@ -36,7 +36,7 @@ client.on("end", log("end"));
 export function enqueue(item: any): Promise<any> {
     return new Promise((resolve, reject) => {
         const data = JSON.stringify(item);
-        client.lpush(EVENT_QUEUE_NAME, data, (err, reply) => {
+        client.lpush(EVENT_QUEUE_NAME, data, (err: any, reply: any) => {
             if (err) {
                 reject(err);
             } else {
@@ -48,7 +48,7 @@ export function enqueue(item: any): Promise<any> {
 
 export function dequeue(): Promise<any> {
     return new Promise((resolve, reject) => {
-        client.rpop(EVENT_QUEUE_NAME, (err, reply) => {
+        client.rpop(EVENT_QUEUE_NAME, (err: any, reply: any) => {
             if (err) {
                 reject(err);
             } else {
