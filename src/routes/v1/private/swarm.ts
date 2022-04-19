@@ -68,6 +68,14 @@ interface SwarmListRequest extends RoboRequest {
     };
 }
 
+interface TimeRemaining {
+    timeInSeconds: number;
+}
+
+interface TimeRemainingResponse extends RoboResponse {
+    json: (time: TimeRemaining) => any;
+}
+
 const router = Router();
 
 // Note: This is still used by Kernl. DO NOT REMOVE.
@@ -250,6 +258,14 @@ router.route("/:id/soft-delete")
             res.status(500);
             res.json(err);
         }
+    });
+
+router.route("/:id/time-remaining")
+    .get(async (req: RoboRequest, res: TimeRemainingResponse) => {
+        const id: number = parseInt(req.params.id, 10);
+        const timeInSeconds = await Swarm.getAverageTimeToCreationInSeconds(id);
+        res.status(200);
+        res.json({ timeInSeconds });
     });
 
 router.route("/:id")

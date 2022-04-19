@@ -794,3 +794,24 @@ export async function update(swarmId: number, fields: any): Promise<Swarm> {
         .where({ id: swarmId });
     return await getById(swarmId);
 }
+
+export async function getAverageTimeToCreationInSeconds(swarmId: number): Promise<number> {
+    const rawQuery = `
+        SELECT AVG(
+            EXTRACT(
+                EPOCH FROM (
+                    ready_at - created_at
+                )
+            )
+        ) as avg_time
+        FROM swarm
+        WHERE
+            ready_at IS NOT NULL
+            AND
+            destroyed_at IS NOT NULL
+            AND id < ?
+            AND id >= (? - 50)
+    `;
+    const result = await db.raw(rawQuery, [swarmId, swarmId]);
+    return result.rows[0].avg_time;
+}
