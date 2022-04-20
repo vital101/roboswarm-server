@@ -795,7 +795,7 @@ export async function update(swarmId: number, fields: any): Promise<Swarm> {
     return await getById(swarmId);
 }
 
-export async function getAverageTimeToCreationInSeconds(swarmId: number): Promise<number> {
+export async function getAverageTimeToCreationRemainingInSeconds(swarmId: number): Promise<number> {
     const rawQuery = `
         SELECT AVG(
             EXTRACT(
@@ -810,8 +810,13 @@ export async function getAverageTimeToCreationInSeconds(swarmId: number): Promis
             AND
             destroyed_at IS NOT NULL
             AND id < ?
-            AND id >= (? - 50)
+            AND id >= (? - 10)
     `;
     const result = await db.raw(rawQuery, [swarmId, swarmId]);
-    return result.rows[0].avg_time;
+    const averageTime: number = result.rows[0].avg_time;
+    const swarm: Swarm = await db("swarm").where({ id: swarmId }).first();
+    const start = swarm.created_at.getTime() / 1000;
+    const now = (new Date()).getTime() / 1000;
+    const elapsed = now - start;
+    return averageTime - elapsed;
 }

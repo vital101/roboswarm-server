@@ -263,7 +263,7 @@ router.route("/:id/soft-delete")
 router.route("/:id/time-remaining")
     .get(async (req: RoboRequest, res: TimeRemainingResponse) => {
         const id: number = parseInt(req.params.id, 10);
-        const timeInSeconds = await Swarm.getAverageTimeToCreationInSeconds(id);
+        const timeInSeconds = await Swarm.getAverageTimeToCreationRemainingInSeconds(id);
         res.status(200);
         res.json({ timeInSeconds });
     });
