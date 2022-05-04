@@ -18,6 +18,7 @@ import _userRoutes from "./routes/v1/private/user";
 import appRoutes from "./routes/v1/public/app";
 import marketingRoutes from "./routes/v1/public/marketing";
 import userRoutes from "./routes/v1/public/user";
+import machineStatusRoutes from "./routes/v1/public/machineStatus";
 
 // JWT Config
 const jwtConfig: jwt.Options = {
@@ -61,6 +62,7 @@ app.use("/app", appRoutes);
 
 // Public API
 app.use("/api/v1/public/user", userRoutes);
+app.use("/api/v1/public/machine", machineStatusRoutes);
 
 // Private API
 app.use("/api/v1/site-ownership", jwt(jwtConfig), _siteOwnershipRoutes);
