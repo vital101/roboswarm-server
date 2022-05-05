@@ -6,7 +6,7 @@ sysctl -w net.ipv6.conf.default.disable_ipv6=1
 
 # Open the firewall for Locust
 ufw allow 8000:65535/tcp
-# WIP -> Report back port_open_complete
+curl -X POST https://reqbin.com/echo/post/json -H 'Content-Type: application/json' -d '{"login":"my_login","password":"my_password"}'
 
 # Wait for apt to become available.
 while sudo fuser /var/{lib/{dpkg,apt/lists},cache/apt/archives}/lock >/dev/null 2>&1; do
