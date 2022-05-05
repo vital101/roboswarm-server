@@ -8,6 +8,7 @@ import { SSHKey } from "./SSHKey";
 import { enqueue } from "../lib/events";
 import { MachineProvisionEvent, WorkerEventType, MachineSetupStep } from "../interfaces/provisioning.interface";
 import * as moment from "moment";
+import { generateVmConfigurationScript } from "../lib/templateGeneration";
 
 export interface Machine {
     id: number;
@@ -111,10 +112,12 @@ async function createDigitalOceanMachine(machineId: number, region: string, digi
         name: `${machineId}`,
         region,
         size: "s-2vcpu-2gb",
-        image: 90250818, // roboswarm-v4 // 79183847, // roboswarm-v3
+        image: 90250818, // roboswarm-v4
+        // image: 79183847, // roboswarm-v3
         backups: false,
         ipv6: true,
         tags: [ "roboswarm" ],
+        user_data: generateVmConfigurationScript(machineId),
         ssh_keys: [ digitalOceanSSHKeyId, 129160 ] // Extra is for jack's testing.
     };
     const url = "https://api.digitalocean.com/v2/droplets";

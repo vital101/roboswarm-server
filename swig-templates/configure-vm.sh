@@ -6,7 +6,7 @@ sysctl -w net.ipv6.conf.default.disable_ipv6=1
 
 # Open the firewall for Locust
 ufw allow 8000:65535/tcp
-curl -X POST https://reqbin.com/echo/post/json -H 'Content-Type: application/json' -d '{"login":"my_login","password":"my_password"}'
+curl -X POST {{baseUrl}}/api/v1/public/machine/{{machineId}}/status -H 'Content-Type: application/json' -d '{"action":"port_open_complete"}'
 
 # Wait for apt to become available.
 while sudo fuser /var/{lib/{dpkg,apt/lists},cache/apt/archives}/lock >/dev/null 2>&1; do
@@ -17,4 +17,4 @@ done
 export DEBIAN_FRONTEND=noninteractive && apt update
 export DEBIAN_FRONTEND=noninteractive && apt upgrade -y
 export DEBIAN_FRONTEND=noninteractive && apt-get install -y python3-pip wget unzip traceroute emacs
-# WIP -> Report back dependency_install_complete
+curl -X POST {{baseUrl}}/api/v1/public/machine/{{machineId}}/status -H 'Content-Type: application/json' -d '{"action":"dependency_install_complete"}'

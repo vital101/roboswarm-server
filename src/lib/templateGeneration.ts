@@ -25,6 +25,11 @@ swig.setFilter("increment", input => {
 
 const appRoot = process.env.APP_ROOT || "/Users/jackslingerland/repos/roboswarm";
 
+// VM Configuration Compiler
+const templatePath = `${appRoot}/swig-templates/configure-vm.sh`;
+const templateString = readFileSync(templatePath).toString();
+const vmConfigTemplateCompiler = Handlebars.compile(templateString);
+
 interface SwigTemplateContext {
     username: string;
     password: string;
@@ -176,4 +181,12 @@ export async function generateAndSaveTemplate(swarm_id: number, template_id: num
         lt_file: fileBuffer
     });
     return ltFile.id;
+}
+
+export function generateVmConfigurationScript(machine_id: number): string {
+    const renderContext = {
+        baseUrl: process.env.NODE_END === "production" ? "https://roboswarm.dev" : "https://roboswarm.ngrok.io",
+        machineId: machine_id
+    };
+    return vmConfigTemplateCompiler(renderContext);
 }
