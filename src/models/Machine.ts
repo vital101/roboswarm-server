@@ -48,6 +48,7 @@ export async function create(machine: NewMachine, swarm: Swarm, key: SSHKey): Pr
     await SwarmMachine.create(join);
 
     // Create provision event push into work queue.
+    // DO WE EVEN NEED THIS?
     const machineProvisionEvent: MachineProvisionEvent = {
         swarm,
         stepToExecute: MachineSetupStep.CREATE,
@@ -57,8 +58,8 @@ export async function create(machine: NewMachine, swarm: Swarm, key: SSHKey): Pr
             // MachineSetupStep.OPEN_PORTS,
             // MachineSetupStep.PACKAGE_INSTALL,
             // MachineSetupStep.TRACEROUTE,
-            MachineSetupStep.TRANSFER_FILE,
-            MachineSetupStep.UNZIP_AND_PIP_INSTALL
+            // MachineSetupStep.TRANSFER_FILE,
+            // MachineSetupStep.UNZIP_AND_PIP_INSTALL
         ],
         sshKey: key,
         machine: newMachine,

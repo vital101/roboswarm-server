@@ -17,6 +17,11 @@ router.route("/:id/status")
             case "dependency_install_complete":
                 await Machine.updateDependencyInstallComplete(machineId, true);
                 break;
+            case "master_started_complete":
+                // WIP - Need a way to determine if master has been started.
+                //     - Probably need another column in the database somewhere.
+                //     - Going to be on the Swarm mode: master_ready: boolean (default false)
+                break;
         }
         res.status(200);
         res.json(await Machine.findById(machineId));
@@ -29,6 +34,14 @@ router.route("/:id/template")
         const filePath: string = await getLocalFilePathBySwarmId(swarmId);
         res.status(200);
         res.download(filePath, "template.zip");
+    });
+
+router.route("/:id/is-master")
+    .get(async (req: interfaces.MachineIsMasterRequest, res: express.Response) => {
+        const machineId: number = Number(req.params.id);
+        const m: Machine.Machine = await Machine.findById(machineId);
+        res.status(200);
+        res.send(m.is_master);
     });
 
 export default router;

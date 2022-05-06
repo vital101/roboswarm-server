@@ -22,3 +22,9 @@ export interface MachineTemplateRequest extends Request {
 }
 
 export interface MachineTemplateResponse extends Response {}
+
+export interface MachineIsMasterRequest extends Request {
+    params: {
+        id: string;
+    };
+}
