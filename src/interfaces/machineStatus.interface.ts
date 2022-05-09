@@ -7,7 +7,7 @@ export interface MachineStatusRequest extends Request {
     };
     body: {
         action: string;
-        ip_address: string;
+        ip_address?: string;
     };
 }
 

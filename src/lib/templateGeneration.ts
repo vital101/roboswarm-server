@@ -9,6 +9,7 @@ import * as LoadTestFile from "../models/LoadTestFile";
 import * as WooCommerce from "../models/WooCommerce";
 import * as Handlebars from "handlebars";
 import * as handlebarsHelpers from "../lib/handlebarsHelpers";
+import * as SwarmMachine from "../models/SwarmMachine";
 
 // Handlebars custom helpers.
 Handlebars.registerHelper("getBodyType", handlebarsHelpers.getBodyType);
@@ -183,10 +184,37 @@ export async function generateAndSaveTemplate(swarm_id: number, template_id: num
     return ltFile.id;
 }
 
-export function generateVmConfigurationScript(machine_id: number): string {
+export async function generateVmConfigurationScript(machine_id: number): Promise<string> {
+    const swarmId = await SwarmMachine.getSwarmIdByMachineId(machine_id);
+    const swarm = await Swarm.getById(swarmId);
+    const users = swarm.simulated_users;
+    const rate = swarm.spawn_rate;
+    const runTime = `${swarm.duration}m`;
+    const hostUrl: string = swarm.host_url[swarm.host_url.length - 1] === "/" ?
+        swarm.host_url.slice(0, -1) :
+        swarm.host_url;
+    let expectSlaveCount: number;
+    const slaveCount = swarm.size - 1;
+    if (slaveCount === 1) {
+        expectSlaveCount = 1;
+    } else if (slaveCount > 1 && slaveCount <= 5) {
+        expectSlaveCount = slaveCount - 1;
+    } else if (slaveCount > 5 && slaveCount <= 12) {
+        expectSlaveCount = slaveCount - 2;
+    } else {
+        expectSlaveCount = Math.floor(slaveCount * 0.85);
+    }
+
     const renderContext = {
         baseUrl: process.env.NODE_END === "production" ? "https://roboswarm.dev" : "https://roboswarm.ngrok.io",
-        machineId: machine_id
+        machineId: machine_id,
+        users,
+        rate,
+        runTime,
+        expectSlaveCount,
+        hostUrl
     };
-    return vmConfigTemplateCompiler(renderContext);
+    const renderedTemplate = vmConfigTemplateCompiler(renderContext);
+    console.log(renderedTemplate);
+    return renderedTemplate;
 }
