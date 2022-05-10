@@ -408,24 +408,24 @@ export async function startMaster(swarm: Swarm.Swarm, machine: Machine.Machine, 
 
     console.log("Enqueuing slave start events...");
     const promises = [];
-    for (const slaveMachineId of slaveIds) {
-        const slaveMachine = await Machine.findById(slaveMachineId);
-        const slaveProvisionEvent: MachineProvisionEvent = {
-            sshKey: { public: "", private: privateKey, created_at: new Date() },
-            eventType: WorkerEventType.MACHINE_PROVISION,
-            maxRetries: 10,
-            currentTry: 0,
-            lastActionTime: new Date(),
-            errors: [],
-            swarm,
-            machine: slaveMachine,
-            master: machine,
-            region: swarm.region,
-            stepToExecute: MachineSetupStep.START_SLAVE,
-            steps: []
-        };
-        promises.push(enqueue(slaveProvisionEvent));
-    }
+    // for (const slaveMachineId of slaveIds) {
+    //     const slaveMachine = await Machine.findById(slaveMachineId);
+    //     const slaveProvisionEvent: MachineProvisionEvent = {
+    //         sshKey: { public: "", private: privateKey, created_at: new Date() },
+    //         eventType: WorkerEventType.MACHINE_PROVISION,
+    //         maxRetries: 10,
+    //         currentTry: 0,
+    //         lastActionTime: new Date(),
+    //         errors: [],
+    //         swarm,
+    //         machine: slaveMachine,
+    //         master: machine,
+    //         region: swarm.region,
+    //         stepToExecute: MachineSetupStep.START_SLAVE,
+    //         steps: []
+    //     };
+    //     promises.push(enqueue(slaveProvisionEvent));
+    // }
 
     // Queue up periodic metrics capturing
     const fetchMetricsEvent: DataCaptureEvent = {
@@ -444,47 +444,47 @@ export async function startMaster(swarm: Swarm.Swarm, machine: Machine.Machine, 
 }
 
 export async function startSlave(swarm: Swarm.Swarm, master: Machine.Machine, slave: Machine.Machine, privateKey: string): Promise<void> {
-    console.log("Transferring template to slave at ", slave.ip_address);
-    const bashTemplate = `
-        #!/bin/bash
-        export PYTHONWARNINGS="ignore:Unverified HTTPS request"
-        ulimit -n 200000 && locust --worker --master-host=${master.ip_address} --logfile=/root/locustlog.log --loglevel=debug &
-    `;
-    const bashPath = `/tmp/${slave.id}.bash`;
-    writeFileSync(`/tmp/${slave.id}.bash`, bashTemplate);
-    const sftp = new sftp_client();
-    await sftp.connect({
-        host: slave.ip_address,
-        port: 22,
-        username: "root",
-        privateKey
-    });
-    await sftp.put(bashPath, "/root/start.sh");
+    // console.log("Transferring template to slave at ", slave.ip_address);
+    // const bashTemplate = `
+    //     #!/bin/bash
+    //     export PYTHONWARNINGS="ignore:Unverified HTTPS request"
+    //     ulimit -n 200000 && locust --worker --master-host=${master.ip_address} --logfile=/root/locustlog.log --loglevel=debug &
+    // `;
+    // const bashPath = `/tmp/${slave.id}.bash`;
+    // writeFileSync(`/tmp/${slave.id}.bash`, bashTemplate);
+    // const sftp = new sftp_client();
+    // await sftp.connect({
+    //     host: slave.ip_address,
+    //     port: 22,
+    //     username: "root",
+    //     privateKey
+    // });
+    // await sftp.put(bashPath, "/root/start.sh");
 
-    // Two worker processes on each machine.
-    for (let i = 1; i <= 2; i++) {
-        console.log(`Starting slave at ${slave.ip_address} on process ${i}`);
-        const ssh = new NodeSSH();
-        await ssh.connect({
-            host: slave.ip_address,
-            username: "root",
-            privateKey,
-        });
-        await ssh.execCommand("chmod +xrw /root/start.sh");
-        const command = "/bin/bash /root/start.sh";
-        console.log(`Executing ${command} on slave at ${slave.ip_address} on process ${i}`);
-        ssh.exec(command, [], {
-            cwd: "/root",
-            onStdout(chunk: any) {
-                console.log("stdoutChunk", chunk.toString("utf8"));
-            },
-            onStderr(chunk: any) {
-                console.log("stderrChunk", chunk.toString("utf8"));
-            },
-        });
-        await asyncSleep(15);
-        ssh.connection.end();
-    }
+    // // Two worker processes on each machine.
+    // for (let i = 1; i <= 2; i++) {
+    //     console.log(`Starting slave at ${slave.ip_address} on process ${i}`);
+    //     const ssh = new NodeSSH();
+    //     await ssh.connect({
+    //         host: slave.ip_address,
+    //         username: "root",
+    //         privateKey,
+    //     });
+    //     await ssh.execCommand("chmod +xrw /root/start.sh");
+    //     const command = "/bin/bash /root/start.sh";
+    //     console.log(`Executing ${command} on slave at ${slave.ip_address} on process ${i}`);
+    //     ssh.exec(command, [], {
+    //         cwd: "/root",
+    //         onStdout(chunk: any) {
+    //             console.log("stdoutChunk", chunk.toString("utf8"));
+    //         },
+    //         onStderr(chunk: any) {
+    //             console.log("stderrChunk", chunk.toString("utf8"));
+    //         },
+    //     });
+    //     await asyncSleep(15);
+    //     ssh.connection.end();
+    // }
 
     // Mark that the machine setup complete.
     await Machine.updateSetupCompleteStatus(slave.id, true);

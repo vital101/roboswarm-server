@@ -43,25 +43,40 @@ unzip template
 echo "Updating dependency_install_complete"
 curl -X POST {{baseUrl}}/api/v1/public/machine/{{machineId}}/status -H 'Content-Type: application/json' -d '{"action":"dependency_install_complete"}' > /dev/null
 
-# If is master, start master
+# Master Group
 echo "Checking if this machine is master"
 ISMASTER=$(curl {{baseUrl}}/api/v1/public/machine/{{machineId}}/is-master)
 if [ "$ISMASTER" = "true" ]; then
    # Start master
    echo "Starting master"
    ulimit -n 200000
-   PYTHONWARNINGS="ignore:Unverified HTTPS request" nohup locust --master --csv=status --host={{hostUrl}} --users={{users}} --spawn-rate={{rate}} --run-time={{runTime}} --headless --expect-workers={{expectSlaveCount}} > /dev/null 2>&1
+   PYTHONWARNINGS="ignore:Unverified HTTPS request" nohup locust --master --csv=status --host={{hostUrl}} --users={{users}} --spawn-rate={{rate}} --run-time={{runTime}} --headless --expect-workers={{expectSlaveCount}} &
    curl -X POST {{baseUrl}}/api/v1/public/machine/{{machineId}}/status -H 'Content-Type: application/json' -d '{"action":"master_started_complete"}'
 fi
 
-# If is slave, check to see master is started.
+# Slave Group
 if [ "$ISMASTER" = "false" ]; then
+
+   # Wait for master to be ready.
    while [ $(curl {{baseUrl}}/api/v1/public/machine/{{machineId}}/is-master-started) = "false" ]; do
       sleep 2
       echo "Master not started. Waiting 2 seconds."
    done
+
+   # Get the master IP
    echo "Master started. Starting Locust worker."
-   # WIP
+   ulimit -n 200000
+   MASTERIP=$(curl {{baseUrl}}/api/v1/public/machine/{{machineId}}/master-ip)
+
+   # Start 2 workers per machine.
+   for VARIABLE in 1 2
+   do
+      PYTHONWARNINGS="ignore:Unverified HTTPS request" locust --worker --master-host=$MASTERIP --logfile=/root/locustlog.log --loglevel=debug &
+   done
+
+   # Mark machine as ready.
+   echo "Updating setup_complete for: ${MYIP}"
+   curl -X POST {{baseUrl}}/api/v1/public/machine/{{machineId}}/status -H 'Content-Type: application/json' -d '{"action":"setup_complete"}' > /dev/null
 fi
 
 echo "Done with initialization."

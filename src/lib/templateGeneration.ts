@@ -193,7 +193,7 @@ export async function generateVmConfigurationScript(machine_id: number): Promise
     const hostUrl: string = swarm.host_url[swarm.host_url.length - 1] === "/" ?
         swarm.host_url.slice(0, -1) :
         swarm.host_url;
-    let expectSlaveCount: number;
+    let expectSlaveCount;
     const slaveCount = swarm.size - 1;
     if (slaveCount === 1) {
         expectSlaveCount = 1;
