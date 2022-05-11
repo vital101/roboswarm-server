@@ -5,6 +5,9 @@ echo "Disabling IPv6"
 sysctl -w net.ipv6.conf.all.disable_ipv6=1
 sysctl -w net.ipv6.conf.default.disable_ipv6=1
 
+# Go to /root
+cd /root
+
 # Set ready and ip for this machine
 MYIP=$(ip -o route get to 8.8.8.8 | sed -n 's/.*src \([0-9.]\+\).*/\1/p')
 ISREADYBODY=$(cat <<-END

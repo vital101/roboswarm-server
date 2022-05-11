@@ -211,7 +211,7 @@ export async function generateVmConfigurationScript(machine_id: number): Promise
         users,
         rate,
         runTime,
-        expectSlaveCount,
+        expectSlaveCount: expectSlaveCount > 0 ? expectSlaveCount : 1,
         hostUrl
     };
     const renderedTemplate = vmConfigTemplateCompiler(renderContext);
