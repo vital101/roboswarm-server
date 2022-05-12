@@ -1,7 +1,5 @@
 import { NodeSSH } from "node-ssh";
-const sftp_client = require("ssh2-sftp-client");
 import { execSync } from "child_process";
-import { writeFileSync } from "fs";
 import { asyncSleep } from "../lib/lib";
 import * as Machine from "../models/Machine";
 import * as SSHKey from "../models/SSHKey";
@@ -327,16 +325,16 @@ export async function traceRoute(machineId: number, machineIp: string, hostUrl: 
 }
 
 export async function transferFileToMachine(machineIp: string, filePath: string, privateKey: string): Promise<void> {
-    console.log(`Starting: Transfer ${filePath} to ${machineIp} @ path /root/load_test_data.zip`);
-    const sftp = new sftp_client();
-    await sftp.connect({
-        host: machineIp,
-        port: 22,
-        username: "root",
-        privateKey
-    });
-    await sftp.put(filePath, "/root/load_test_data.zip");
-    console.log("Success transferring file " + filePath);
+    // console.log(`Starting: Transfer ${filePath} to ${machineIp} @ path /root/load_test_data.zip`);
+    // const sftp = new sftp_client();
+    // await sftp.connect({
+    //     host: machineIp,
+    //     port: 22,
+    //     username: "root",
+    //     privateKey
+    // });
+    // await sftp.put(filePath, "/root/load_test_data.zip");
+    // console.log("Success transferring file " + filePath);
 }
 
 export async function unzipPackageAndPipInstall(machineId: number, machineIp: string, privateKey: string): Promise<void> {
