@@ -78,7 +78,6 @@
     "request-promise": "^4.2.6",
     "simple-encryptor": "^4.0.0",
     "sitemapper": "^3.2.2",
-    "ssh2-sftp-client": "^8.0.0",
     "stripe": "^8.218.0",
     "swig": "^1.4.2",
     "uuid": "^8.3.2"
