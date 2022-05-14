@@ -360,71 +360,6 @@ export async function unzipPackageAndPipInstall(machineId: number, machineIp: st
 }
 
 export async function startMaster(swarm: Swarm.Swarm, machine: Machine.Machine, slaveCount: number, slaveIds: number[], privateKey: string): Promise<void> {
-    console.log(`Starting master at ${machine.ip_address}`);
-    const ssh = new NodeSSH();
-    await ssh.connect({
-        host: machine.ip_address,
-        username: "root",
-        privateKey,
-    });
-    const users = swarm.simulated_users;
-    const rate = swarm.spawn_rate;
-    const runTime = `${swarm.duration}m`;
-    const hostUrl: string = swarm.host_url[swarm.host_url.length - 1] === "/" ?
-        swarm.host_url.slice(0, -1) :
-        swarm.host_url;
-    const flags = [
-        "--master",
-        `--host=${hostUrl}`,
-        "--csv=status"
-    ];
-    let expectSlaveCount: number;
-    if (slaveCount === 1) {
-        expectSlaveCount = 1;
-    } else if (slaveCount > 1 && slaveCount <= 5) {
-        expectSlaveCount = slaveCount - 1;
-    } else if (slaveCount > 5 && slaveCount <= 12) {
-        expectSlaveCount = slaveCount - 2;
-    } else {
-        expectSlaveCount = Math.floor(slaveCount * 0.85);
-    }
-    flags.push(`--users ${users}`);
-    flags.push(`--spawn-rate ${rate}`);
-    flags.push(`--run-time ${runTime}`);
-    flags.push("--headless");
-    flags.push(`--expect-workers=${expectSlaveCount}`);
-    const command = `ulimit -n 200000 && PYTHONWARNINGS="ignore:Unverified HTTPS request" nohup locust ${flags.join(" ")} > /dev/null 2>&1`;
-    console.log(`Executing ${command} on master at ${machine.ip_address} &`);
-    ssh.execCommand(command, {
-        options: {
-            pty: true
-        }
-    } as any);
-    await asyncSleep(10);
-    ssh.connection.end();
-    console.log(`Finished starting master at ${machine.ip_address}`);
-
-    console.log("Enqueuing slave start events...");
-    const promises = [];
-    // for (const slaveMachineId of slaveIds) {
-    //     const slaveMachine = await Machine.findById(slaveMachineId);
-    //     const slaveProvisionEvent: MachineProvisionEvent = {
-    //         sshKey: { public: "", private: privateKey, created_at: new Date() },
-    //         eventType: WorkerEventType.MACHINE_PROVISION,
-    //         maxRetries: 10,
-    //         currentTry: 0,
-    //         lastActionTime: new Date(),
-    //         errors: [],
-    //         swarm,
-    //         machine: slaveMachine,
-    //         master: machine,
-    //         region: swarm.region,
-    //         stepToExecute: MachineSetupStep.START_SLAVE,
-    //         steps: []
-    //     };
-    //     promises.push(enqueue(slaveProvisionEvent));
-    // }
-
     // Queue up periodic metrics capturing
     const fetchMetricsEvent: DataCaptureEvent = {
         sshKey: { public: "", private: privateKey, created_at: new Date() },
@@ -435,10 +370,9 @@ export async function startMaster(swarm: Swarm.Swarm, machine: Machine.Machine, 
         errors: [],
         swarm
     };
-    promises.push(enqueue(fetchMetricsEvent));
+    console.log("Enqueuing metrics start events");
+    await enqueue(fetchMetricsEvent);
 
-    await Promise.all(promises);
-    console.log("Done enqueuing slave start events.");
 }
 
 export async function startSlave(swarm: Swarm.Swarm, master: Machine.Machine, slave: Machine.Machine, privateKey: string): Promise<void> {
