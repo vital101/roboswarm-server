@@ -190,7 +190,7 @@ export async function create(swarm: NewSwarm, userId: number, groupId: number, r
         stepToExecute: SwarmSetupStep.CREATE,
         steps: [
             SwarmSetupStep.READY,
-            SwarmSetupStep.START_MASTER, // WIP - Just starting data capture
+            SwarmSetupStep.START_MASTER,
             SwarmSetupStep.STOP_SWARM
         ]
     };

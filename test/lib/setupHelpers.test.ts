@@ -678,5 +678,13 @@ describe("lib/setupHelpers", () => {
         describe("UNZIP_AND_PIP_INSTALL", () => {
 
         });
+
+        describe("START_MASTER", () => {
+
+        });
+
+        describe("START_SLAVE", () => {
+
+        });
     });
 });

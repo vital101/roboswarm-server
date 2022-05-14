@@ -9,7 +9,6 @@ import * as LoadTestFile from "../models/LoadTestFile";
 import * as WooCommerce from "../models/WooCommerce";
 import * as Handlebars from "handlebars";
 import * as handlebarsHelpers from "../lib/handlebarsHelpers";
-import * as SwarmMachine from "../models/SwarmMachine";
 
 // Handlebars custom helpers.
 Handlebars.registerHelper("getBodyType", handlebarsHelpers.getBodyType);
@@ -25,11 +24,6 @@ swig.setFilter("increment", input => {
 });
 
 const appRoot = process.env.APP_ROOT || "/Users/jackslingerland/repos/roboswarm";
-
-// VM Configuration Compiler
-const templatePath = `${appRoot}/swig-templates/configure-vm.sh`;
-const templateString = readFileSync(templatePath).toString();
-const vmConfigTemplateCompiler = Handlebars.compile(templateString);
 
 interface SwigTemplateContext {
     username: string;
@@ -182,39 +176,4 @@ export async function generateAndSaveTemplate(swarm_id: number, template_id: num
         lt_file: fileBuffer
     });
     return ltFile.id;
-}
-
-export async function generateVmConfigurationScript(machine_id: number): Promise<string> {
-    const swarmId = await SwarmMachine.getSwarmIdByMachineId(machine_id);
-    const swarm = await Swarm.getById(swarmId);
-    const users = swarm.simulated_users;
-    const rate = swarm.spawn_rate;
-    const runTime = `${swarm.duration}m`;
-    const hostUrl: string = swarm.host_url[swarm.host_url.length - 1] === "/" ?
-        swarm.host_url.slice(0, -1) :
-        swarm.host_url;
-    let expectSlaveCount;
-    const slaveCount = swarm.size - 1;
-    if (slaveCount === 1) {
-        expectSlaveCount = 1;
-    } else if (slaveCount > 1 && slaveCount <= 5) {
-        expectSlaveCount = slaveCount - 1;
-    } else if (slaveCount > 5 && slaveCount <= 12) {
-        expectSlaveCount = slaveCount - 2;
-    } else {
-        expectSlaveCount = Math.floor(slaveCount * 0.85);
-    }
-
-    const renderContext = {
-        baseUrl: process.env.NODE_END === "production" ? "https://roboswarm.dev" : "https://roboswarm.ngrok.io",
-        machineId: machine_id,
-        users,
-        rate,
-        runTime,
-        expectSlaveCount: expectSlaveCount > 0 ? expectSlaveCount : 1,
-        hostUrl
-    };
-    const renderedTemplate = vmConfigTemplateCompiler(renderContext);
-    console.log(renderedTemplate);
-    return renderedTemplate;
 }
