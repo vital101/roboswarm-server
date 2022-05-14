@@ -206,7 +206,7 @@ export async function generateVmConfigurationScript(machine_id: number): Promise
     }
 
     const renderContext = {
-        baseUrl: process.env.NODE_END === "production" ? "https://roboswarm.dev" : "https://roboswarm.ngrok.io",
+        baseUrl: process.env.NODE_ENV === "production" ? "https://roboswarm.dev" : "https://roboswarm.ngrok.io",
         machineId: machine_id,
         users,
         rate,
