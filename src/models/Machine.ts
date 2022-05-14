@@ -8,6 +8,7 @@ import { SSHKey } from "./SSHKey";
 import { enqueue } from "../lib/events";
 import { MachineProvisionEvent, WorkerEventType, MachineSetupStep } from "../interfaces/provisioning.interface";
 import * as moment from "moment";
+import { generateVmConfigurationScript } from "../lib/templateGeneration";
 
 export interface Machine {
     id: number;
@@ -22,6 +23,7 @@ export interface Machine {
     dependency_install_complete: boolean;
     port_open_complete: boolean;
     traceroute?: string;
+    test_started?: boolean;
 }
 
 export interface NewMachine {
@@ -47,18 +49,11 @@ export async function create(machine: NewMachine, swarm: Swarm, key: SSHKey): Pr
     await SwarmMachine.create(join);
 
     // Create provision event push into work queue.
+    // DO WE EVEN NEED THIS?
     const machineProvisionEvent: MachineProvisionEvent = {
         swarm,
         stepToExecute: MachineSetupStep.CREATE,
-        steps: [
-            MachineSetupStep.MACHINE_READY,
-            MachineSetupStep.DELAY,
-            // MachineSetupStep.OPEN_PORTS,
-            // MachineSetupStep.PACKAGE_INSTALL,
-            // MachineSetupStep.TRACEROUTE,
-            MachineSetupStep.TRANSFER_FILE,
-            MachineSetupStep.UNZIP_AND_PIP_INSTALL
-        ],
+        steps: [],
         sshKey: key,
         machine: newMachine,
         region: machine.region,
@@ -111,10 +106,12 @@ async function createDigitalOceanMachine(machineId: number, region: string, digi
         name: `${machineId}`,
         region,
         size: "s-2vcpu-2gb",
-        image: 90250818, // roboswarm-v4 // 79183847, // roboswarm-v3
+        image: 107963363, // roboswarm-v5
+        // image: 90250818, // roboswarm-v4
         backups: false,
         ipv6: true,
         tags: [ "roboswarm" ],
+        user_data: await generateVmConfigurationScript(machineId),
         ssh_keys: [ digitalOceanSSHKeyId, 129160 ] // Extra is for jack's testing.
     };
     const url = "https://api.digitalocean.com/v2/droplets";
@@ -210,4 +207,23 @@ export async function isReady(id: number): Promise<boolean> {
         }
     }
     return false;
+}
+
+export async function setIsMaster(machine: Machine): Promise<void> {
+    const swarmId = await SwarmMachine.getSwarmIdByMachineId(machine.id);
+    await db.transaction(async (trx) => {
+        const swarmMachines: SwarmMachine.SwarmMachine[] = await db("swarm_machine")
+            .where({ swarm_id: swarmId })
+            .transacting(trx);
+        const machines: Machine[] = await db("machine")
+            .whereIn("id", swarmMachines.map(sm => sm.machine_id))
+            .transacting(trx);
+        if (machines.find(m => m.is_master === true) === undefined) {
+            await db("machine")
+                .update({ is_master: true })
+                .where({ id: machine.id })
+                .transacting(trx);
+        }
+        await trx.commit();
+    });
 }
