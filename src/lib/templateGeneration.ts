@@ -184,8 +184,6 @@ export async function generateAndSaveTemplate(swarm_id: number, template_id: num
     });
     return ltFile.id;
 }
-<<<<<<< HEAD
-=======
 
 export async function generateVmConfigurationScript(machine_id: number): Promise<string> {
     const swarmId = await SwarmMachine.getSwarmIdByMachineId(machine_id);
@@ -209,7 +207,7 @@ export async function generateVmConfigurationScript(machine_id: number): Promise
     }
 
     const renderContext = {
-        baseUrl: process.env.NODE_END === "production" ? "https://roboswarm.dev" : "https://roboswarm.ngrok.io",
+        baseUrl: process.env.NODE_ENV === "production" ? "https://roboswarm.dev" : "https://roboswarm.ngrok.io",
         machineId: machine_id,
         users,
         rate,
@@ -221,4 +219,3 @@ export async function generateVmConfigurationScript(machine_id: number): Promise
     console.log(renderedTemplate);
     return renderedTemplate;
 }
->>>>>>> parent of d36da63 (Revert "Merge branch 'remove_node_ssh_depedency'")
