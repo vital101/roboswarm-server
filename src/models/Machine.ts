@@ -53,10 +53,7 @@ export async function create(machine: NewMachine, swarm: Swarm, key: SSHKey): Pr
     const machineProvisionEvent: MachineProvisionEvent = {
         swarm,
         stepToExecute: MachineSetupStep.CREATE,
-        steps: [
-            // MachineSetupStep.MACHINE_READY,
-            // MachineSetupStep.DELAY
-        ],
+        steps: [],
         sshKey: key,
         machine: newMachine,
         region: machine.region,
