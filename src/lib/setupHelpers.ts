@@ -1,5 +1,3 @@
-import { NodeSSH } from "node-ssh";
-import { execSync } from "child_process";
 import { asyncSleep } from "../lib/lib";
 import * as Machine from "../models/Machine";
 import * as SSHKey from "../models/SSHKey";
@@ -16,9 +14,7 @@ import {
     DataCaptureEvent } from "../interfaces/provisioning.interface";
 import { enqueue } from "./events";
 import { Status } from "../interfaces/shared.interface";
-import { parse as parseURL } from "url";
 import * as swarmProvisionEvents from "./swarmProvisionEvents";
-import * as LoadTestFile from "../models/LoadTestFile";
 
 export async function nextStep(event: MachineProvisionEvent|SwarmProvisionEvent) {
     if (event.steps.length > 0) {
@@ -230,10 +226,6 @@ export async function processMachineProvisionEvent(event: MachineProvisionEvent)
                     }
                     break;
                 }
-                case MachineSetupStep.OPEN_PORTS: {
-                    await openPorts(event.machine.id, event.machine.ip_address, event.sshKey.private);
-                    break;
-                }
                 case MachineSetupStep.MACHINE_READY: {
                     const ready = await Machine.isReady(event.machine.id);
                     if (ready) {
@@ -267,21 +259,6 @@ export async function processMachineProvisionEvent(event: MachineProvisionEvent)
                     }
                     break;
                 }
-                case MachineSetupStep.PACKAGE_INSTALL: {
-                    await installPackagesOnMachine(event.machine.ip_address, event.sshKey.private);
-                    break;
-                }
-                //
-                // WIP -> This is still getting called in the worker. Might need to npm run build && npm start?
-                //
-                case MachineSetupStep.TRACEROUTE: {
-                    await traceRoute(event.machine.id, event.machine.ip_address, event.swarm.host_url, event.sshKey.private);
-                    break;
-                }
-                case MachineSetupStep.UNZIP_AND_PIP_INSTALL: {
-                    await unzipPackageAndPipInstall(event.machine.id, event.machine.ip_address, event.sshKey.private);
-                    break;
-                }
                 case MachineSetupStep.START_MASTER: {
                     await startDataCollection(event.swarm, event.machine, event.slaveCount, event.slaveIds, event.sshKey.private);
                     break;
@@ -297,43 +274,6 @@ export async function processMachineProvisionEvent(event: MachineProvisionEvent)
     } else {
         console.log(`Dropping event after ${event.maxRetries} retries.`);
     }
-}
-
-export async function traceRoute(machineId: number, machineIp: string, hostUrl: string, privateKey: string): Promise<void> {
-    const ssh = new NodeSSH();
-    const domain = parseURL(hostUrl);
-    console.log(`Starting traceroute on ${machineIp} to ${domain.host}`);
-    await ssh.connect({
-        host: machineIp,
-        username: "root",
-        privateKey,
-    });
-    const output = await ssh.execCommand(`traceroute ${domain.host}`);
-    ssh.connection.end();
-    await Machine.update(machineId, { traceroute: output.stdout });
-    console.log(`Finished traceroute on ${machineIp} to ${domain.host}`);
-}
-
-export async function unzipPackageAndPipInstall(machineId: number, machineIp: string, privateKey: string): Promise<void> {
-    const ssh = new NodeSSH();
-    console.log(`Starting pip install on ${machineIp}`);
-    await ssh.connect({
-        host: machineIp,
-        username: "root",
-        privateKey,
-    });
-    /*
-    * Note: pip install is done in the image before it is minted
-    */
-    const commands: Array<string> = [
-        "unzip load_test_data.zip",
-        // "pip3 install -r requirements.txt"
-    ];
-    await ssh.execCommand(commands.join(" && "));
-    ssh.connection.end();
-    console.log(`Finished pip install on ${machineIp}`);
-    await Machine.updateDependencyInstallComplete(machineId, true);
-    console.log(`Machine dependency_install_complete flag set ${machineIp}`);
 }
 
 export async function startDataCollection(swarm: Swarm.Swarm, machine: Machine.Machine, slaveCount: number, slaveIds: number[], privateKey: string): Promise<void> {
@@ -373,45 +313,4 @@ export async function cleanUpMachineProvisionEvent(event: MachineProvisionEvent)
             await enqueue(machineDestroyEvent);
         }
     }
-}
-
-export async function installPackagesOnMachine(machineIp: string, privateKey: string): Promise<void> {
-    const ssh = new NodeSSH();
-    console.log(`Starting package install on ${machineIp}`);
-    await ssh.connect({
-        host: machineIp,
-        username: "root",
-        privateKey,
-    });
-    const commands: Array<string> = [
-        "sysctl -w net.ipv6.conf.all.disable_ipv6=1", // Disable ipv6
-        "sysctl -w net.ipv6.conf.default.disable_ipv6=1", // Disable ipv6
-        "export DEBIAN_FRONTEND=noninteractive && apt update",
-        "export DEBIAN_FRONTEND=noninteractive && apt upgrade -y",
-        "export DEBIAN_FRONTEND=noninteractive && apt-get install -y python3-pip unzip traceroute"
-    ];
-    for (const command of commands) {
-        console.log(`Executing: ${command} on ${machineIp}`);
-        await ssh.execCommand(command);
-    }
-    ssh.connection.end();
-    console.log(`Finished package install on ${machineIp}`);
-}
-
-export async function openPorts(machineId: number, machineIp: string, privateKey: string): Promise<void> {
-    // Todo try large machine batches without random start. Might not need it.
-    const randomStart = Math.floor(Math.random() * 3) + 1;
-    asyncSleep(randomStart);
-    const ssh = new NodeSSH();
-    console.log(`Opening ports on ${machineIp}`);
-    await ssh.connect({
-        host: machineIp,
-        username: "root",
-        privateKey,
-    });
-    await ssh.execCommand("ufw allow 8000:65535/tcp");
-    ssh.connection.end();
-    console.log(`Finished opening ports ${machineIp}`);
-    await Machine.update(machineId, { port_open_complete: true });
-    console.log(`Machine port_open_complete flag set ${machineIp}`);
 }

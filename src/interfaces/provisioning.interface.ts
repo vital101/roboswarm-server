@@ -9,8 +9,7 @@ export enum MachineSetupStep {
     OPEN_PORTS,
     PACKAGE_INSTALL,
     UNZIP_AND_PIP_INSTALL,
-    START_MASTER,
-    TRACEROUTE
+    START_MASTER
 }
 
 export enum SwarmSetupStep {
