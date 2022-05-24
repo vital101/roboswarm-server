@@ -10,6 +10,7 @@ const router = express.Router();
 router.route("/:id/status")
     .post(async (req: interfaces.MachineStatusRequest, res: interfaces.MachineStatusResponse) => {
         const machineId = Number(req.params.id);
+        let swarmId: number;
         switch (req.body.action) {
             case "port_open_complete":
                 await Machine.update(machineId, { port_open_complete: true });
@@ -34,7 +35,7 @@ router.route("/:id/status")
             case "setup_complete":
                 // Mark that the machine setup complete.
                 await Machine.updateSetupCompleteStatus(machineId, true);
-                const swarmId = await SwarmMachine.getSwarmIdByMachineId(machineId);
+                swarmId = await SwarmMachine.getSwarmIdByMachineId(machineId);
 
                 // Mark if the swarm setup is complete.
                 const machines: Machine.Machine[] = await SwarmMachine.getSwarmMachines(swarmId);
@@ -44,6 +45,12 @@ router.route("/:id/status")
                     .filter(m => m.setup_complete)
                     .length;
                 await Swarm.updateLoadTestStarted(swarmId, !!(machineCount === setupCompleteCount));
+                break;
+            case "final_data_sent":
+                swarmId = await SwarmMachine.getSwarmIdByMachineId(machineId);
+                await Swarm.update(swarmId, {
+                    final_data_sent: true
+                });
                 break;
         }
         res.status(200);
@@ -85,6 +92,14 @@ router.route("/:id/master-ip")
         const master: Machine.Machine = machines.find(m => m.is_master);
         res.status(200);
         res.send(master.ip_address);
+    });
+
+router.route("/:id/should-send-final-data")
+    .get(async (req: interfaces.MachineIsMasterRequest, res: interfaces.ShouldSendFinalDataResponse) => {
+        const swarmId = await SwarmMachine.getSwarmIdByMachineId(Number(req.params.id));
+        const swarm = await Swarm.getById(swarmId);
+        res.status(200);
+        res.json(swarm.should_send_final_data);
     });
 
 export default router;

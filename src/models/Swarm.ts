@@ -55,6 +55,8 @@ export interface Swarm {
     is_woo_template?: boolean;
     is_advanced_route_template?: boolean;
     user_traffic_behavior?: string;
+    should_send_final_data?: boolean;
+    final_data_sent?: boolean;
 }
 
 export interface NewSwarm {

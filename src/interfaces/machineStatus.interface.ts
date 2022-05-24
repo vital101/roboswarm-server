@@ -28,3 +28,7 @@ export interface MachineIsMasterRequest extends Request {
         id: string;
     };
 }
+
+export interface ShouldSendFinalDataResponse extends Response {
+    json: (result: boolean) => any;
+}
