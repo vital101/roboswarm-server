@@ -73,28 +73,24 @@ export async function processDeprovisionEvent(event: DeprovisionEvent): Promise<
         try {
             const swarmId = await SwarmMachine.getSwarmIdByMachineId(event.id);
             const swarm = await Swarm.getById(swarmId);
+
+            // Tell master to send the final data.
             if (!swarm.should_send_final_data) {
                 await Swarm.update(swarmId, { should_send_final_data: true });
                 event.currentTry = 0;
                 event.maxRetries = 3;
                 await asyncSleep(3);
                 await enqueue(event);
-            } else if (swarm.should_send_final_data && swarm.final_data_sent) {
-                // continue??
-            } else {
+                return;
+            // Master has not yet sent the final data.
+            } else if (swarm.should_send_final_data && !swarm.final_data_sent) {
                 await asyncSleep(3);
                 event.currentTry += 1;
                 await enqueue(event);
+                return;
             }
-            // Get the swarm.
-            // If !swarm.should_send_final_data
-            //   - set to true.
-            //   - drop maxRetries down to 3.
-            //   - clear currentTry to 0
-            //      note: this allows up to 9 seconds for final data to be sent.
-            //        master swarm will check every 3 seconds, so that should be fine.
-            // else if should_send_final_data and final_data_sent
-            //   - allow deprovision to continue.
+
+            // Final data sent. Continue with deprovision actions.
             switch (event.deprovisionType) {
                 case DeprovisionEventType.MACHINE: {
                     console.log(`Deprovisioning machine: ${event.id}`);
