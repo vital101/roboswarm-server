@@ -1,10 +1,14 @@
 from time import sleep
+import requests
 
-
-from time import sleep
+#
+# TODO
+# - In the user data initialization, cat >> the base URL so this script
+#   can fetch it.
 
 while True:
     sleep(2)
+    base_url = "https://roboswarm.ngrok.io"
     # Check if we are shutting down the swarm.
     # If so, do the final data capture.
         # status_stats.csv
