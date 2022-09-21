@@ -113,7 +113,9 @@ class WooCommerceSequence(SequentialTaskSet):
             "shipping_method[0]": "flat_rate:1",
             "payment_method": "cod",
             "privacy_policy": "1",
-            "woocommerce-process-checkout-nonce": checkout_nonce
+            "terms": "on",
+            "terms-field": "1",
+            "woocommerce-process-checkout-nonce": checkout_nonce,
         }
         headers = self.headers
         headers["Content-Type"] = "application/x-www-form-urlencoded"
