@@ -1,9 +1,11 @@
+from calendar import c
 from locust import HttpUser, SequentialTaskSet, task
 
 # Suppresses insecure request warning.
 from requests.packages.urllib3.exceptions import InsecureRequestWarning
 import requests
 import uuid
+import json
 
 import re
 
@@ -117,6 +119,20 @@ class WooCommerceSequence(SequentialTaskSet):
             "terms-field": "1",
             "woocommerce-process-checkout-nonce": checkout_nonce,
         }
+
+        dynamic_context = {
+            "billing_email": email,
+            "billing_em_ver": email,
+            "woocommerce-process-checkout-nonce": checkout_nonce,
+        }
+{% if data_override %}
+        extra_context = json.loads("""{{data_override|safe}}""")
+{% else %}
+        extra_context = {}
+{% endif %}
+        checkout_data.update(extra_context)
+        checkout_data.update(dynamic_context)
+
         headers = self.headers
         headers["Content-Type"] = "application/x-www-form-urlencoded"
         response = self.client.post(

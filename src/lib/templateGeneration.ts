@@ -73,7 +73,8 @@ export async function generateLocustFile(templateId: number, isWooTemplate: bool
             product_a_url: getRoutePath(template.product_a_url),
             product_b_url: getRoutePath(template.product_b_url),
             product_a_attributes: getAttributes(template.product_a_url),
-            product_b_attributes: getAttributes(template.product_b_url)
+            product_b_attributes: getAttributes(template.product_b_url),
+            data_override: template.data_override
         };
         const compiledTemplate = swig.renderFile(templatePath, renderContext);
         return compiledTemplate;

@@ -15,6 +15,7 @@ export interface WooCommerceTemplate {
     checkout_url: string;
     product_a_url: string;
     product_b_url: string;
+    data_override?: string;
 }
 
 export interface AddUpdateWooCommerceTemplate {
@@ -26,6 +27,7 @@ export interface AddUpdateWooCommerceTemplate {
     checkout_url: string;
     product_a_url: string;
     product_b_url: string;
+    data_override?: string;
 }
 
 export async function create(template: WooCommerceTemplate): Promise<WooCommerceTemplate> {
