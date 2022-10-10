@@ -13,6 +13,7 @@ let config;
 if (["development", "test"].includes(process.env.NODE_ENV)) {
     url = "redis://localhost";
     config = {
+        url,
         retry_strategy: () => {
             return 2000;
         },
@@ -20,13 +21,17 @@ if (["development", "test"].includes(process.env.NODE_ENV)) {
 } else {
     url = process.env.REDIS_URL;
     config = {
+        url,
+        tls: {
+            rejectUnauthorized: false
+        },
         retry_strategy: () => {
             return 2000;
         },
     };
 }
 
-const client = redis.createClient(url, config);
+const client = redis.createClient(config);
 client.on("connect", log("connecting"));
 client.on("ready", log("ready"));
 client.on("reconnecting", log("reconnecting"));
