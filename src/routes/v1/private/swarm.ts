@@ -10,7 +10,7 @@ import { RoboRequest, RoboResponse, RoboError } from "../../../interfaces/shared
 import { canCreateSwarm } from "../../../lib/authorization";
 import * as multer from "multer";
 import * as LoadTestFile from "../../../models/LoadTestFile";
-import { LoadTestRouteSpecificData } from "../../../models/LoadTestRouteSpecificData";
+import { LoadTestRouteSpecificData, getRoutes } from "../../../models/LoadTestRouteSpecificData";
 import { isEventQueueAvailable } from "../../../lib/events";
 
 interface NewSwarmRequest extends RoboRequest {
@@ -74,6 +74,10 @@ interface TimeRemaining {
 
 interface TimeRemainingResponse extends RoboResponse {
     json: (time: TimeRemaining) => any;
+}
+
+interface SwarmRouteResponse extends RoboResponse {
+    json: (routes: string[]) => any;
 }
 
 const router = Router();
@@ -266,6 +270,14 @@ router.route("/:id/time-remaining")
         const timeInSeconds = await Swarm.getAverageTimeToCreationRemainingInSeconds(id);
         res.status(200);
         res.json({ timeInSeconds });
+    });
+
+router.route("/:id/routes")
+    .get(async (req: RoboRequest, res: SwarmRouteResponse) => {
+        const id: number = parseInt(req.params.id, 10);
+        const routes = await getRoutes(id);
+        res.status(200);
+        res.json(routes);
     });
 
 router.route("/:id")
