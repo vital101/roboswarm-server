@@ -444,7 +444,7 @@ export async function willExceedDropletPoolAvailability(newSwarmSize: number): P
     };
     const result: DropletListResponse = await request.get(url, options);
     const availableDroplets = parseInt(process.env.DROPLET_POOL_SIZE, 10) - result.meta.total;
-    if (availableDroplets - newSwarmSize ) {
+    if (availableDroplets - newSwarmSize < 10) {
         sendEmail({
             to: "jack@kernl.us",
             from: "jack@kernl.us",
@@ -649,7 +649,7 @@ export async function fetchErrorMetrics(swarm: Swarm): Promise<void> {
         const promises: Array<Promise<void>> = [];
         rows.forEach(r => {
             const rowData = r.split(",");
-            const error_count = parseFloat(rowData.pop());
+            const error_count = parseInt(rowData.pop(), 10);
             let message = "";
             for (let i = 2; i < rowData.length; i++) {
                 message += `,${rowData[i]}`;
@@ -810,7 +810,7 @@ export async function getAverageTimeToCreationRemainingInSeconds(swarmId: number
             AND
             destroyed_at IS NOT NULL
             AND id < ?
-            AND id >= (? )
+            AND id >= (? - 10)
     `;
     const result = await db.raw(rawQuery, [swarmId, swarmId]);
     const averageTime: number = result.rows[0].avg_time;
