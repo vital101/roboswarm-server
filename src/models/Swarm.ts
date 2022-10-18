@@ -460,7 +460,6 @@ interface SSHCommandResult {
     stderr: string;
 }
 
-// WIP -> Still need to call this func()
 export async function createRouteSpecificData(swarm: Swarm): Promise<void> {
     const sshKey: SSHKey.SSHKey = await SSHKey.getById(swarm.ssh_key_id);
     const master: Machine.Machine = await getSwarmMaster(swarm.id);
