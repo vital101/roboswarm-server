@@ -460,7 +460,6 @@ interface SSHCommandResult {
     stderr: string;
 }
 
-// WIP -> Still need to call this func()
 export async function createRouteSpecificData(swarm: Swarm): Promise<void> {
     const sshKey: SSHKey.SSHKey = await SSHKey.getById(swarm.ssh_key_id);
     const master: Machine.Machine = await getSwarmMaster(swarm.id);
@@ -488,24 +487,24 @@ export async function createRouteSpecificData(swarm: Swarm): Promise<void> {
                     user_count: 0,
                     method: splitRow[0],
                     route: splitRow[1],
-                    requests: parseInt(splitRow[2], 10),
-                    failures: parseInt(splitRow[3], 10),
-                    median_response_time: parseInt(splitRow[4], 10),
-                    average_response_time: parseInt(splitRow[5], 10),
-                    min_response_time: parseInt(splitRow[6], 10),
-                    max_response_time: parseInt(splitRow[7], 10),
-                    avg_content_size: parseInt(splitRow[8], 10),
+                    requests: parseFloat(splitRow[2]),
+                    failures: parseFloat(splitRow[3]),
+                    median_response_time: parseFloat(splitRow[4]),
+                    average_response_time: parseFloat(splitRow[5]),
+                    min_response_time: parseFloat(splitRow[6]),
+                    max_response_time: parseFloat(splitRow[7]),
+                    avg_content_size: parseFloat(splitRow[8]),
                     requests_per_second: parseFloat(splitRow[9]),
                     failures_per_second: parseFloat(splitRow[10]),
-                    "50_percent": parseInt(splitRow[11], 10),
-                    "66_percent": parseInt(splitRow[12], 10),
-                    "75_percent": parseInt(splitRow[13], 10),
-                    "80_percent": parseInt(splitRow[14], 10),
-                    "90_percent": parseInt(splitRow[15], 10),
-                    "95_percent": parseInt(splitRow[16], 10),
-                    "98_percent": parseInt(splitRow[17], 10),
-                    "99_percent": parseInt(splitRow[18], 10),
-                    "100_percent": parseInt(splitRow[21], 10)
+                    "50_percent": parseFloat(splitRow[11]),
+                    "66_percent": parseFloat(splitRow[12]),
+                    "75_percent": parseFloat(splitRow[13]),
+                    "80_percent": parseFloat(splitRow[14]),
+                    "90_percent": parseFloat(splitRow[15]),
+                    "95_percent": parseFloat(splitRow[16]),
+                    "98_percent": parseFloat(splitRow[17]),
+                    "99_percent": parseFloat(splitRow[18]),
+                    "100_percent": parseFloat(splitRow[21])
                 });
             } catch (err) {
                 console.log("LoadTestRouteSpecificData Parse Error: ", err);
@@ -542,13 +541,13 @@ export async function fetchLoadTestMetrics(swarm: Swarm, isFinal?: boolean): Pro
                         created_at: new Date(),
                         method: splitRow[0],
                         route: splitRow[1],
-                        requests: parseInt(splitRow[2], 10),
-                        failures: parseInt(splitRow[3], 10),
-                        median_response_time: parseInt(splitRow[4], 10),
-                        average_response_time: parseInt(splitRow[5], 10),
-                        min_response_time: parseInt(splitRow[6], 10),
-                        max_response_time: parseInt(splitRow[7], 10),
-                        avg_content_size: parseInt(splitRow[8], 10),
+                        requests: parseFloat(splitRow[2]),
+                        failures: parseFloat(splitRow[3]),
+                        median_response_time: parseFloat(splitRow[4]),
+                        average_response_time: parseFloat(splitRow[5]),
+                        min_response_time: parseFloat(splitRow[6]),
+                        max_response_time: parseFloat(splitRow[7]),
+                        avg_content_size: parseFloat(splitRow[8]),
                         requests_per_second: parseFloat(splitRow[9])
                     };
                     await LoadTest.createRequestFinal(data);
@@ -561,15 +560,15 @@ export async function fetchLoadTestMetrics(swarm: Swarm, isFinal?: boolean): Pro
                         created_at: new Date(),
                         requests: data.requests,
                         percentiles: JSON.stringify({
-                            "50%": parseInt(splitRow[11], 10),
-                            "66%": parseInt(splitRow[12], 10),
-                            "75%": parseInt(splitRow[13], 10),
-                            "80%": parseInt(splitRow[14], 10),
-                            "90%": parseInt(splitRow[15], 10),
-                            "95%": parseInt(splitRow[16], 10),
-                            "98%": parseInt(splitRow[17], 10),
-                            "99%": parseInt(splitRow[18], 10),
-                            "100%": parseInt(splitRow[21], 10),
+                            "50%": parseFloat(splitRow[11]),
+                            "66%": parseFloat(splitRow[12]),
+                            "75%": parseFloat(splitRow[13]),
+                            "80%": parseFloat(splitRow[14]),
+                            "90%": parseFloat(splitRow[15]),
+                            "95%": parseFloat(splitRow[16]),
+                            "98%": parseFloat(splitRow[17]),
+                            "99%": parseFloat(splitRow[18]),
+                            "100%": parseFloat(splitRow[21]),
                         })
                     };
                     await LoadTest.createDistributionFinal(distributionTotalData);
@@ -588,14 +587,14 @@ export async function fetchLoadTestMetrics(swarm: Swarm, isFinal?: boolean): Pro
                 const requestTotalData: LoadTest.Request = {
                     swarm_id: swarm.id,
                     created_at: new Date(),
-                    user_count: parseInt(requestTotals[1], 10),
-                    requests: parseInt(requestTotals[17], 10),
-                    failures: parseInt(requestTotals[18], 10),
-                    median_response_time: parseInt(requestTotals[19], 10),
-                    average_response_time: parseInt(requestTotals[20], 10),
-                    min_response_time: parseInt(requestTotals[21], 10),
-                    max_response_time: parseInt(requestTotals[22], 10),
-                    avg_content_size: parseInt(requestTotals[23], 10),
+                    user_count: parseFloat(requestTotals[1]),
+                    requests: parseFloat(requestTotals[17]),
+                    failures: parseFloat(requestTotals[18]),
+                    median_response_time: parseFloat(requestTotals[19]),
+                    average_response_time: parseFloat(requestTotals[20]),
+                    min_response_time: parseFloat(requestTotals[21]),
+                    max_response_time: parseFloat(requestTotals[22]),
+                    avg_content_size: parseFloat(requestTotals[23]),
                     requests_per_second: Math.floor(parseFloat(requestTotals[4])),
                     failures_per_second: Math.floor(parseFloat(requestTotals[5]))
                 };
@@ -607,15 +606,15 @@ export async function fetchLoadTestMetrics(swarm: Swarm, isFinal?: boolean): Pro
                     created_at: new Date(),
                     requests: requestTotalData.requests,
                     percentiles: JSON.stringify({
-                        "50%": parseInt(requestTotals[6], 10),
-                        "66%": parseInt(requestTotals[7], 10),
-                        "75%": parseInt(requestTotals[8], 10),
-                        "80%": parseInt(requestTotals[9], 10),
-                        "90%": parseInt(requestTotals[10], 10),
-                        "95%": parseInt(requestTotals[11], 10),
-                        "98%": parseInt(requestTotals[12], 10),
-                        "99%": parseInt(requestTotals[13], 10),
-                        "100%": parseInt(requestTotals[16], 10),
+                        "50%": parseFloat(requestTotals[6]),
+                        "66%": parseFloat(requestTotals[7]),
+                        "75%": parseFloat(requestTotals[8]),
+                        "80%": parseFloat(requestTotals[9]),
+                        "90%": parseFloat(requestTotals[10]),
+                        "95%": parseFloat(requestTotals[11]),
+                        "98%": parseFloat(requestTotals[12]),
+                        "99%": parseFloat(requestTotals[13]),
+                        "100%": parseFloat(requestTotals[16]),
                     })
                 };
                 await LoadTest.createDistribution(distributionTotalData);
