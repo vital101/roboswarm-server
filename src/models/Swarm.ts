@@ -210,14 +210,19 @@ export function provision(event: SwarmProvisionEvent): Promise<Machine.Machine[]
 }
 
 export async function destroyById(id: number, group_id: number): Promise<Swarm> {
-    const destroyedSwarm: Array<Swarm> = await db("swarm")
-        .update({ destroyed_at: db.fn.now() })
-        .where({
-            id,
-            group_id
-        })
-        .returning("*");
-
+    let destroyedSwarm: Array<Swarm>;
+    try {
+        destroyedSwarm = await db("swarm")
+            .update({ destroyed_at: db.fn.now() })
+            .where({
+                id,
+                group_id
+            })
+            .returning("*");
+    } catch (err) {
+        console.error(err);
+        return;
+    }
 
     try {
         // Fetch the final load test metrics and

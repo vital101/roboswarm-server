@@ -32,6 +32,9 @@ router.route("/:id/status")
             case "master_started_complete":
                 await Machine.update(machineId, { test_started: true });
                 break;
+            case "file_transfer_complete":
+                await Machine.update(machineId, { file_transfer_complete: true });
+                break;
             case "setup_complete":
                 // Mark that the machine setup complete.
                 await Machine.updateSetupCompleteStatus(machineId, true);

@@ -24,10 +24,23 @@ curl -X POST {{baseUrl}}/api/v1/public/machine/{{machineId}}/status -H 'Content-
 echo "Setting is_master"
 curl -X POST {{baseUrl}}/api/v1/public/machine/{{machineId}}/status -H 'Content-Type: application/json' -d '{"action":"is_master"}' > /dev/null
 
+# Enable the firewall
+echo "y" | ufw enable
+
+# Open the firewall for SSh
+echo "Opening firewall for SSH"
+ufw allow ssh
+
 # Open the firewall for Locust
 echo "Opening firewall for Locust"
 ufw allow 8000:65535/tcp
+ufw allow 5557/tcp
+ufw allow 5558/tcp
 curl -X POST {{baseUrl}}/api/v1/public/machine/{{machineId}}/status -H 'Content-Type: application/json' -d '{"action":"port_open_complete"}' > /dev/null
+
+# Increase open file limit.
+ulimit -n 200000
+sysctl -w fs.file-max=200000
 
 # Wait for apt to become available.
 while sudo fuser /var/{lib/{dpkg,apt/lists},cache/apt/archives}/lock >/dev/null 2>&1; do
@@ -43,6 +56,9 @@ export DEBIAN_FRONTEND=noninteractive && apt-get install -y python3-pip wget unz
 echo "Downloading and unzipping load test template"
 wget {{baseUrl}}/api/v1/public/machine/{{machineId}}/template
 unzip template
+curl -X POST {{baseUrl}}/api/v1/public/machine/{{machineId}}/status -H 'Content-Type: application/json' -d '{"action":"file_transfer_complete"}'
+
+# Update dependency install flag
 echo "Updating dependency_install_complete"
 curl -X POST {{baseUrl}}/api/v1/public/machine/{{machineId}}/status -H 'Content-Type: application/json' -d '{"action":"dependency_install_complete"}' > /dev/null
 
@@ -52,9 +68,9 @@ ISMASTER=$(curl {{baseUrl}}/api/v1/public/machine/{{machineId}}/is-master)
 if [ "$ISMASTER" = "true" ]; then
    # Start master
    echo "Starting master"
-   ulimit -n 200000
-   PYTHONWARNINGS="ignore:Unverified HTTPS request" nohup locust --master --csv=status --host={{hostUrl}} --users={{users}} --spawn-rate={{rate}} --run-time={{runTime}} --headless --expect-workers={{expectSlaveCount}} &
-   curl -X POST {{baseUrl}}/api/v1/public/machine/{{machineId}}/status -H 'Content-Type: application/json' -d '{"action":"master_started_complete"}'
+   ulimit -n 200000 && PYTHONWARNINGS="ignore:Unverified HTTPS request" nohup locust --master --csv=status --host={{hostUrl}} --users={{users}} --spawn-rate={{rate}} --run-time={{runTime}} --headless --expect-workers={{expectSlaveCount}} &
+   curl -X POST {{baseUrl}}/api/v1/public/machine/{{machineId}}/status -H 'Content-Type: application/json' -d '{"action":"master_started_complete"}' > /dev/null
+   curl -X POST {{baseUrl}}/api/v1/public/machine/{{machineId}}/status -H 'Content-Type: application/json' -d '{"action":"setup_complete"}' > /dev/null
 fi
 
 # Slave Group
@@ -68,13 +84,12 @@ if [ "$ISMASTER" = "false" ]; then
 
    # Get the master IP
    echo "Master started. Starting Locust worker."
-   ulimit -n 200000
    MASTERIP=$(curl {{baseUrl}}/api/v1/public/machine/{{machineId}}/master-ip)
 
    # Start 2 workers per machine.
    for VARIABLE in 1 2
    do
-      PYTHONWARNINGS="ignore:Unverified HTTPS request" locust --worker --master-host=$MASTERIP --logfile=/root/locustlog.log --loglevel=debug &
+      ulimit -n 200000 && PYTHONWARNINGS="ignore:Unverified HTTPS request" locust --worker --master-host=$MASTERIP --logfile=/root/locustlog.log --loglevel=debug &
    done
 
    # Mark machine as ready.
