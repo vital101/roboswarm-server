@@ -32,3 +32,17 @@ export interface MachineIsMasterRequest extends Request {
 export interface ShouldSendFinalDataResponse extends Response {
     json: (result: boolean) => any;
 }
+
+export interface SwarmFinalMetricsRequest extends Request {
+    params: {
+        id: string;
+    };
+    body: Array<Array<string>>;
+}
+
+export interface AggregateDataRequest extends Request {
+    params: {
+        id: string;
+    };
+    body: Array<string>;
+}

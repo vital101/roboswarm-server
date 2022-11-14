@@ -227,7 +227,10 @@ export async function destroyById(id: number, group_id: number): Promise<Swarm> 
     try {
         // Fetch the final load test metrics and
         await fetchLoadTestMetrics(destroyedSwarm[0], true);
-    } catch (err) { }
+    } catch (err) {
+        console.error("Failed on `fetchLoadTestMetrics`.");
+        console.error(err);
+    }
 
     // Fetch all of the machines and enqueue for deletion.
     const machines = await getSwarmMachines(id);
@@ -525,14 +528,17 @@ export async function fetchLoadTestMetrics(swarm: Swarm, isFinal?: boolean): Pro
     const sshKey: SSHKey.SSHKey = await SSHKey.getById(swarm.ssh_key_id);
     const master: Machine.Machine = await getSwarmMaster(swarm.id);
 
-    const ssh = new NodeSSH();
-    await ssh.connect({
-        host: master.ip_address,
-        username: "root",
-        privateKey: sshKey.private
-    });
+    let ssh;
+    try {
+        ssh = new NodeSSH();
+        await ssh.connect({
+            host: master.ip_address,
+            username: "root",
+            privateKey: sshKey.private
+        });
+    } catch (err) { }
 
-    if (isFinal) {
+    if (ssh && isFinal) {
         const requests: SSHCommandResult = await ssh.execCommand("cat /root/status_stats.csv");
         const requestRows = requests.stdout.split("\n");
         // For the final request, we store the route path information.
@@ -584,7 +590,7 @@ export async function fetchLoadTestMetrics(swarm: Swarm, isFinal?: boolean): Pro
                 }
             }
         }
-    } else {
+    } else if (ssh) {
         const requests: SSHCommandResult = await ssh.execCommand("tail /root/status_stats_history.csv");
         const requestRows = requests.stdout.split("\n");
         if (requestRows.length > 1) {
@@ -632,10 +638,19 @@ export async function fetchLoadTestMetrics(swarm: Swarm, isFinal?: boolean): Pro
                 });
             }
         }
+    } else {
+        // Failed to fetch the final data.
+        // mark as failure.
     }
-    await createRouteSpecificData(swarm);
+    try {
+        await createRouteSpecificData(swarm);
+    } catch (err) {
+        console.error(err);
+    }
 
-    ssh.connection.end();
+    if (ssh) {
+        ssh.connection.end();
+    }
 }
 
 export async function fetchErrorMetrics(swarm: Swarm): Promise<void> {

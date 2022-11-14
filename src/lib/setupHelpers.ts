@@ -76,6 +76,7 @@ export async function processDeprovisionEvent(event: DeprovisionEvent): Promise<
 
             // Tell master to send the final data.
             if (!swarm.should_send_final_data) {
+                console.log("Needs to send final data. Informing...");
                 await Swarm.update(swarmId, { should_send_final_data: true });
                 event.currentTry = 0;
                 event.maxRetries = 3;
@@ -84,6 +85,7 @@ export async function processDeprovisionEvent(event: DeprovisionEvent): Promise<
                 return;
             // Master has not yet sent the final data.
             } else if (swarm.should_send_final_data && !swarm.final_data_sent) {
+                console.log("Final data still not sent, trying again...");
                 await asyncSleep(3);
                 event.currentTry += 1;
                 await enqueue(event);
