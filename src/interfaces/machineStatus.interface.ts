@@ -47,6 +47,13 @@ export interface SwarmFailureMetricsRequest extends Request {
     body: Array<Array<string>>;
 }
 
+export interface SwarmRouteSpecificMetricsRequest extends Request {
+    params: {
+        id: string;
+    };
+    body: Array<Array<string>>;
+}
+
 export interface AggregateDataRequest extends Request {
     params: {
         id: string;
