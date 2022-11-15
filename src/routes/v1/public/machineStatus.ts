@@ -6,6 +6,7 @@ import * as  Swarm from "../../../models/Swarm";
 import { getLocalFilePathBySwarmId } from "../../../models/LoadTestFile";
 import { RoboResponse } from "../../../interfaces/shared.interface";
 import * as LoadTest from "../../../models/LoadTest";
+import * as LoadTestError from "../../../models/LoadTestError";
 
 const router = express.Router();
 
@@ -147,6 +148,39 @@ router.route("/:id/aggregate-data")
             })
         };
         await LoadTest.createDistribution(distributionTotalData);
+        res.status(201);
+        res.send("OK");
+    });
+
+router.route("/:id/failure-metrics")
+    .post(async (req: interfaces.SwarmFailureMetricsRequest, res: RoboResponse) => {
+        try {
+            const swarmId = await SwarmMachine.getSwarmIdByMachineId(Number(req.params.id));
+            const promises: Array<Promise<void>> = [];
+            req.body.forEach(rowData => {
+                const error_count = parseInt(rowData.pop(), 10);
+                let message = "";
+                for (let i = 2; i < rowData.length; i++) {
+                    message += `,${rowData[i]}`;
+                }
+                const lte: LoadTestError.LoadTestError = {
+                    swarm_id: swarmId,
+                    method: rowData[0],
+                    path: rowData[1],
+                    message,
+                    error_count,
+                };
+                console.log(lte);
+                promises.push(LoadTestError.create(lte));
+            });
+            await Promise.all(promises);
+        } catch (err) {
+            console.log("Error fetching load test errors: ", {
+                err,
+                machine_id: req.params.id,
+                rows: req.body
+            });
+        }
         res.status(201);
         res.send("OK");
     });
