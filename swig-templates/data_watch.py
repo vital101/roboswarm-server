@@ -2,57 +2,58 @@ from time import sleep
 from csv import reader
 import json, os, requests, sys
 
-base_url = "https://roboswarm.ngrok.io" # from clargs
-machine_id = 48 # example. part of swarm id 20 # from clargs
+if len(sys.argv) != 3:
+    raise ValueError('Usage: python data_watch.py <base_url> <machine_id>')
 
-# final_data_path = "/root/status_stats.csv"
-final_data_path = "/Users/jackslingerland/Desktop/roboswarm_env/result_stats.csv"
-# aggregate_data_path= "/root/status_stats_history.csv"
-aggregate_data_path = "/Users/jackslingerland/Desktop/roboswarm_env/result_stats_history.csv"
-# failure_data_path = "/root/status_failures.csv"
-failure_data_path = "/Users/jackslingerland/Desktop/roboswarm_env/result_failures.csv"
-# route_specific_data_path = "/root/status_stats.csv"
-route_specific_data_path = "/Users/jackslingerland/Desktop/roboswarm_env/result_stats.csv"
+base_url = sys.argv[1] # "https://roboswarm.ngrok.io" for dev
+machine_id = sys.argv[2] # 48 for dev
 
-def is_shutting_down_swarm(swarm_id: int) -> bool:
-    url = "{0}/api/v1/public/machine/{1}/should-send-final-data".format(
-        base_url,
-        machine_id
-    )
-    return requests.get(url).json()
+if "ngrok" in base_url:
+    print("Using development configuration")
+    base_path = "/Users/jackslingerland/Desktop/roboswarm_env/result"
+    final_data_path = "{0}_stats.csv".format(base_path)
+    aggregate_data_path = "{0}_stats_history.csv".format(base_path)
+    failure_data_path = "{0}_failures.csv".format(base_path)
+    route_specific_data_path = "{0}_stats.csv".format(base_path)
+else:
+    print("Using production configuration")
+    final_data_path = "/root/status_stats.csv"
+    aggregate_data_path= "/root/status_stats_history.csv"
+    failure_data_path = "/root/status_failures.csv"
+    route_specific_data_path = "/root/status_stats.csv"
 
-def capture_final_data(machine_id: int):
+def roboswarm_http_request(method, route, data = None):
     try:
-        with open(final_data_path, "r") as final_data_fp:
-            file_reader = reader(final_data_fp)
-            data = [r for r in file_reader][1:]
-            url = "{0}/api/v1/public/machine/{1}/final-metrics".format(
-                base_url,
-                machine_id
-            )
+        url = "{0}/api/v1/public/machine/{1}/{2}".format(
+            base_url,
+            machine_id,
+            route
+        )
+        if method == "GET":
+            return requests.get(url).json()
+        elif method == "POST":
             headers = {'Content-type': 'application/json', 'Accept': 'text/plain'}
             requests.post(url, data=json.dumps(data), headers=headers)
     except Exception as e:
+        print("Error in 'roboswarm_http_request': ")
         print(e)
 
-def update_can_deprovision(machine_id: int):
-    url = "{0}/api/v1/public/machine/{1}/status".format(
-        base_url,
-        machine_id
-    )
-    headers = {'Content-type': 'application/json', 'Accept': 'text/plain'}
-    requests.post(url, data=json.dumps({ "action": "final_data_sent" }), headers=headers)
+# options = { "trim_start": True|False, "trim_end": True|False }
+def get_file_data(path, options):
+    with open(path, "r") as final_data_fp:
+        file_reader = reader(final_data_fp)
+        data = [r for r in file_reader]
+        if options["trim_start"] and options["trim_end"]:
+            return data[1:-1]
+        elif options["trim_start"] and not options["trim_end"]:
+            return data[1:]
+        elif not options["trim_start"] and options["trim_end"]:
+            return data[:-1]
+        else:
+            return data
 
-def kill_data_watch():
-    sys.exit()
-
-#
-#
-# TOMORROW: Test this
-#
-#
-def capture_aggregate_data(machine_id):
-    with open(aggregate_data_path, 'rb') as f:
+def get_last_line(path):
+     with open(path, 'rb') as f:
         try:
             f.seek(-2, os.SEEK_END)
             while f.read(1) != b'\n':
@@ -60,68 +61,71 @@ def capture_aggregate_data(machine_id):
         except OSError:
             f.seek(0)
         last_line = f.readline().decode()
-    data = [item.replace("\r\n", "") for item in last_line.split(",")]
+        return [item.replace("\r\n", "") for item in last_line.split(",")]
+
+def is_shutting_down_swarm():
+    result = roboswarm_http_request("GET", "should-send-final-data")
+    return result["should_send_final_data"]
+
+def is_swarm_ready():
+    result = roboswarm_http_request("GET", "is-swarm-ready")
+    return result["is_swarm_ready"]
+
+def capture_final_data():
     try:
-        url = "{0}/api/v1/public/machine/{1}/aggregate-data".format(
-            base_url,
-            machine_id
-        )
-        headers = {'Content-type': 'application/json', 'Accept': 'text/plain'}
-        requests.post(url, data=json.dumps(data), headers=headers)
+        data = get_file_data(final_data_path, {
+            "trim_start": True,
+            "trim_end": False
+        })
+        roboswarm_http_request("POST", "final-metrics", data)
     except Exception as e:
         print(e)
 
-def capture_failure_data(machine_id):
-    try:
-        with open(failure_data_path, "r") as failure_data_fp:
-            file_reader = reader(failure_data_fp)
-            data = [r for r in file_reader][1:]
-            url = "{0}/api/v1/public/machine/{1}/failure-metrics".format(
-                base_url,
-                machine_id
-            )
-            headers = {'Content-type': 'application/json', 'Accept': 'text/plain'}
-            requests.post(url, data=json.dumps(data), headers=headers)
-    except Exception as e:
-        print(e)
+def update_can_deprovision():
+    data = { "action": "final_data_sent" }
+    roboswarm_http_request("POST", "status", data)
 
-def capture_route_specific_data(machine_id):
-    try:
-        with open(route_specific_data_path, "r") as route_specific_data_fp:
-            file_reader = reader(route_specific_data_fp)
-            data = [r for r in file_reader][1:-1]
-            url = "{0}/api/v1/public/machine/{1}/route-specific-metrics".format(
-                base_url,
-                machine_id
-            )
-            headers = {'Content-type': 'application/json', 'Accept': 'text/plain'}
-            requests.post(url, data=json.dumps(data), headers=headers)
-    except Exception as e:
-        print(e)
+def kill_data_watch():
+    sys.exit()
 
-#
-# TODO
-# - In the user data initialization, send:
-#   - base_url
-#   - swarm id as a command line arg
-#   - refactor
-# check if swarm ready
-# try/catch whole thing
+def capture_aggregate_data():
+    data = get_last_line(aggregate_data_path)
+    roboswarm_http_request("POST", "aggregate-data", data)
+
+def capture_failure_data():
+    data = get_file_data(failure_data_path, {
+        "trim_start": True,
+        "trim_end": False
+    })
+    roboswarm_http_request("POST", "failure-metrics", data)
+
+def capture_route_specific_data():
+    data = get_file_data(route_specific_data_path, {
+        "trim_start": True,
+        "trim_end": True
+    })
+    roboswarm_http_request("POST", "route-specific-metrics", data)
 
 while True:
+    try:
+        if is_shutting_down_swarm():
+            print("Swarm is shutting down.")
+            capture_final_data()
+            print("Final data captured.")
+            update_can_deprovision()
+            print("Updating Roboswarm 'can deprovision' == True")
+            kill_data_watch()
+        else:
+            if is_swarm_ready():
+                print("Swarm not shutting down.")
+                capture_aggregate_data()
+                print("Aggregate data captured.")
+                capture_failure_data()
+                print("Error data captured")
+                capture_route_specific_data()
+                print("Route specific data captured.")
+            else:
+                print("Swarm is not ready yet. Waiting 3 seconds")
+    except Exception as e:
+        print(e)
     sleep(3)
-    if is_shutting_down_swarm(machine_id):
-        print("Swarm is shutting down.")
-        capture_final_data(machine_id)
-        print("Final data captured.")
-        update_can_deprovision(machine_id)
-        print("Updating Roboswarm 'can deprovision' == True")
-        kill_data_watch()
-    else:
-        print("Swarm not shutting down.")
-        capture_aggregate_data(machine_id)
-        print("Aggregate data captured.")
-        capture_failure_data(machine_id)
-        print("Error data captured")
-        capture_route_specific_data(machine_id)
-        print("Route specific data captured.")

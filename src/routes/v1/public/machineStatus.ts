@@ -106,7 +106,19 @@ router.route("/:id/should-send-final-data")
         const swarmId = await SwarmMachine.getSwarmIdByMachineId(Number(req.params.id));
         const swarm = await Swarm.getById(swarmId);
         res.status(200);
-        res.json(swarm.should_send_final_data);
+        res.json({
+            should_send_final_data: swarm.should_send_final_data
+        });
+    });
+
+router.route("/:id/is-swarm-ready")
+    .get(async (req: interfaces.MachineIsSwarmReadyRequest, res: interfaces.IsSwarmReadyResponse) => {
+        const swarmId = await SwarmMachine.getSwarmIdByMachineId(Number(req.params.id));
+        const ready = await Swarm.swarmReady(swarmId);
+        res.status(200);
+        res.json({
+            is_swarm_ready: ready
+        });
     });
 
 router.route("/:id/aggregate-data")
