@@ -64,6 +64,14 @@ router.route("/:id/status")
         res.json(await Machine.findById(machineId));
     });
 
+router.route("/:id/data-watch")
+    .get(async (req: interfaces.DataWatchRequest, res: interfaces.DataWatchResponse) => {
+        const appRoot = process.env.APP_ROOT || "/Users/jackslingerland/repos/roboswarm";
+        const dataWatchPath = `${appRoot}/swig-templates/data_watch.py`;
+        res.status(200);
+        res.download(dataWatchPath, "data_watch.py");
+    });
+
 router.route("/:id/template")
     .get(async (req: interfaces.MachineTemplateRequest, res: interfaces.MachineTemplateResponse) => {
         const machineId: number = Number(req.params.id);

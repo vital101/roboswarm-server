@@ -66,11 +66,23 @@ curl -X POST {{baseUrl}}/api/v1/public/machine/{{machineId}}/status -H 'Content-
 echo "Checking if this machine is master"
 ISMASTER=$(curl {{baseUrl}}/api/v1/public/machine/{{machineId}}/is-master)
 if [ "$ISMASTER" = "true" ]; then
+   # Download the data watch script
+   echo "Downloading data watch script"
+   wget {{baseUrl}}/api/v1/public/machine/{{machineId}}/data-watch
+
    # Start master
    echo "Starting master"
    ulimit -n 200000 && PYTHONWARNINGS="ignore:Unverified HTTPS request" nohup locust --master --csv=status --host={{hostUrl}} --users={{users}} --spawn-rate={{rate}} --run-time={{runTime}} --headless --expect-workers={{expectSlaveCount}} &
    curl -X POST {{baseUrl}}/api/v1/public/machine/{{machineId}}/status -H 'Content-Type: application/json' -d '{"action":"master_started_complete"}' > /dev/null
    curl -X POST {{baseUrl}}/api/v1/public/machine/{{machineId}}/status -H 'Content-Type: application/json' -d '{"action":"setup_complete"}' > /dev/null
+
+   # Start data watch
+   echo "Start data watch"
+   PYTHONWARNINGS="ignore:Unverified HTTPS request" nohup python data_watch.py {{baseUrl}} {{machineId}} &
+
+   #
+   # TODO - stop the data fetching process from the old way of doing things
+   # 
 fi
 
 # Slave Group
