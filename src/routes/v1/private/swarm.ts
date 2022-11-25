@@ -98,7 +98,7 @@ router.route("/:id/metrics/final")
     .get(async (req: LoadTestMetricsRequest, res: LoadTestMetricsResponse) => {
         const id: number = parseInt(req.params.id, 10);
         const swarm: Swarm.Swarm = await Swarm.getById(id);
-        if (swarm.group_id !== req.user.groupId) {
+        if (swarm.group_id !== req.auth.groupId) {
             res.status(401);
             res.send("Unauthorized.");
             return;
@@ -120,7 +120,7 @@ router.route("/:id/metrics/route-specific")
     .post(async (req: LoadTestRouteSpecificMetricsRequest, res: LoadTestRouteSpecificMetricsResponse) => {
         const id: number = parseInt(req.params.id, 10);
         const swarm: Swarm.Swarm = await Swarm.getById(id);
-        if (swarm.group_id !== req.user.groupId) {
+        if (swarm.group_id !== req.auth.groupId) {
             res.status(401);
             res.send("Unauthorized.");
             return;
@@ -141,7 +141,7 @@ router.route("/:id/metrics")
     .post(async (req: LoadTestMetricsRequest, res: LoadTestMetricsResponse) => {
         const id: number = parseInt(req.params.id, 10);
         const swarm: Swarm.Swarm = await Swarm.getById(id);
-        if (swarm.group_id !== req.user.groupId) {
+        if (swarm.group_id !== req.auth.groupId) {
             res.status(401);
             res.send("Unauthorized.");
             return;
@@ -181,7 +181,7 @@ router.route("/:id/ip-addresses")
     .get(async (req: RoboRequest, res: LoadTestIpAddressesResponse) => {
         const id: number = parseInt(req.params.id, 10);
         const swarm: Swarm.Swarm = await Swarm.getById(id);
-        if (swarm.group_id !== req.user.groupId) {
+        if (swarm.group_id !== req.auth.groupId) {
             res.status(401);
             res.send("Unauthorized.");
             return;
@@ -211,7 +211,7 @@ router.route("/:id/repeat")
         // Validate ownership of swarm.
         const id: number = parseInt(req.params.id, 10);
         const swarm: Swarm.Swarm = await Swarm.getById(id);
-        if (swarm.group_id !== req.user.groupId) {
+        if (swarm.group_id !== req.auth.groupId) {
             res.status(401);
             res.send("Unauthorized.");
             return;
@@ -220,7 +220,7 @@ router.route("/:id/repeat")
         if (req.body && req.body.kernl_test) {
             newSwarm.kernl_test = req.body.kernl_test;
         }
-        const user: User.User = await User.getById(req.user.id);
+        const user: User.User = await User.getById(req.auth.id);
         const isReliabilityTest = !!(newSwarm.simulated_users <= 25 && newSwarm.duration > 120);
         newSwarm.site_id = await SiteOwnership.getSiteIdByBaseUrl(newSwarm.host_url, user.id, user.group.id) as number;
         const canProceed: boolean | RoboError = await canCreateSwarm(user, newSwarm, isReliabilityTest);
@@ -230,7 +230,7 @@ router.route("/:id/repeat")
             res.send(err.err);
         } else {
             try {
-                const mySwarm: Swarm.Swarm = await Swarm.create(newSwarm, req.user.id, req.user.groupId, true);
+                const mySwarm: Swarm.Swarm = await Swarm.create(newSwarm, req.auth.id, req.auth.groupId, true);
                 const ltFile: LoadTestFile.LoadTestFile = await LoadTestFile.getBySwarmId(swarm.id);
                 await LoadTestFile.create({
                     swarm_id: mySwarm.id,
@@ -249,13 +249,13 @@ router.route("/:id/soft-delete")
     .delete(async (req: RoboRequest, res: RoboResponse) => {
         const id: number = parseInt(req.params.id, 10);
         const swarm: Swarm.Swarm = await Swarm.getById(id);
-        if (swarm.group_id !== req.user.groupId) {
+        if (swarm.group_id !== req.auth.groupId) {
             res.status(401);
             res.send("Unauthorized.");
             return;
         }
         try {
-            await Swarm.softDelete(id, req.user.groupId);
+            await Swarm.softDelete(id, req.auth.groupId);
             res.status(204);
             res.send("ok");
         } catch (err) {
@@ -284,13 +284,13 @@ router.route("/:id")
     .delete(async (req: RoboRequest, res: RoboResponse) => {
         const id: number = parseInt(req.params.id, 10);
         const swarm: Swarm.Swarm = await Swarm.getById(id);
-        if (swarm.group_id !== req.user.groupId) {
+        if (swarm.group_id !== req.auth.groupId) {
             res.status(401);
             res.send("Unauthorized.");
             return;
         }
         try {
-            await Swarm.destroyById(id, req.user.groupId);
+            await Swarm.destroyById(id, req.auth.groupId);
             res.status(204);
             res.send("ok");
         } catch (err) {
@@ -301,7 +301,7 @@ router.route("/:id")
     .get(async (req: RoboRequest, res: RoboResponse) => {
         const id: number = parseInt(req.params.id, 10);
         const swarm: Swarm.Swarm = await Swarm.getById(id);
-        if (swarm.group_id !== req.user.groupId) {
+        if (swarm.group_id !== req.auth.groupId) {
             res.status(401);
             res.send("Unauthorized.");
             return;
@@ -319,8 +319,8 @@ router.route("/:id")
 router.route("/")
     .get(async (req: SwarmListRequest, res: RoboResponse) => {
         const page: number = req.query.page ? Number(req.query.page) : undefined;
-        const swarms: Array<Swarm.Swarm> = await Swarm.getByGroupId(req.user.groupId, page);
-        const totalSwarms: number = await Swarm.getCountByGroupId(req.user.groupId);
+        const swarms: Array<Swarm.Swarm> = await Swarm.getByGroupId(req.auth.groupId, page);
+        const totalSwarms: number = await Swarm.getCountByGroupId(req.auth.groupId);
         res.set("Access-Control-Expose-Headers", "X-TOTAL-SWARMS,X-PAGE-SIZE");
         res.set("X-TOTAL-SWARMS", totalSwarms.toString());
         res.set("X-PAGE-SIZE", "12");
@@ -338,7 +338,7 @@ router.route("/")
 
         // Always add one machine to the pool so it can be master.
         req.body.machines.push({ region: req.body.machines[0].region });
-        const user: User.User = await User.getById(req.user.id);
+        const user: User.User = await User.getById(req.auth.id);
         const canProceed: boolean|RoboError = await canCreateSwarm(user, req.body, req.body.reliability_test);
         if (canProceed !== true) {
             const err = canProceed as RoboError;
@@ -346,7 +346,7 @@ router.route("/")
             res.send(err.err);
         } else {
             try {
-                const mySwarm: Swarm.Swarm = await Swarm.create(req.body, req.user.id, req.user.groupId, false);
+                const mySwarm: Swarm.Swarm = await Swarm.create(req.body, req.auth.id, req.auth.groupId, false);
                 res.status(201);
                 res.json(mySwarm);
             } catch (err) {

@@ -20,10 +20,6 @@ END
 echo "Setting ready and IP: ${MYIP}"
 curl -X POST {{baseUrl}}/api/v1/public/machine/{{machineId}}/status -H 'Content-Type: application/json' -d "$ISREADYBODY" > /dev/null
 
-# Set is_master
-echo "Setting is_master"
-curl -X POST {{baseUrl}}/api/v1/public/machine/{{machineId}}/status -H 'Content-Type: application/json' -d '{"action":"is_master"}' > /dev/null
-
 # Enable the firewall
 echo "y" | ufw enable
 
@@ -69,6 +65,7 @@ if [ "$ISMASTER" = "true" ]; then
    # Download the data watch script
    echo "Downloading data watch script"
    wget {{baseUrl}}/api/v1/public/machine/{{machineId}}/data-watch
+   mv data-watch data_watch.py
 
    # Start master
    echo "Starting master"
@@ -78,11 +75,7 @@ if [ "$ISMASTER" = "true" ]; then
 
    # Start data watch
    echo "Start data watch"
-   PYTHONWARNINGS="ignore:Unverified HTTPS request" nohup python data_watch.py {{baseUrl}} {{machineId}} &
-
-   #
-   # TODO - stop the data fetching process from the old way of doing things
-   # 
+   PYTHONWARNINGS="ignore:Unverified HTTPS request" nohup python3 data_watch.py {{baseUrl}} {{machineId}} {{basePath}} &
 fi
 
 # Slave Group

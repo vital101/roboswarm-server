@@ -2,7 +2,12 @@
 import { Stripe } from "stripe";
 import * as User from "../models/User";
 
-const config: Stripe.StripeConfig = {
+// const config: Stripe.StripeConfig = {
+//     apiVersion: "2020-08-27",
+//     typescript: true
+// };
+
+const config: any = {
     apiVersion: "2020-08-27",
     typescript: true
 };

@@ -53,3 +53,12 @@ export async function removeMachineFromSwarm(machineId: number, swarmId: number)
         .delete();
     await query;
 }
+
+export async function isMasterSetForSwarm(swarmId: number): Promise<boolean> {
+    try {
+        const swarmMaster = await getSwarmMaster(swarmId);
+        return swarmMaster ? true : false;
+    } catch (err) {
+        return false;
+    }
+}

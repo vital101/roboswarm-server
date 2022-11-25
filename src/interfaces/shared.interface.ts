@@ -9,7 +9,7 @@ export enum Status {
 }
 
 export interface RoboRequest extends Request {
-    user: TokenizedUser;
+    auth: TokenizedUser;
 }
 
 export interface RoboResponse extends Response {

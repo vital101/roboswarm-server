@@ -25,10 +25,6 @@ router.route("/:id/status")
             case "test_started":
                 await Machine.update(machineId, { test_started: true });
                 break;
-            case "is_master":
-                const machine: Machine.Machine = await Machine.findById(machineId);
-                await Machine.setIsMaster(machine);
-                break;
             case "is_ready":
                 const m: Machine.Machine = await Machine.findById(machineId);
                 await Machine.setReadyAtAndIp(m, req.body.ip_address);

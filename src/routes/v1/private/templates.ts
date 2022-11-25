@@ -102,8 +102,8 @@ const router = Router();
 router.route("/blob/:id")
     .get(async (req: TemplateBlobSingleRequest, res: TemplateBlobResponse) => {
         const template = await LoadTestTemplate.getTemplateBlobById(
-            req.user.id,
-            req.user.groupId,
+            req.auth.id,
+            req.auth.groupId,
             Number(req.params.id)
         );
         res.status(200);
@@ -111,8 +111,8 @@ router.route("/blob/:id")
     })
     .put(async (req: TemplateBlobCreateOrUpdate, res: TemplateBlobResponse) => {
         const template = await LoadTestTemplate.updateTemplateBlob({
-            user_id: req.user.id,
-            group_id: req.user.groupId,
+            user_id: req.auth.id,
+            group_id: req.auth.groupId,
             active: true,
             id: Number(req.params.id),
             ...req.body
@@ -122,8 +122,8 @@ router.route("/blob/:id")
     })
     .delete(async (req: TemplateBlobSingleRequest, res: RoboResponse) => {
         await LoadTestTemplate.deleteTemplateBlob(
-            req.user.id,
-            req.user.groupId,
+            req.auth.id,
+            req.auth.groupId,
             Number(req.params.id)
         );
         res.status(204);
@@ -132,14 +132,14 @@ router.route("/blob/:id")
 
 router.route("/blob")
     .get(async (req: RoboRequest, res: TemplateBlobGetAllResponse) => {
-        const templates = await LoadTestTemplate.getTemplateBlobs(req.user.id, req.user.groupId);
+        const templates = await LoadTestTemplate.getTemplateBlobs(req.auth.id, req.auth.groupId);
         res.status(200);
         res.json(templates);
     })
     .post(async (req: TemplateBlobCreateOrUpdate, res: TemplateBlobResponse) => {
         const createdTemplate = await LoadTestTemplate.createTemplateBlob({
-            user_id: req.user.id,
-            group_id: req.user.groupId,
+            user_id: req.auth.id,
+            group_id: req.auth.groupId,
             active: true,
             ...req.body
         });
@@ -169,12 +169,12 @@ router.route("/woo-commerce/:id")
 
 router.route("/woo-commerce")
     .get(async (req: RoboRequest, res: GetWooCommerceTemplatesResponse) => {
-        const templates: WooCommerceTemplate.WooCommerceTemplate[] = await WooCommerceTemplate.getByGroup(req.user.groupId);
+        const templates: WooCommerceTemplate.WooCommerceTemplate[] = await WooCommerceTemplate.getByGroup(req.auth.groupId);
         res.status(200);
         res.json(templates);
     })
     .post(async (req: CreateWooCommerceRequest, res: RoboResponse) => {
-        const user: User.User = await User.getById(req.user.id);
+        const user: User.User = await User.getById(req.auth.id);
         await WooCommerceTemplate.create({
             ...req.body,
             active: true,
@@ -226,8 +226,8 @@ router.route("/auth-file-upload")
 router.route("/")
     .get(async (req: RoboRequest, res: GetTemplatesResponse) => {
         const templates = await LoadTestTemplate.getByUserAndGroup(
-            req.user.id,
-            req.user.groupId
+            req.auth.id,
+            req.auth.groupId
         );
         res.status(200);
         res.json(templates);
@@ -235,8 +235,8 @@ router.route("/")
     .post(async (req: PostTemplateRequest, res: PostTemplateResponse) => {
         const complexTemplate: LoadTestTemplate.TemplateComplex = {
             ...req.body,
-            user_id: req.user.id,
-            group_id: req.user.groupId
+            user_id: req.auth.id,
+            group_id: req.auth.groupId
         };
         const createdTemplate = await LoadTestTemplate.create(complexTemplate);
         res.status(201);

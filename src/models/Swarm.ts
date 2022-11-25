@@ -2,7 +2,7 @@ import { db } from "../lib/db";
 import { Status } from "../interfaces/shared.interface";
 import { DropletListResponse } from "../interfaces/digitalOcean.interface";
 import * as Machine from "./Machine";
-import { getSwarmMachineIds, getSwarmMachines, getSwarmMaster, getSwarmIdByMachineId } from "./SwarmMachine";
+import { getSwarmMachineIds, getSwarmMachines, getSwarmIdByMachineId } from "./SwarmMachine";
 import * as SSHKey from "./SSHKey";
 import * as request from "request-promise";
 import { RequestPromiseOptions } from "request-promise";
@@ -21,9 +21,6 @@ import { generateAndSaveTemplate } from "../lib/templateGeneration";
 import * as LoadTestFile from "../models/LoadTestFile";
 import { asyncReadFile } from "../lib/lib";
 import { execSync } from "child_process";
-import * as LoadTestError from "./LoadTestError";
-import * as LoadTestRouteSpecificData from "./LoadTestRouteSpecificData";
-import { NodeSSH } from "node-ssh";
 
 export interface Swarm {
     id?: number;
@@ -192,7 +189,6 @@ export async function create(swarm: NewSwarm, userId: number, groupId: number, r
         stepToExecute: SwarmSetupStep.CREATE,
         steps: [
             SwarmSetupStep.READY,
-            SwarmSetupStep.START_MASTER, // WIP - Just starting data capture
             SwarmSetupStep.STOP_SWARM
         ]
     };
@@ -224,14 +220,6 @@ export async function destroyById(id: number, group_id: number): Promise<Swarm> 
         return;
     }
 
-    try {
-        // Fetch the final load test metrics and
-        await fetchLoadTestMetrics(destroyedSwarm[0], true);
-    } catch (err) {
-        console.error("Failed on `fetchLoadTestMetrics`.");
-        console.error(err);
-    }
-
     // Fetch all of the machines and enqueue for deletion.
     const machines = await getSwarmMachines(id);
     for (let i = 0; i < machines.length; i++) {
@@ -245,6 +233,7 @@ export async function destroyById(id: number, group_id: number): Promise<Swarm> 
                 lastActionTime: new Date(),
                 errors: []
             };
+            console.log("Deprovision machine", machineDestroyEvent);
             await events.enqueue(machineDestroyEvent);
         }
     }
@@ -259,6 +248,7 @@ export async function destroyById(id: number, group_id: number): Promise<Swarm> 
         lastActionTime: new Date(),
         errors: []
     };
+    console.log("Deprovision SSH Key", sshKeyDestroyEvent);
     await events.enqueue(sshKeyDestroyEvent);
 
     // Send an email for first swarm if needed.
@@ -463,239 +453,6 @@ export async function willExceedDropletPoolAvailability(newSwarmSize: number): P
         });
     }
     return availableDroplets - newSwarmSize < 0;
-}
-
-interface SSHCommandResult {
-    stdout: string;
-    stderr: string;
-}
-
-export async function createRouteSpecificData(swarm: Swarm): Promise<void> {
-    const sshKey: SSHKey.SSHKey = await SSHKey.getById(swarm.ssh_key_id);
-    const master: Machine.Machine = await getSwarmMaster(swarm.id);
-
-    const ssh = new NodeSSH();
-    await ssh.connect({
-        host: master.ip_address,
-        username: "root",
-        privateKey: sshKey.private
-    });
-    const requests: SSHCommandResult = await ssh.execCommand("cat /root/status_stats.csv");
-    const requestRows = requests.stdout.split("\n");
-    // For the final request, we store the route path information.
-    // Regular JSON object should be fine.
-    if (requestRows.length > 2) {
-        requestRows.shift();
-        requestRows.pop();
-        const dataToInsert: LoadTestRouteSpecificData.LoadTestRouteSpecificData[] = [];
-        for (const row of requestRows) {
-            try {
-                const splitRow = row.split(",");
-                dataToInsert.push({
-                    swarm_id: swarm.id,
-                    created_at: new Date(),
-                    user_count: 0,
-                    method: splitRow[0],
-                    route: splitRow[1],
-                    requests: parseFloat(splitRow[2]),
-                    failures: parseFloat(splitRow[3]),
-                    median_response_time: parseFloat(splitRow[4]),
-                    average_response_time: parseFloat(splitRow[5]),
-                    min_response_time: parseFloat(splitRow[6]),
-                    max_response_time: parseFloat(splitRow[7]),
-                    avg_content_size: parseFloat(splitRow[8]),
-                    requests_per_second: parseFloat(splitRow[9]),
-                    failures_per_second: parseFloat(splitRow[10]),
-                    "50_percent": parseFloat(splitRow[11]),
-                    "66_percent": parseFloat(splitRow[12]),
-                    "75_percent": parseFloat(splitRow[13]),
-                    "80_percent": parseFloat(splitRow[14]),
-                    "90_percent": parseFloat(splitRow[15]),
-                    "95_percent": parseFloat(splitRow[16]),
-                    "98_percent": parseFloat(splitRow[17]),
-                    "99_percent": parseFloat(splitRow[18]),
-                    "100_percent": parseFloat(splitRow[21])
-                });
-            } catch (err) {
-                console.log("LoadTestRouteSpecificData Parse Error: ", err);
-            }
-        }
-        await LoadTestRouteSpecificData.bulkCreate(dataToInsert);
-    }
-}
-
-export async function fetchLoadTestMetrics(swarm: Swarm, isFinal?: boolean): Promise<void> {
-    const sshKey: SSHKey.SSHKey = await SSHKey.getById(swarm.ssh_key_id);
-    const master: Machine.Machine = await getSwarmMaster(swarm.id);
-
-    let ssh;
-    try {
-        ssh = new NodeSSH();
-        await ssh.connect({
-            host: master.ip_address,
-            username: "root",
-            privateKey: sshKey.private
-        });
-    } catch (err) { }
-
-    if (ssh && isFinal) {
-        const requests: SSHCommandResult = await ssh.execCommand("cat /root/status_stats.csv");
-        const requestRows = requests.stdout.split("\n");
-        // For the final request, we store the route path information.
-        // Regular JSON object should be fine.
-        if (requestRows.length > 2) {
-            requestRows.shift();
-            requestRows.pop();
-            for (const row of requestRows) {
-                try {
-                    const splitRow = row.split(",");
-                    const data: LoadTest.RequestFinal = {
-                        swarm_id: swarm.id,
-                        created_at: new Date(),
-                        method: splitRow[0],
-                        route: splitRow[1],
-                        requests: parseFloat(splitRow[2]),
-                        failures: parseFloat(splitRow[3]),
-                        median_response_time: parseFloat(splitRow[4]),
-                        average_response_time: parseFloat(splitRow[5]),
-                        min_response_time: parseFloat(splitRow[6]),
-                        max_response_time: parseFloat(splitRow[7]),
-                        avg_content_size: parseFloat(splitRow[8]),
-                        requests_per_second: parseFloat(splitRow[9])
-                    };
-                    await LoadTest.createRequestFinal(data);
-
-                    // Response time distribution per route.
-                    const distributionTotalData: LoadTest.DistributionFinal = {
-                        swarm_id: swarm.id,
-                        method: data.method,
-                        route: data.route,
-                        created_at: new Date(),
-                        requests: data.requests,
-                        percentiles: JSON.stringify({
-                            "50%": parseFloat(splitRow[11]),
-                            "66%": parseFloat(splitRow[12]),
-                            "75%": parseFloat(splitRow[13]),
-                            "80%": parseFloat(splitRow[14]),
-                            "90%": parseFloat(splitRow[15]),
-                            "95%": parseFloat(splitRow[16]),
-                            "98%": parseFloat(splitRow[17]),
-                            "99%": parseFloat(splitRow[18]),
-                            "100%": parseFloat(splitRow[21]),
-                        })
-                    };
-                    await LoadTest.createDistributionFinal(distributionTotalData);
-                } catch (err) {
-                    console.log("Request row final error: ", err);
-                }
-            }
-        }
-    } else if (ssh) {
-        const requests: SSHCommandResult = await ssh.execCommand("tail /root/status_stats_history.csv");
-        const requestRows = requests.stdout.split("\n");
-        if (requestRows.length > 1) {
-            try {
-                // Request status.
-                const requestTotals = requestRows[requestRows.length - 1].split(",");
-                const requestTotalData: LoadTest.Request = {
-                    swarm_id: swarm.id,
-                    created_at: new Date(),
-                    user_count: parseFloat(requestTotals[1]),
-                    requests: parseFloat(requestTotals[17]),
-                    failures: parseFloat(requestTotals[18]),
-                    median_response_time: parseFloat(requestTotals[19]),
-                    average_response_time: parseFloat(requestTotals[20]),
-                    min_response_time: parseFloat(requestTotals[21]),
-                    max_response_time: parseFloat(requestTotals[22]),
-                    avg_content_size: parseFloat(requestTotals[23]),
-                    requests_per_second: Math.floor(parseFloat(requestTotals[4])),
-                    failures_per_second: Math.floor(parseFloat(requestTotals[5]))
-                };
-                await LoadTest.createRequest(requestTotalData);
-
-                // Response time distribution.
-                const distributionTotalData: LoadTest.Distribution = {
-                    swarm_id: swarm.id,
-                    created_at: new Date(),
-                    requests: requestTotalData.requests,
-                    percentiles: JSON.stringify({
-                        "50%": parseFloat(requestTotals[6]),
-                        "66%": parseFloat(requestTotals[7]),
-                        "75%": parseFloat(requestTotals[8]),
-                        "80%": parseFloat(requestTotals[9]),
-                        "90%": parseFloat(requestTotals[10]),
-                        "95%": parseFloat(requestTotals[11]),
-                        "98%": parseFloat(requestTotals[12]),
-                        "99%": parseFloat(requestTotals[13]),
-                        "100%": parseFloat(requestTotals[16]),
-                    })
-                };
-                await LoadTest.createDistribution(distributionTotalData);
-            } catch (err) {
-                console.log("Request Error: ", {
-                    err,
-                    swarm_id: swarm.id
-                });
-            }
-        }
-    } else {
-        // Failed to fetch the final data.
-        // mark as failure.
-    }
-    try {
-        await createRouteSpecificData(swarm);
-    } catch (err) {
-        console.error(err);
-    }
-
-    if (ssh) {
-        ssh.connection.end();
-    }
-}
-
-export async function fetchErrorMetrics(swarm: Swarm): Promise<void> {
-    const sshKey: SSHKey.SSHKey = await SSHKey.getById(swarm.ssh_key_id);
-    const master: Machine.Machine = await getSwarmMaster(swarm.id);
-
-    const ssh = new NodeSSH();
-    await ssh.connect({
-        host: master.ip_address,
-        username: "root",
-        privateKey: sshKey.private
-    });
-    const data: SSHCommandResult = await ssh.execCommand("cat /root/status_failures.csv");
-    const rows = data.stdout.split("\n");
-    if (rows.length > 1) {
-        rows.splice(0, 1); // Remove header row.
-        const promises: Array<Promise<void>> = [];
-        rows.forEach(r => {
-            const rowData = r.split(",");
-            const error_count = parseInt(rowData.pop(), 10);
-            let message = "";
-            for (let i = 2; i < rowData.length; i++) {
-                message += `,${rowData[i]}`;
-            }
-            const lte: LoadTestError.LoadTestError = {
-                swarm_id: swarm.id,
-                method: rowData[0],
-                path: rowData[1],
-                message,
-                error_count,
-            };
-            promises.push(LoadTestError.create(lte));
-        });
-        try {
-            await Promise.all(promises);
-        } catch (err) {
-            console.log("Error fetching load test errors: ", {
-                err,
-                swarm_id: swarm.id,
-                rows
-            });
-        }
-    }
-
-    ssh.connection.end();
 }
 
 export async function shouldStop(swarm: Swarm): Promise<boolean> {

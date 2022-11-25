@@ -51,7 +51,7 @@ router.route("/:id")
     .delete(async (req: SiteOwnershipDeleteRequest, res: RoboResponse) => {
         const id: number = parseInt(req.params.id, 10);
         const siteToDelete: SiteOwnership.SiteOwnership = await SiteOwnership.findById(id);
-        if (siteToDelete.user_id !== req.user.id) {
+        if (siteToDelete.user_id !== req.auth.id) {
             res.status(403);
             res.send("Unauthorized.");
             return;
@@ -64,15 +64,15 @@ router.route("/:id")
 router.route("/")
     .get(async (req: RoboRequest, res: SiteOwnershipResponse) => {
         const results: SiteOwnership.SiteOwnership[] = await SiteOwnership.find({
-            user_id: req.user.id,
-            group_id: req.user.groupId
+            user_id: req.auth.id,
+            group_id: req.auth.groupId
         });
         res.status(200);
         res.json(results);
     })
     .post(async (req: SiteOwnershipCreateRequest, res: SiteOwnershipCreateResponse) => {
-        req.body.user_id = req.user.id;
-        req.body.group_id = req.user.groupId;
+        req.body.user_id = req.auth.id;
+        req.body.group_id = req.auth.groupId;
         req.body.verified = false;
         try {
             const newSite: SiteOwnership.SiteOwnership = await SiteOwnership.create(req.body);

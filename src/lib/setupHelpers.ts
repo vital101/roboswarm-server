@@ -15,7 +15,7 @@ import {
 import { enqueue } from "./events";
 import { Status } from "../interfaces/shared.interface";
 import * as swarmProvisionEvents from "./swarmProvisionEvents";
-import e from "express";
+import * as moment from "moment";
 
 export async function nextStep(event: MachineProvisionEvent|SwarmProvisionEvent) {
     if (event.steps.length > 0) {
@@ -26,51 +26,15 @@ export async function nextStep(event: MachineProvisionEvent|SwarmProvisionEvent)
     }
 }
 
-export async function processDataCaptureEvent(event: DataCaptureEvent): Promise<void> {
-    if (event.currentTry < event.maxRetries) {
-        try {
-            let reEnqueue = true;
-            const swarm = await Swarm.getById(event.swarm.id);
-            if (swarm.status === Status.destroyed) {
-                console.log("Swarm destroyed. Not re-enqueuing fetchLoadTestMetrics() and fetchErrorMetrics()");
-                reEnqueue = false;
-            } else {
-                if (!event.delayUntil) {
-                    const delayTime = new Date();
-                    delayTime.setSeconds(delayTime.getSeconds() + 5);
-                    event.delayUntil = delayTime;
-                    reEnqueue = true;
-                    console.log("No delay set. Re-enqueuing fetchLoadTestMetrics() and fetchErrorMetrics()");
-                } else {
-                    const now = new Date();
-                    const delayTime = new Date(event.delayUntil);
-                    reEnqueue = true;
-                    if (now.getTime() >= delayTime.getTime()) {
-                        await Promise.all([
-                            Swarm.fetchLoadTestMetrics(event.swarm),
-                            Swarm.fetchErrorMetrics(event.swarm)
-                        ]);
-                        const delayTime = new Date();
-                        delayTime.setSeconds(delayTime.getSeconds() + 5);
-                        event.delayUntil = delayTime;
-                        console.log("Load test metrics fetched. Re-enqueuing fetchLoadTestMetrics() and fetchErrorMetrics()");
-                    }
-                }
-            }
-            if (reEnqueue === true) {
-                await enqueue(event);
-            }
-        } catch (err) {
-            console.log("There was an error. Retrying.:", err);
-            await asyncSleep(1);
-            await enqueue(event);
-        }
-    }
-}
-
 export async function processDeprovisionEvent(event: DeprovisionEvent): Promise<void> {
     if (event.currentTry < event.maxRetries) {
         try {
+            if (event.deprovisionType === DeprovisionEventType.SSH_KEY) {
+                console.log(`Destroying SSH key: ${event.id}`);
+                await SSHKey.destroy(event.id);
+                return;
+            }
+
             const swarmId = await SwarmMachine.getSwarmIdByMachineId(event.id);
             const swarm = await Swarm.getById(swarmId);
 
@@ -85,24 +49,22 @@ export async function processDeprovisionEvent(event: DeprovisionEvent): Promise<
                 return;
             // Master has not yet sent the final data.
             } else if (swarm.should_send_final_data && !swarm.final_data_sent) {
-                console.log("Final data still not sent, trying again...");
+                console.log(`Final data still not sent, trying again on machine ${event.id}...`);
                 await asyncSleep(3);
                 event.currentTry += 1;
+                // Assume final data sent if we hit this retry threshold.
+                if (event.currentTry > event.maxRetries - 2) {
+                    await Swarm.update(swarmId, { final_data_sent: true });
+                }
                 await enqueue(event);
                 return;
-            }
-
-            // Final data sent. Continue with deprovision actions.
-            switch (event.deprovisionType) {
-                case DeprovisionEventType.MACHINE: {
-                    console.log(`Deprovisioning machine: ${event.id}`);
+            } else {
+                // Final data sent. Continue with deprovision actions.
+                console.log(`Deprovisioning machine: ${event.id}`);
+                try {
                     await Machine.destroy(event.id);
-                    break;
-                }
-                case DeprovisionEventType.SSH_KEY: {
-                    console.log(`Destroying SSH key: ${event.id}`);
-                    await SSHKey.destroy(event.id);
-                    break;
+                } catch (err) {
+                    console.error(err);
                 }
             }
         } catch (err) {
@@ -131,6 +93,17 @@ export async function processSwarmProvisionEvent(event: SwarmProvisionEvent): Pr
                     } else {
                         const isSwarmReady: boolean = await Swarm.swarmReady(event.createdSwarm.id);
                         if (!isSwarmReady) {
+                            // If it has been 20 seconds since the swarm was provisioned,
+                            // set is_master on at least one of the machines.
+                            const now = moment();
+                            const startTime = moment(swarm.created_at);
+                            if (now.isAfter(startTime.add(20, "seconds")) && !await SwarmMachine.isMasterSetForSwarm(event.createdSwarm.id)) {
+                                const machineIds: number[] = await SwarmMachine.getSwarmMachineIds(swarm.id);
+                                const masterId = machineIds.pop();
+                                console.log(`Setting is_master on machine ${masterId}.`);
+                                await Machine.update(masterId, { is_master: true });
+                            }
+
                             console.log(`Swarm ${event.createdSwarm.id} not ready. Waiting 5 seconds`);
                             const delayTime = new Date();
                             delayTime.setSeconds(delayTime.getSeconds() + 5);
@@ -152,30 +125,6 @@ export async function processSwarmProvisionEvent(event: SwarmProvisionEvent): Pr
                     } else {
                         event.delayUntil = undefined;
                     }
-                    break;
-                }
-                case SwarmSetupStep.START_MASTER: {
-                    const machineIds: number[] = await SwarmMachine.getSwarmMachineIds(event.createdSwarm.id);
-                    await Machine.updateIsMaster(machineIds[0], true);
-                    const masterMachine = await Machine.findById(machineIds[0]);
-                    const masterStartEvent: MachineProvisionEvent = {
-                        sshKey: event.sshKey,
-                        eventType: WorkerEventType.MACHINE_PROVISION,
-                        maxRetries: 10,
-                        currentTry: 0,
-                        lastActionTime: new Date(),
-                        errors: [],
-                        swarm: event.createdSwarm,
-                        machine: masterMachine,
-                        region: event.swarm.region[0], // Just use the first one for master.
-                        slaveCount: machineIds.length - 1,
-                        slaveIds: machineIds.filter(id => id !== machineIds[0]),
-                        stepToExecute: MachineSetupStep.START_MASTER,
-                        steps: []
-                    };
-                    // Do we need this? Should be replace event with masterStartEvent
-                    // and let it fall through to the bottom?
-                    await enqueue(masterStartEvent);
                     break;
                 }
                 case SwarmSetupStep.STOP_SWARM: {
@@ -282,10 +231,6 @@ export async function processMachineProvisionEvent(event: MachineProvisionEvent)
                     }
                     break;
                 }
-                case MachineSetupStep.START_MASTER: {
-                    await startDataCollection(event.swarm, event.machine, event.slaveCount, event.slaveIds, event.sshKey.private);
-                    break;
-                }
             }
             await nextStep(event);
         } catch (err) {
@@ -316,24 +261,15 @@ export async function startDataCollection(swarm: Swarm.Swarm, machine: Machine.M
 }
 
 export async function cleanUpMachineProvisionEvent(event: MachineProvisionEvent): Promise<void> {
-    switch (event.stepToExecute) {
-        case MachineSetupStep.START_MASTER: {
-            // De-provision swarm.
-            await Swarm.destroyById(event.swarm.id, event.swarm.group_id);
-            break;
-        }
-        default: {
-            // De-provision machine.
-            const machineDestroyEvent: DeprovisionEvent = {
-                id: event.machine.id,
-                eventType: WorkerEventType.DEPROVISION,
-                deprovisionType: DeprovisionEventType.MACHINE,
-                maxRetries: 10,
-                currentTry: 0,
-                lastActionTime: new Date(),
-                errors: []
-            };
-            await enqueue(machineDestroyEvent);
-        }
-    }
+    // De-provision machine.
+    const machineDestroyEvent: DeprovisionEvent = {
+        id: event.machine.id,
+        eventType: WorkerEventType.DEPROVISION,
+        deprovisionType: DeprovisionEventType.MACHINE,
+        maxRetries: 10,
+        currentTry: 0,
+        lastActionTime: new Date(),
+        errors: []
+    };
+    await enqueue(machineDestroyEvent);
 }

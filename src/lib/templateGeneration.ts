@@ -213,7 +213,8 @@ export async function generateVmConfigurationScript(machine_id: number): Promise
         rate,
         runTime,
         expectSlaveCount: expectSlaveCount > 0 ? expectSlaveCount : 1,
-        hostUrl
+        hostUrl,
+        basePath: "/root/"
     };
     const renderedTemplate = vmConfigTemplateCompiler(renderContext);
     console.log(renderedTemplate);

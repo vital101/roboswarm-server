@@ -8,15 +8,13 @@ export enum MachineSetupStep {
     DELAY,
     OPEN_PORTS,
     PACKAGE_INSTALL,
-    UNZIP_AND_PIP_INSTALL,
-    START_MASTER
+    UNZIP_AND_PIP_INSTALL
 }
 
 export enum SwarmSetupStep {
     CREATE,
     DELAY,
     READY,
-    START_MASTER,
     STOP_SWARM
 }
 

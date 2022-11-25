@@ -4,9 +4,10 @@ require("dotenv").config();
 // 3rd Party modules
 import * as express from "express";
 import * as bodyParser from "body-parser";
-import * as jwt from "express-jwt";
+import { expressjwt as jwt } from "express-jwt";
 import * as cors from "cors";
 import * as Sentry from "@sentry/node";
+import { connect as connectToRedis } from "./lib/events";
 
 // Private routes
 import _siteOwnershipRoutes from "./routes/v1/private/siteOwnership";
@@ -21,7 +22,7 @@ import userRoutes from "./routes/v1/public/user";
 import machineStatusRoutes from "./routes/v1/public/machineStatus";
 
 // JWT Config
-const jwtConfig: jwt.Options = {
+const jwtConfig: any = {
     algorithms: ["HS256"],
     secret: process.env.JWT_SECRET
 };
@@ -32,6 +33,11 @@ if (process.env.NODE_ENV === "production") {
         dsn: "https://cd5fd5753af74cf6ba3987e56d95063b@o19973.ingest.sentry.io/5383793"
     });
 }
+
+// Start Redis Connection
+(async () => {
+    await connectToRedis();
+})();
 
 // Create Express server
 const app = express();

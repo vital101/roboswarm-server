@@ -2,25 +2,25 @@ from time import sleep
 from csv import reader
 import json, os, requests, sys
 
-if len(sys.argv) != 3:
-    raise ValueError('Usage: python data_watch.py <base_url> <machine_id>')
+if len(sys.argv) != 4:
+    raise ValueError('Usage: python data_watch.py <base_url> <machine_id> <base_path>')
 
 base_url = sys.argv[1] # "https://roboswarm.ngrok.io" for dev
 machine_id = sys.argv[2] # 48 for dev
+base_path = sys.argv[3] # /Users/jackslingerland/Desktop/roboswarm_env/ for dev
 
-if "ngrok" in base_url:
-    print("Using development configuration")
-    base_path = "/Users/jackslingerland/Desktop/roboswarm_env/result"
-    final_data_path = "{0}_stats.csv".format(base_path)
-    aggregate_data_path = "{0}_stats_history.csv".format(base_path)
-    failure_data_path = "{0}_failures.csv".format(base_path)
-    route_specific_data_path = "{0}_stats.csv".format(base_path)
-else:
-    print("Using production configuration")
-    final_data_path = "/root/status_stats.csv"
-    aggregate_data_path= "/root/status_stats_history.csv"
-    failure_data_path = "/root/status_failures.csv"
-    route_specific_data_path = "/root/status_stats.csv"
+# if "ngrok" in base_url:
+#     print("Using development configuration")
+#     final_data_path = "{0}_stats.csv".format(base_path)
+#     aggregate_data_path = "{0}_stats_history.csv".format(base_path)
+#     failure_data_path = "{0}_failures.csv".format(base_path)
+#     route_specific_data_path = "{0}_stats.csv".format(base_path)
+# else:
+print("Using production configuration")
+final_data_path = "{0}status_stats.csv".format(base_path)
+aggregate_data_path= "{0}status_stats_history.csv".format(base_path)
+failure_data_path = "{0}status_failures.csv".format(base_path)
+route_specific_data_path = "{0}status_stats.csv".format(base_path)
 
 def roboswarm_http_request(method, route, data = None):
     try:
@@ -116,6 +116,10 @@ while True:
             print("Updating Roboswarm 'can deprovision' == True")
             kill_data_watch()
         else:
+            # I think is_swarm_ready isn't working?
+            # Or maybe the path to the data files is wrong.
+            # Need to run this manually on master and see
+            # whats up.
             if is_swarm_ready():
                 print("Swarm not shutting down.")
                 capture_aggregate_data()
