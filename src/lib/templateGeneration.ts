@@ -207,6 +207,11 @@ export async function generateVmConfigurationScript(machine_id: number): Promise
     }
 
     const renderContext = {
+        //
+        // TODO
+        //   - Change baseUrl to an environment variable
+        //   - Change basePath to an env var
+        //
         baseUrl: process.env.NODE_ENV === "production" ? "https://roboswarm.dev" : "https://roboswarm.ngrok.io",
         machineId: machine_id,
         users,
@@ -217,6 +222,5 @@ export async function generateVmConfigurationScript(machine_id: number): Promise
         basePath: "/root/"
     };
     const renderedTemplate = vmConfigTemplateCompiler(renderContext);
-    console.log(renderedTemplate);
     return renderedTemplate;
 }
