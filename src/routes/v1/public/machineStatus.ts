@@ -145,7 +145,11 @@ router.route("/:id/aggregate-data")
             requests_per_second: Math.floor(parseFloat(req.body[4])),
             failures_per_second: Math.floor(parseFloat(req.body[5]))
         };
-        await LoadTest.createRequest(requestTotalData);
+        try {
+            await LoadTest.createRequest(requestTotalData);
+        } catch (err) {
+            console.log(err);
+        }
 
         // Response time distribution.
         const distributionTotalData: LoadTest.Distribution = {
@@ -164,7 +168,11 @@ router.route("/:id/aggregate-data")
                 "100%": parseFloat(req.body[16]),
             })
         };
-        await LoadTest.createDistribution(distributionTotalData);
+        try {
+            await LoadTest.createDistribution(distributionTotalData);
+        } catch (err) {
+            console.log(err);
+        }
         res.status(201);
         res.send("OK");
     });
@@ -190,7 +198,7 @@ router.route("/:id/failure-metrics")
                 console.log(lte);
                 promises.push(LoadTestError.create(lte));
             });
-            await Promise.all(promises);
+            await Promise.allSettled(promises);
         } catch (err) {
             console.log("Error fetching load test errors: ", {
                 err,
@@ -262,7 +270,11 @@ router.route("/:id/final-metrics")
                     avg_content_size: parseFloat(row[8]),
                     requests_per_second: parseFloat(row[9])
                 };
-                await LoadTest.createRequestFinal(data);
+                try {
+                    await LoadTest.createRequestFinal(data);
+                } catch (err) {
+                    console.log(err);
+                }
 
                 // Response time distribution per route.
                 const distributionTotalData: LoadTest.DistributionFinal = {
@@ -283,7 +295,11 @@ router.route("/:id/final-metrics")
                         "100%": parseFloat(row[21]),
                     })
                 };
-                await LoadTest.createDistributionFinal(distributionTotalData);
+                try {
+                    await LoadTest.createDistributionFinal(distributionTotalData);
+                } catch (err) {
+                    console.log(err);
+                }
             } catch (err) {
                 console.log("Request row final error: ", err);
             }
