@@ -13,7 +13,7 @@ if (process.env.NODE_ENV === "production") {
     const [ userPassword, hostPortDatabase ] = process.env.DATABASE_URL.replace("postgresql://", "").split("@");
     const [ user, password ] = userPassword.split(":");
     const [ host, portDatabase ] = hostPortDatabase.split(":");
-    const [ port, database ] = portDatabase.split("/");
+    const [ port, database ] = portDatabase.replace("?sslmode=require", "").split("/");
     connection = {
         host,
         user,
