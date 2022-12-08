@@ -9,6 +9,7 @@ let connection: any = {
     timezone: "utc",
 };
 
+console.log(process.env);
 if (process.env.NODE_ENV === "production") {
     const [ userPassword, hostPortDatabase ] = process.env.DATABASE_URL.replace("postgres://", "").split("@");
     const [ user, password ] = userPassword.split(":");
