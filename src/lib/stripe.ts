@@ -52,7 +52,7 @@ function getPlanId(planName: string): string {
 }
 
 export async function createStripeCustomer(user: User.User): Promise<void> {
-    console.log(process.env.STRIP_API_SECRET);
+    console.log(process.env);
     const stripe = new Stripe(process.env.STRIPE_API_SECRET, config);
     const customerOptions: Stripe.CustomerCreateParams = {
         email: user.email,
