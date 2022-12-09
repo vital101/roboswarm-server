@@ -148,7 +148,6 @@ export async function canCreateSwarm(user: User, swarm: Swarm.NewSwarm, isReliab
 
         return true;
     } catch (err) {
-        console.log(err);
         return {
             err: "There was error verifying your account status. Please reach out to jack@kernl.us",
             status: 500
