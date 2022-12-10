@@ -195,7 +195,6 @@ router.route("/:id/failure-metrics")
                     message,
                     error_count,
                 };
-                console.log(lte);
                 promises.push(LoadTestError.create(lte));
             });
             await Promise.allSettled(promises);

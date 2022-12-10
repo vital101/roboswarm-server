@@ -349,9 +349,7 @@ router.route("/")
                 const mySwarm: Swarm.Swarm = await Swarm.create(req.body, req.auth.id, req.auth.groupId, false);
                 res.status(201);
                 res.json(mySwarm);
-            } catch (err) {
-                console.log(err);
-            }
+            } catch (err) { /* no-op */ }
         }
     });
 
