@@ -12,7 +12,7 @@ function asyncSleep(durationInSeconds: number): Promise<void> {
     });
 }
 
-(async () => {
+export async function checkUserDelinquency() {
     console.log("Checking user delinquency...");
     const users: User.User[] = await User.getAll();
     for (const user of users) {
@@ -29,5 +29,4 @@ function asyncSleep(durationInSeconds: number): Promise<void> {
         asyncSleep(1);
     }
     console.log("Done.");
-    process.exit();
-})();
+}

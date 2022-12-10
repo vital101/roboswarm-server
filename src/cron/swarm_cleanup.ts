@@ -1,13 +1,10 @@
-// Environment variables
-require("dotenv").config();
-
 import * as moment from "moment";
 import * as User from "../models/User";
 import * as Swarm from "../models/Swarm";
 import { getPlan, Plan } from "../lib/config";
 import { unlimitedMaxDurationUsers } from "../lib/authorization";
 
-(async () => {
+export async function swarmCleanup() {
     console.log("Checking for orphaned swarms...");
     const swarms: Swarm.Swarm[] = await Swarm.getActiveSwarms();
     console.log(`${swarms.length} active swarms.`);
@@ -37,5 +34,4 @@ import { unlimitedMaxDurationUsers } from "../lib/authorization";
         }
     }
     console.log("Done.");
-    process.exit();
-})();
+}
