@@ -7,6 +7,7 @@ import * as bodyParser from "body-parser";
 import { expressjwt as jwt } from "express-jwt";
 import * as cors from "cors";
 import * as Sentry from "@sentry/node";
+import * as morgan from "morgan";
 import { connect as connectToRedis } from "./lib/events";
 
 // Private routes
@@ -45,6 +46,13 @@ const app = express();
 // Sentry Middleware
 if (process.env.NODE_ENV === "production") {
     app.use(Sentry.Handlers.requestHandler());
+}
+
+// Morgan logging middleware
+if (process.env.NODE_ENV === "production") {
+    app.use(morgan("common"));
+} else {
+    app.use(morgan("dev"));
 }
 
 // Express configuration
