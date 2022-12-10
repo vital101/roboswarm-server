@@ -10,7 +10,7 @@ import * as SSHKey from "../../src/models/SSHKey";
 import { Status } from "../../src/interfaces/shared.interface";
 import * as lib from "../../src/lib/lib";
 import * as moment from "moment";
-import Sinon = require("sinon");
+const Sinon = require("sinon");
 import * as swarmProvisionEvents from "../../src/lib/swarmProvisionEvents";
 import { DropletResponse } from "../../src/interfaces/digitalOcean.interface";
 
@@ -33,7 +33,7 @@ describe("lib/setupHelpers", () => {
     describe("nextStep", () => {
         it("enqueue the next step if one exists", async () => {
             const theDate: Date = new Date();
-            const event: MachineProvisionEvent = {
+            const event: any = {
                 sshKey: undefined,
                 eventType: undefined,
                 maxRetries: 10,
@@ -66,7 +66,7 @@ describe("lib/setupHelpers", () => {
 
         it("does not enqueue the next step if one does not exist", async () => {
             const theDate: Date = new Date();
-            const event: MachineProvisionEvent = {
+            const event: any = {
                 sshKey: undefined,
                 eventType: undefined,
                 maxRetries: 10,
@@ -81,84 +81,6 @@ describe("lib/setupHelpers", () => {
             };
             await setupHelpers.nextStep(event);
             expect(enqueueStub.callCount).toEqual(0);
-        });
-    });
-
-    describe("DataCaptureEvent", () => {
-        let baseCaptureEvent: DataCaptureEvent;
-
-        beforeEach(() => {
-            baseCaptureEvent = {
-                sshKey: { public: "", private: "", created_at: new Date() },
-                eventType: WorkerEventType.DATA_CAPTURE,
-                maxRetries: 3,
-                currentTry: 0,
-                lastActionTime: new Date(),
-                errors: [],
-                swarm: {
-                    status: Status.ready
-                } as Swarm.Swarm,
-            };
-        });
-
-        it("does not enqueue if the swarm has been destroyed", async () => {
-            sandbox.stub(Swarm, "getById").resolves({
-                status: Status.destroyed
-            } as Swarm.Swarm);
-            await setupHelpers.processDataCaptureEvent(baseCaptureEvent);
-            expect(enqueueStub.callCount).toEqual(0);
-        });
-
-        it("only runs if currentTry < maxRetries", async () => {
-            const getByIdStub: sinon.SinonStub = sandbox.stub(Swarm, "getById").resolves({} as Swarm.Swarm);
-            await setupHelpers.processDataCaptureEvent({
-                ...baseCaptureEvent,
-                currentTry: 4
-            });
-            expect(enqueueStub.callCount).toEqual(0);
-            expect(getByIdStub.callCount).toEqual(0);
-        });
-
-        it("will enqueue if there is no delay set", async () => {
-            sandbox.stub(Swarm, "getById").resolves({
-                status: Status.ready
-            } as Swarm.Swarm);
-            await setupHelpers.processDataCaptureEvent({
-                ...baseCaptureEvent,
-                delayUntil: undefined
-            });
-            expect(enqueueStub.callCount).toEqual(1);
-            expect(enqueueStub.getCall(0).args[0].delayUntil).not.toBeUndefined();
-        });
-
-        it("will not fetch the load test metrics if the current time is less than delayUntil", async () => {
-            sandbox.stub(Swarm, "getById").resolves({
-                status: Status.ready
-            } as Swarm.Swarm);
-            const fetchMetricsStub: Sinon.SinonStub = sandbox.stub(Swarm, "fetchLoadTestMetrics").resolves();
-            await setupHelpers.processDataCaptureEvent({
-                ...baseCaptureEvent,
-                delayUntil: moment().add(1, "day").toDate()
-            });
-            expect(enqueueStub.callCount).toEqual(1);
-            expect(fetchMetricsStub.callCount).toEqual(0);
-        });
-
-        it("will fetch load test metrics if the current time is greater than or equal to delayUntil", async () => {
-            sandbox.stub(Swarm, "getById").resolves({
-                status: Status.ready
-            } as Swarm.Swarm);
-            const fetchMetricsStub: Sinon.SinonStub = sandbox.stub(Swarm, "fetchLoadTestMetrics").resolves();
-            const errorMetricsStub: Sinon.SinonStub = sandbox.stub(Swarm, "fetchErrorMetrics").resolves();
-            await setupHelpers.processDataCaptureEvent({
-                ...baseCaptureEvent,
-                delayUntil: moment().subtract(1, "day").toDate()
-            });
-            expect(enqueueStub.callCount).toEqual(1);
-            expect(fetchMetricsStub.callCount).toEqual(1);
-            expect(fetchMetricsStub.getCall(0).args[0]).toEqual({ status: Status.ready });
-            expect(errorMetricsStub.callCount).toEqual(1);
-            expect(errorMetricsStub.getCall(0).args[0]).toEqual({ status: Status.ready });
         });
     });
 
@@ -676,14 +598,6 @@ describe("lib/setupHelpers", () => {
         });
 
         describe("UNZIP_AND_PIP_INSTALL", () => {
-
-        });
-
-        describe("START_MASTER", () => {
-
-        });
-
-        describe("START_SLAVE", () => {
 
         });
     });

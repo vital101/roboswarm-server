@@ -4,9 +4,11 @@ require("dotenv").config();
 // 3rd Party modules
 import * as express from "express";
 import * as bodyParser from "body-parser";
-import * as jwt from "express-jwt";
+import { expressjwt as jwt } from "express-jwt";
 import * as cors from "cors";
 import * as Sentry from "@sentry/node";
+import * as morgan from "morgan";
+import { connect as connectToRedis } from "./lib/events";
 
 // Private routes
 import _siteOwnershipRoutes from "./routes/v1/private/siteOwnership";
@@ -18,9 +20,10 @@ import _userRoutes from "./routes/v1/private/user";
 import appRoutes from "./routes/v1/public/app";
 import marketingRoutes from "./routes/v1/public/marketing";
 import userRoutes from "./routes/v1/public/user";
+import machineStatusRoutes from "./routes/v1/public/machineStatus";
 
 // JWT Config
-const jwtConfig: jwt.Options = {
+const jwtConfig: any = {
     algorithms: ["HS256"],
     secret: process.env.JWT_SECRET
 };
@@ -32,6 +35,11 @@ if (process.env.NODE_ENV === "production") {
     });
 }
 
+// Start Redis Connection
+(async () => {
+    await connectToRedis();
+})();
+
 // Create Express server
 const app = express();
 
@@ -40,8 +48,15 @@ if (process.env.NODE_ENV === "production") {
     app.use(Sentry.Handlers.requestHandler());
 }
 
+// Morgan logging middleware
+if (process.env.NODE_ENV === "production") {
+    app.use(morgan("common"));
+} else {
+    app.use(morgan("dev"));
+}
+
 // Express configuration
-app.set("port", process.env.PORT || 3000);
+app.set("port", Number(process.env.PORT) || 3000);
 app.use(bodyParser.json({ limit: "20000kb" }));
 app.use(bodyParser.urlencoded({ extended: true }));
 
@@ -61,6 +76,7 @@ app.use("/app", appRoutes);
 
 // Public API
 app.use("/api/v1/public/user", userRoutes);
+app.use("/api/v1/public/machine", machineStatusRoutes);
 
 // Private API
 app.use("/api/v1/site-ownership", jwt(jwtConfig), _siteOwnershipRoutes);

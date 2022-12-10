@@ -34,7 +34,7 @@ export async function bulkCreate(data: LoadTestRouteSpecificData[]): Promise<voi
     for (const item of data) {
         promises.push(db(TABLE_NAME).insert(item));
     }
-    await Promise.all(promises);
+    await Promise.allSettled(promises);
 }
 
 export async function getRoutes(swarmId: number): Promise<string[]> {

@@ -1,68 +1,64 @@
 import * as redis from "redis";
+import { RedisClientOptions } from "redis";
 const EVENT_QUEUE_NAME = "events";
+let redisStatus: string = undefined;
 
 function log(type: string) {
     return function anon() {
+        redisStatus = type;
         console.log(`Redis is ${type}.`);
     };
 }
 
 // Make Redis connection
-let url;
-let config;
-if (["development", "test"].includes(process.env.NODE_ENV)) {
-    url = "redis://localhost";
-    config = {
-        url,
-        retry_strategy: () => {
+const url = ["development", "test"].includes(process.env.NODE_ENV) ?
+    "redis://localhost" :
+    process.env.REDIS_URL;
+const options: RedisClientOptions = {
+    url,
+    socket: {
+        reconnectStrategy: () => {
             return 2000;
-        },
-    };
-} else {
-    url = process.env.REDIS_URL;
-    config = {
-        url,
-        tls: {
-            rejectUnauthorized: false
-        },
-        retry_strategy: () => {
-            return 2000;
-        },
-    };
+        }
+    }
+};
+const redisClient = redis.createClient(options);
+
+redisClient.on("connect", log("connecting"));
+redisClient.on("ready", log("ready"));
+redisClient.on("reconnecting", log("reconnecting"));
+redisClient.on("error", log("error"));
+redisClient.on("end", log("end"));
+
+export async function connect() {
+    if (redisStatus !== "ready") {
+        try {
+            await redisClient.connect();
+        } catch (err) { /* no-op */}
+    }
 }
 
-const client = redis.createClient(config);
-client.on("connect", log("connecting"));
-client.on("ready", log("ready"));
-client.on("reconnecting", log("reconnecting"));
-client.on("error", log("error"));
-client.on("end", log("end"));
-
-export function enqueue(item: any): Promise<any> {
-    return new Promise((resolve, reject) => {
-        const data = JSON.stringify(item);
-        client.lpush(EVENT_QUEUE_NAME, data, (err: any, reply: any) => {
-            if (err) {
-                reject(err);
-            } else {
-                resolve(reply);
-            }
-        });
-    });
+export async function enqueue(item: any): Promise<void> {
+    if (redisStatus !== "ready") {
+        await connect();
+    }
+    const data = JSON.stringify(item);
+    await redisClient.lPush(EVENT_QUEUE_NAME, data);
 }
 
-export function dequeue(): Promise<any> {
-    return new Promise((resolve, reject) => {
-        client.rpop(EVENT_QUEUE_NAME, (err: any, reply: any) => {
-            if (err) {
-                reject(err);
-            } else {
-                resolve(JSON.parse(reply));
-            }
-        });
-    });
+export async function dequeue(): Promise<any> {
+    if (redisStatus !== "ready") {
+        await connect();
+    }
+    const reply = await redisClient.rPop(EVENT_QUEUE_NAME);
+    if (reply && typeof reply === "string" && reply.trim() !== "") {
+        return JSON.parse(reply);
+    } else {
+        return false;
+    }
 }
 
 export function isEventQueueAvailable(): boolean {
-    return client.connected;
+    console.log(redisStatus);
+    return redisStatus === "ready";
 }

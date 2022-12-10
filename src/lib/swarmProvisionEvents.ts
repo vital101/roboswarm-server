@@ -19,16 +19,6 @@ export async function cleanUpSwarmProvisionEvent(event: SwarmProvisionEvent): Pr
             // No-op. We shouldn't get here.
             break;
         }
-        case SwarmSetupStep.START_MASTER: {
-            // We should see if the swarm exists in the db. If so, enqueue stop swarm.
-            if (event.createdSwarm && event.createdSwarm.id) {
-                event.currentTry = 0;
-                event.steps = [];
-                event.stepToExecute = SwarmSetupStep.STOP_SWARM;
-                await enqueue(event);
-            }
-            break;
-        }
         case SwarmSetupStep.STOP_SWARM: {
             // Set the swarm and destroyed. Rely on the cleanup daemon to kill the machines.
             try {

@@ -59,7 +59,7 @@ router.route("/me/invoices/:id/pay")
     .post(async (req: PayInvoiceRequest, res: PayInvoiceResponse) => {
         try {
             const invoice: StripeLib.Invoice = await Stripe.payInvoice(req.params.id);
-            await User.updateById(req.user.id, { is_delinquent: false });
+            await User.updateById(req.auth.id, { is_delinquent: false });
             res.status(200);
             res.json(invoice);
         } catch (err) {
@@ -70,21 +70,21 @@ router.route("/me/invoices/:id/pay")
 
 router.route("/me/invoices")
     .get(async (req: RoboRequest, res: GetInvoicesResponse) => {
-        const invoices: StripeLib.ApiList<StripeLib.Invoice> = await Stripe.getInvoices(req.user.id);
+        const invoices: StripeLib.ApiList<StripeLib.Invoice> = await Stripe.getInvoices(req.auth.id);
         res.status(200);
         res.json(invoices);
     });
 
 router.route("/me/card")
     .delete(async (req: RoboRequest, res: RoboResponse) => {
-        await Stripe.deleteCardFromCustomer(req.user.id);
-        await Stripe.setStripePlan(req.user.id, "2020-roboswarm-free");
-        await User.updateById(req.user.id, { stripe_card_id: "" });
+        await Stripe.deleteCardFromCustomer(req.auth.id);
+        await Stripe.setStripePlan(req.auth.id, "2020-roboswarm-free");
+        await User.updateById(req.auth.id, { stripe_card_id: "" });
         res.status(200);
         res.send("ok");
     })
     .post(async (req: UpdateCardRequest, res: RoboResponse) => {
-        await Stripe.addCardToCustomer(req.user.id, req.body.token, req.body.cardId);
+        await Stripe.addCardToCustomer(req.auth.id, req.body.token, req.body.cardId);
         res.status(200);
         res.send("ok");
     });
@@ -92,12 +92,12 @@ router.route("/me/card")
 router.route("/me/plan")
     .post(async (req: SetPlanRequest, res: RoboResponse) => {
         try {
-            const user: User.User = await User.getById(req.user.id);
+            const user: User.User = await User.getById(req.auth.id);
             if (!canSelectPlan(user, req.body.planName)) {
                 res.status(400);
                 res.send("You must have a credit card on file to select this plan.");
             } else {
-                await Stripe.setStripePlan(req.user.id, req.body.planName);
+                await Stripe.setStripePlan(req.auth.id, req.body.planName);
                 res.status(200);
                 res.send("ok");
             }
@@ -109,7 +109,7 @@ router.route("/me/plan")
 
 router.route("/me/resources")
     .get(async (req: RoboRequest, res: ResourceResponse) => {
-        const user: User.User = await User.getById(req.user.id);
+        const user: User.User = await User.getById(req.auth.id);
         const resources: ResourceAvailability = await getUserResourceAvailability(user);
         res.status(200);
         res.json(resources);
@@ -117,12 +117,12 @@ router.route("/me/resources")
 
 router.route("/me")
     .get(async (req: RoboRequest, res: UserBodyResponse) => {
-        const user: User.User = await User.getById(req.user.id);
+        const user: User.User = await User.getById(req.auth.id);
         res.status(200);
         res.json(user);
     })
     .put(async (req: UpdateUserRequest, res: UserBodyResponse) => {
-        const user: User.User = await User.updateById(req.user.id, req.body);
+        const user: User.User = await User.updateById(req.auth.id, req.body);
         res.status(200);
         res.json(user);
     });
