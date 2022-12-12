@@ -159,7 +159,8 @@ router.route("/:id/metrics")
                 rowsBetweenPoints = 1;
             }
             const [ requests, distribution ] = await Promise.all([
-                LoadTest.getRequestsInRange(id, rowsBetweenPoints, req.body.lastRequestId),
+                // LoadTest.getRequestsInRange(id, rowsBetweenPoints, req.body.lastRequestId),
+                LoadTest.getRequestsAndFailuresInRange(id, totalRequestRows, req.body?.lastRequestId),
                 LoadTest.getDistributionsInRange(id, rowsBetweenPoints, req.body.lastDistributionId)
             ]);
 

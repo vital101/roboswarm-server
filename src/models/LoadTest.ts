@@ -17,6 +17,11 @@ export interface Request {
     failures_per_second?: number;
 }
 
+export interface RequestWithWindowAvg extends Request {
+    AVG_REQUEST_PER_SEC: number;
+    AVG_FAILURE_PER_SEC: number;
+}
+
 export interface RequestFinal extends Request {
     method: string;
     route: string;
@@ -63,6 +68,52 @@ export async function createDistributionFinal(distributionFinal: DistributionFin
     return result[0];
 }
 
+export async function getRequestsAndFailuresInRange(swarmId: number, totalRows: number, startId?: number): Promise<RequestWithWindowAvg[]> {
+    // For cases with fewer than 50 rows, we just return all of the rows and fake the average.
+    // This case also generally handles the "startId" case where we're looking at live data.
+    if (totalRows <= 50) {
+        const query = db("load_test_requests")
+            .where("swarm_id", swarmId)
+            .orderBy("created_at", "asc");
+        if (startId) {
+            query.where("id", ">", startId);
+        }
+        const result: Request[] = await query;
+        const resultWithFakeAverage: RequestWithWindowAvg[] = result.map(r => {
+            return {
+                ...r,
+                AVG_REQUEST_PER_SEC: r.requests_per_second,
+                AVG_FAILURE_PER_SEC: r.failures_per_second
+            };
+        });
+        return resultWithFakeAverage;
+    } else {
+        // Usually viewing the full set here so we will use window functions to get averages.
+        const modulo = Math.floor(totalRows / 50);
+        const query = `
+            SELECT
+                AVG(requests_per_second) OVER(
+                    ORDER BY id ASC ROWS BETWEEN 3 PRECEDING AND CURRENT ROW
+                ) AS AVG_REQUEST_PER_SEC,
+                AVG(failures_per_second) OVER(
+                    ORDER BY id ASC ROWS BETWEEN 3 PRECEDING AND CURRENT ROW
+                ) AS AVG_FAILURE_PER_SEC,
+            *
+            FROM (
+                SELECT
+                    ROW_NUMBER() OVER(ORDER BY "created_at" ASC) AS rn,
+                    *
+                FROM "load_test_requests"
+                WHERE "swarm_id" = ${swarmId}
+            ) t
+            WHERE rn % ${modulo} = 0
+            ORDER BY "created_at" ASC
+        `;
+        const result = await db.raw(query);
+        return result.rows as RequestWithWindowAvg[];
+    }
+}
+
 export async function getRequestsInRange(swarm_id: number, rowsBetweenPoints: number, startId?: number): Promise<Request[]> {
     rowsBetweenPoints = rowsBetweenPoints === 0 ? 1 : rowsBetweenPoints;
     let query = `
@@ -80,6 +131,7 @@ export async function getRequestsInRange(swarm_id: number, rowsBetweenPoints: nu
         ) t
         WHERE t.row % ${rowsBetweenPoints} = 0 OR t.failures_per_second > 0
     `;
+    console.log(query);
     const result = await db.raw(query);
     return result.rows as Request[];
 }
