@@ -17,6 +17,13 @@ export interface Request {
     failures_per_second?: number;
 }
 
+export interface RequestWithWindowAvg extends Request {
+    AVG_REQUEST_PER_SEC: number;
+    AVG_FAILURE_PER_SEC: number;
+    AVG_RESPONSE_TIME_WINDOW: number;
+    MED_RESPONSE_TIME_WINDOW: number;
+}
+
 export interface RequestFinal extends Request {
     method: string;
     route: string;
@@ -63,6 +70,60 @@ export async function createDistributionFinal(distributionFinal: DistributionFin
     return result[0];
 }
 
+export async function getRequestsAndFailuresInRange(swarmId: number, totalRows: number, startId?: number): Promise<RequestWithWindowAvg[]> {
+    // For cases with fewer than 50 rows, we just return all of the rows and fake the average.
+    // This case also generally handles the "startId" case where we're looking at live data.
+    if (totalRows <= 50) {
+        const query = db("load_test_requests")
+            .where("swarm_id", swarmId)
+            .orderBy("created_at", "asc");
+        if (startId) {
+            query.where("id", ">", startId);
+        }
+        const result: Request[] = await query;
+        const resultWithFakeAverage: RequestWithWindowAvg[] = result.map(r => {
+            return {
+                ...r,
+                AVG_REQUEST_PER_SEC: r.requests_per_second,
+                AVG_FAILURE_PER_SEC: r.failures_per_second,
+                AVG_RESPONSE_TIME_WINDOW: r.average_response_time,
+                MED_RESPONSE_TIME_WINDOW: r.median_response_time
+            };
+        });
+        return resultWithFakeAverage;
+    } else {
+        // Usually viewing the full set here so we will use window functions to get averages.
+        const modulo = Math.floor(totalRows / 50);
+        const query = `
+            SELECT
+                AVG(requests_per_second) OVER(
+                    ORDER BY id ASC ROWS BETWEEN 3 PRECEDING AND CURRENT ROW
+                ) AS AVG_REQUEST_PER_SEC,
+                AVG(failures_per_second) OVER(
+                    ORDER BY id ASC ROWS BETWEEN 3 PRECEDING AND CURRENT ROW
+                ) AS AVG_FAILURE_PER_SEC,
+                AVG(average_response_time) OVER(
+                    ORDER BY id ASC ROWS BETWEEN 3 PRECEDING AND CURRENT ROW
+                ) AS AVG_RESPONSE_TIME_WINDOW,
+                AVG(median_response_time) OVER(
+                    ORDER BY id ASC ROWS BETWEEN 3 PRECEDING AND CURRENT ROW
+                ) AS MED_RESPONSE_TIME_WINDOW,
+            *
+            FROM (
+                SELECT
+                    ROW_NUMBER() OVER(ORDER BY "created_at" ASC) AS rn,
+                    *
+                FROM "load_test_requests"
+                WHERE "swarm_id" = ${swarmId}
+            ) t
+            WHERE rn % ${modulo} = 0
+            ORDER BY "created_at" ASC
+        `;
+        const result = await db.raw(query);
+        return result.rows as RequestWithWindowAvg[];
+    }
+}
+
 export async function getRequestsInRange(swarm_id: number, rowsBetweenPoints: number, startId?: number): Promise<Request[]> {
     rowsBetweenPoints = rowsBetweenPoints === 0 ? 1 : rowsBetweenPoints;
     let query = `
@@ -80,6 +141,7 @@ export async function getRequestsInRange(swarm_id: number, rowsBetweenPoints: nu
         ) t
         WHERE t.row % ${rowsBetweenPoints} = 0 OR t.failures_per_second > 0
     `;
+    console.log(query);
     const result = await db.raw(query);
     return result.rows as Request[];
 }
@@ -136,25 +198,11 @@ export async function getLastRequestMetricForSwarm(swarm_id: number): Promise<Re
     return results;
 }
 
-export async function getDistributionsInRange(swarm_id: number, rowsBetweenPoints: number, startId?: number, ): Promise<Distribution[]> {
-    rowsBetweenPoints = rowsBetweenPoints === 0 ? 1 : rowsBetweenPoints;
-    let query = `
-        SELECT t.*
-        FROM (
-            select *, row_number() OVER(ORDER BY id ASC) AS row
-            from "load_test_distribution"
-            where "swarm_id" = ${swarm_id}
-    `;
-    if (startId) {
-        query += ` AND id > ${startId}`;
-    }
-    query += `
-            order by "created_at" ASC
-        ) t
-        WHERE t.row % ${rowsBetweenPoints} = 0
-    `;
-    const result = await db.raw(query);
-    return result.rows as Distribution[];
+export async function getLatestDistribution(swarm_id: number): Promise<Distribution[]> {
+    return await db<Distribution>("load_test_distribution")
+        .where("swarm_id", "=", swarm_id)
+        .orderBy("created_at", "desc")
+        .limit(1);
 }
 
 export async function getTotalDistributionRows(swarm_id: number, startId?: number): Promise<number> {
