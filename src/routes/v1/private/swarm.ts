@@ -147,25 +147,12 @@ router.route("/:id/metrics")
             return;
         }
         try {
-            const [totalRequestRows, totalDistributionRows ] = await Promise.all([
-                LoadTest.getTotalRequestRows(id, req.body.lastRequestId),
-                LoadTest.getTotalDistributionRows(id, req.body.lastDistributionId)
-            ]);
-            const requestRowsBetweenPoints = LoadTest.getRowsInBetweenPoints(totalRequestRows);
-            const distributionRowsBetweenPoints = LoadTest.getRowsInBetweenPoints(totalDistributionRows);
-
-            let rowsBetweenPoints: number = requestRowsBetweenPoints > distributionRowsBetweenPoints ? requestRowsBetweenPoints : distributionRowsBetweenPoints;
-            if (req.body.showAll) {
-                rowsBetweenPoints = 1;
-            }
-            const [ requests, distribution ] = await Promise.all([
-                // LoadTest.getRequestsInRange(id, rowsBetweenPoints, req.body.lastRequestId),
+            const totalRequestRows = await LoadTest.getTotalRequestRows(id, req.body.lastRequestId);
+            const [ requests, distribution, errors ] = await Promise.all([
                 LoadTest.getRequestsAndFailuresInRange(id, totalRequestRows, req.body?.lastRequestId),
-                LoadTest.getDistributionsInRange(id, rowsBetweenPoints, req.body.lastDistributionId)
+                LoadTest.getLatestDistribution(id),
+                LoadTestError.getBySwarmId(id)
             ]);
-
-            const errors: LoadTestError.LoadTestError[] = await LoadTestError.getBySwarmId(id);
-
             res.status(200);
             res.json({
                 requests,
