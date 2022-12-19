@@ -6,8 +6,8 @@ export interface LoadTestRouteSpecificData {
     id?: number;
     created_at?: Date;
     swarm_id: number;
-    method: string;
-    route: string;
+    method_id: number; // f-key http_method.id
+    route_id: number; // f-key route.id
     requests: number;
     failures: number;
     median_response_time: number;
@@ -29,6 +29,7 @@ export interface LoadTestRouteSpecificData {
     "100_percent": number;
 }
 
+// @TODO
 export async function bulkCreate(data: LoadTestRouteSpecificData[]): Promise<void> {
     const promises = [];
     for (const item of data) {
@@ -39,8 +40,10 @@ export async function bulkCreate(data: LoadTestRouteSpecificData[]): Promise<voi
 
 export async function getRoutes(swarmId: number): Promise<string[]> {
     const results = await db(TABLE_NAME)
-        .distinct("route")
+        .distinct(`${TABLE_NAME}.route_id`)
+        .select("route.route")
         .where({ swarm_id: swarmId })
-        .orderBy("route");
+        .join("route", "route.id", `${TABLE_NAME}.route_id`)
+        .orderBy(`${TABLE_NAME}.route_id`);
     return results.map(r => r.route);
 }

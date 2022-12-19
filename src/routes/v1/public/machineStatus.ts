@@ -8,6 +8,8 @@ import { RoboResponse } from "../../../interfaces/shared.interface";
 import * as LoadTest from "../../../models/LoadTest";
 import * as LoadTestError from "../../../models/LoadTestError";
 import * as LoadTestRouteSpecificData from "../../../models/LoadTestRouteSpecificData";
+import * as HttpMethod from "../../../models/HttpMethod";
+import * as Route from "../../../models/Route";
 
 const router = express.Router();
 
@@ -214,13 +216,18 @@ router.route("/:id/route-specific-metrics")
         const swarmId = await SwarmMachine.getSwarmIdByMachineId(Number(req.params.id));
         const dataToInsert: LoadTestRouteSpecificData.LoadTestRouteSpecificData[] = [];
         for (const row of req.body) {
+            const method = await HttpMethod.getByName(row[0]);
+            let routeEntry = await Route.getByName(row[1]);
+            if (!routeEntry) {
+                routeEntry = await Route.create(row[1]);
+            }
             try {
                 dataToInsert.push({
                     swarm_id: swarmId,
                     created_at: new Date(),
                     user_count: 0,
-                    method: row[0],
-                    route: row[1],
+                    method_id: method.id,
+                    route_id: routeEntry.id,
                     requests: parseFloat(row[2]),
                     failures: parseFloat(row[3]),
                     median_response_time: parseFloat(row[4]),
