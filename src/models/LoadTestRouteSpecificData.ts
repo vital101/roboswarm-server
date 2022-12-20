@@ -1,4 +1,6 @@
 import { db } from "../lib/db";
+import * as HttpMethod from "./HttpMethod";
+import * as Route from "./Route";
 
 const TABLE_NAME = "load_test_route_specific_data";
 
@@ -8,6 +10,8 @@ export interface LoadTestRouteSpecificData {
     swarm_id: number;
     method_id: number; // f-key http_method.id
     route_id: number; // f-key route.id
+    method?: string;
+    route?: string;
     requests: number;
     failures: number;
     median_response_time: number;
@@ -45,4 +49,48 @@ export async function getRoutes(swarmId: number): Promise<string[]> {
         .join("route", "route.id", `${TABLE_NAME}.route_id`)
         .orderBy(`${TABLE_NAME}.route_id`);
     return results.map(r => r.route);
+}
+
+async function getDataWithBatchSizeAndOffset(batchSize: number, offset: number): Promise<LoadTestRouteSpecificData[]> {
+    return await db<LoadTestRouteSpecificData>(TABLE_NAME)
+        .orderBy("id")
+        .limit(batchSize)
+        .offset(offset);
+}
+
+export async function update(id: number, fields: any): Promise<void> {
+    await db<LoadTestRouteSpecificData>(TABLE_NAME)
+        .update(fields)
+        .where({ id });
+}
+
+export async function migrateData(): Promise<void> {
+    // Load the HttpMethods
+    let httpMethods: HttpMethod.HttpMethod[] = await HttpMethod.getAll();
+    if (httpMethods.length === 0) {
+        await HttpMethod.create("GET");
+        await HttpMethod.create("POST");
+        await HttpMethod.create("PUT");
+        await HttpMethod.create("PATCH");
+        await HttpMethod.create("DELETE");
+        await HttpMethod.create("OPTIONS");
+        httpMethods = await HttpMethod.getAll();
+    }
+
+    const batchSize = 1000;
+    let offset = 0;
+    let rows: LoadTestRouteSpecificData[] = [];
+    do {
+        console.log(`Current offset: ${offset}`);
+        rows = await getDataWithBatchSizeAndOffset(batchSize, offset);
+        for (const row of rows) {
+            const methodId = httpMethods.find(m => m.method === row.method).id;
+            const route = await Route.getOrCreate(row.route);
+            await update(row.id, {
+                method_id: methodId,
+                route_id: route.id
+            });
+        }
+        offset += batchSize;
+    } while (rows.length !== 0);
 }
