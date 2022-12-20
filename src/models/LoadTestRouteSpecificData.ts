@@ -29,7 +29,6 @@ export interface LoadTestRouteSpecificData {
     "100_percent": number;
 }
 
-// @TODO
 export async function bulkCreate(data: LoadTestRouteSpecificData[]): Promise<void> {
     const promises = [];
     for (const item of data) {
