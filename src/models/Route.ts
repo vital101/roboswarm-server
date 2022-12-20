@@ -13,9 +13,7 @@ export async function getByName(route: string): Promise<Route> {
 
 export async function create(path: string): Promise<Route> {
     return await db<Route>("route")
-        .insert({ route: path })
-        .returning("*")
-        .first();
+        .insert({ route: path });
 }
 
 export async function getOrCreate(path: string): Promise<Route> {
@@ -23,6 +21,7 @@ export async function getOrCreate(path: string): Promise<Route> {
     if (existingRoute) {
         return existingRoute;
     } else {
-        return await create(path);
+        await create(path);
+        return await getByName(path);
     }
 }
