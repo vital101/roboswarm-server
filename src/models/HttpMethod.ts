@@ -8,9 +8,7 @@ export interface HttpMethod {
 export async function create(name: string): Promise<HttpMethod> {
     const nameUpperCase = name.toUpperCase();
     return await db<HttpMethod>("http_method")
-        .insert({ method: nameUpperCase })
-        .returning("*")
-        .first();
+        .insert({ method: nameUpperCase });
 }
 
 export async function getByName(name: string): Promise<HttpMethod> {
