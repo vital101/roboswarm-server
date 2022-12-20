@@ -1,7 +1,8 @@
-exports.up = async function (knex, Promise) {
-    // This migration only runs in dev. We have to run manual SQL scripts
-    // in production.
-    if (process.env.NODE_ENV !== "production") {
+import { db as knex } from "./lib/db";
+
+(async () => {
+    try {
+        console.log(`Starting processing[${process.env.NODE_ENV}]...`);
         const methodCount = await knex.select("*").from("http_method");
         if (methodCount.length === 0) {
             await knex.insert([
@@ -14,7 +15,7 @@ exports.up = async function (knex, Promise) {
             ]).into("http_method");
         }
         const httpMethods = await knex.select("*").from("http_method");
-        const countRow= await knex("load_test_route_specific_data").count();
+        const countRow = await knex("load_test_route_specific_data").count();
         const routeCount = Number(countRow[0].count);
         const batchSize = 1000;
         let totalProcessed = 0;
@@ -24,7 +25,7 @@ exports.up = async function (knex, Promise) {
                 .orderBy("id")
                 .limit(batchSize)
                 .offset(totalProcessed);
-            for(let i = 0; i < rows.length; i++) {
+            for (let i = 0; i < rows.length; i++) {
                 const method_id = httpMethods.find(m => m.method = rows[i].method).id;
                 let matchingRoutes = await knex("route").where({ route: rows[i].route });
                 if (!matchingRoutes || matchingRoutes.length === 0) {
@@ -40,9 +41,10 @@ exports.up = async function (knex, Promise) {
             }
             totalProcessed += batchSize;
         }
+        console.log("Done processing");
+        process.exit();
+    } catch (e) {
+        console.error(e);
+        process.exit();
     }
-};
-
-exports.down = async function (knex, Promise) {
-
-};
+})();

@@ -26,6 +26,7 @@
     "build-ts": "TZ=utc tsc",
     "watch-ts": "TZ=utc tsc -w",
     "lint": "TZ=utc eslint -c .eslintrc.js src/** --ext .ts",
+    "one-off": "TZ=utc node dist/workers/one-off-worker.js",
     "migrate": "TZ=utc knex migrate:latest",
     "make-migration": "TZ=utc knex migrate:make",
     "rollback": "TZ=utc knex migrate:rollback",

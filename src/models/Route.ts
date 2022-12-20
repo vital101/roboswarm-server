@@ -17,3 +17,12 @@ export async function create(path: string): Promise<Route> {
         .returning("*")
         .first();
 }
+
+export async function getOrCreate(path: string): Promise<Route> {
+    const existingRoute = await getByName(path);
+    if (existingRoute) {
+        return existingRoute;
+    } else {
+        return await create(path);
+    }
+}
