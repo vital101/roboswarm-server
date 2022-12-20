@@ -1,5 +1,6 @@
 import { db } from "../lib/db";
 import { LoadTestRouteSpecificData } from "./LoadTestRouteSpecificData";
+import * as Route from "./Route";
 
 export interface Request {
     id?: number;
@@ -141,19 +142,19 @@ export async function getRequestsInRange(swarm_id: number, rowsBetweenPoints: nu
         ) t
         WHERE t.row % ${rowsBetweenPoints} = 0 OR t.failures_per_second > 0
     `;
-    console.log(query);
     const result = await db.raw(query);
     return result.rows as Request[];
 }
 
-export async function getRouteSpecificInRange(swarm_id: number, route: string, rowsBetweenPoints: number, startId?: number): Promise<LoadTestRouteSpecificData[]> {
+export async function getRouteSpecificInRange(swarm_id: number, route_path: string, rowsBetweenPoints: number, startId?: number): Promise<LoadTestRouteSpecificData[]> {
+    const r = await Route.getByName(route_path);
     rowsBetweenPoints = rowsBetweenPoints === 0 ? 1 : rowsBetweenPoints;
     let query = `
         SELECT t.*
         FROM (
             select *, row_number() OVER(ORDER BY id ASC) AS row
             from "load_test_route_specific_data"
-            where "swarm_id" = ? AND "route" = ?
+            where "swarm_id" = ? AND "route_id" = ?
     `;
     if (startId) {
         query += " AND id > ?";
@@ -164,8 +165,8 @@ export async function getRouteSpecificInRange(swarm_id: number, route: string, r
         WHERE t.row % ? = 0
     `;
     const result = startId ?
-        await db.raw(query, [swarm_id, route, startId, rowsBetweenPoints]) :
-        await db.raw(query, [swarm_id, route, rowsBetweenPoints]);
+        await db.raw(query, [swarm_id, r.id, startId, rowsBetweenPoints]) :
+        await db.raw(query, [swarm_id, r.id, rowsBetweenPoints]);
     return result.rows as LoadTestRouteSpecificData[];
 }
 
@@ -180,7 +181,8 @@ export async function getTotalRequestRows(swarm_id: number, startId?: number): P
 }
 
 export async function getTotalRouteSpecificRows(swarm_id: number, route: string, startId?: number): Promise<number> {
-    let query = db("load_test_route_specific_data").where({ swarm_id, route });
+    const r = await Route.getByName(route);
+    let query = db("load_test_route_specific_data").where({ swarm_id, route_id: r.id });
     if (startId) {
         query = query.andWhere("id", ">", startId);
     }
