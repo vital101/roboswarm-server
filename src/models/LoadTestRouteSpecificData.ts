@@ -55,10 +55,11 @@ async function getDataWithBatchSizeAndOffset(batchSize: number, offset: number):
     const query = db<LoadTestRouteSpecificData>(TABLE_NAME)
         .whereNull("route_id")
         .whereNull("method_id")
+        .whereNotNull("method")
+        .whereNotNull("route")
         .orderBy("id")
         .limit(batchSize)
         .offset(offset);
-    console.log(query.toString());
     return await query;
 }
 
