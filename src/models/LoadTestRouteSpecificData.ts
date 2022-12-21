@@ -89,6 +89,7 @@ export async function migrateData(): Promise<void> {
         rows = await getDataWithBatchSizeAndOffset(batchSize, offset);
         for (const row of rows) {
             if (row?.route && row?.method) {
+                console.log(row.method);
                 const methodId = httpMethods.find(m => m.method.toUpperCase() === row.method.toUpperCase()).id;
                 const route = await Route.getOrCreate(row.route);
                 await update(row.id, {
