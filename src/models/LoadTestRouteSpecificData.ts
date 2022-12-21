@@ -55,6 +55,7 @@ async function getDataWithBatchSizeAndOffset(batchSize: number, offset: number):
     const query = db<LoadTestRouteSpecificData>(TABLE_NAME)
         .whereNull("route_id")
         .whereNull("method_id")
+        .whereRaw("method = 'GET' OR method = 'POST'")
         .orderBy("id")
         .limit(batchSize)
         .offset(offset);
@@ -88,7 +89,7 @@ export async function migrateData(): Promise<void> {
         console.log(`Current offset: ${offset}`);
         rows = await getDataWithBatchSizeAndOffset(batchSize, offset);
         for (const row of rows) {
-            if (row?.route && row?.method) {
+            if (row?.route && row?.method && (row?.method === "GET" || row?.method === "POST")) {
                 console.log(row.method);
                 const methodId = httpMethods.find(m => m.method.toUpperCase() === row.method.toUpperCase()).id;
                 const route = await Route.getOrCreate(row.route);
