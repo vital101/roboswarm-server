@@ -60,6 +60,7 @@ async function getDataWithBatchSizeAndOffset(batchSize: number, offset: number):
         .orderBy("id")
         .limit(batchSize)
         .offset(offset);
+    console.log(query.toString());
     return await query;
 }
 
