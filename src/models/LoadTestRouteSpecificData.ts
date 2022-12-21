@@ -53,6 +53,8 @@ export async function getRoutes(swarmId: number): Promise<string[]> {
 
 async function getDataWithBatchSizeAndOffset(batchSize: number, offset: number): Promise<LoadTestRouteSpecificData[]> {
     return await db<LoadTestRouteSpecificData>(TABLE_NAME)
+        .whereNull("route_id")
+        .whereNull("method_id")
         .orderBy("id")
         .limit(batchSize)
         .offset(offset);
