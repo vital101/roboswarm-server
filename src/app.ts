@@ -9,6 +9,7 @@ import * as cors from "cors";
 import * as Sentry from "@sentry/node";
 import * as morgan from "morgan";
 import * as cron from "node-cron";
+import * as middleware from "./lib/middleware";
 import { swarmCleanup } from "./cron/swarm_cleanup";
 import { checkUserDelinquency } from "./cron/check_user_delinquency";
 import { connect as connectToRedis } from "./lib/events";
@@ -94,7 +95,7 @@ app.use("/app", appRoutes);
 
 // Public API
 app.use("/api/v1/public/user", userRoutes);
-app.use("/api/v1/public/machine", machineStatusRoutes);
+app.use("/api/v1/public/machine", middleware.validateServiceKey, machineStatusRoutes);
 
 // Private API
 app.use("/api/v1/site-ownership", jwt(jwtConfig), _siteOwnershipRoutes);
