@@ -1,6 +1,4 @@
 import { db } from "../lib/db";
-import * as HttpMethod from "./HttpMethod";
-import * as Route from "./Route";
 
 const TABLE_NAME = "load_test_route_specific_data";
 
@@ -67,37 +65,4 @@ export async function update(id: number, fields: any): Promise<void> {
     await db<LoadTestRouteSpecificData>(TABLE_NAME)
         .update(fields)
         .where({ id });
-}
-
-export async function migrateData(): Promise<void> {
-    // Load the HttpMethods
-    let httpMethods: HttpMethod.HttpMethod[] = await HttpMethod.getAll();
-    if (httpMethods.length === 0) {
-        await HttpMethod.create("GET");
-        await HttpMethod.create("POST");
-        await HttpMethod.create("PUT");
-        await HttpMethod.create("PATCH");
-        await HttpMethod.create("DELETE");
-        await HttpMethod.create("OPTIONS");
-        httpMethods = await HttpMethod.getAll();
-    }
-
-    const batchSize = 1000;
-    let offset = 0;
-    let rows: LoadTestRouteSpecificData[] = [];
-    do {
-        console.log(`Current offset: ${offset}`);
-        rows = await getDataWithBatchSizeAndOffset(batchSize, offset);
-        for (const row of rows) {
-            if (row?.route && row?.method && (row?.method === "GET" || row?.method === "POST")) {
-                const methodId = httpMethods.find(m => m.method.toUpperCase() === row.method.toUpperCase()).id;
-                const route = await Route.getOrCreate(row.route);
-                await update(row.id, {
-                    method_id: methodId,
-                    route_id: route.id
-                });
-            }
-        }
-        offset += batchSize;
-    } while (rows.length !== 0);
 }
