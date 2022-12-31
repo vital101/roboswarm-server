@@ -40,12 +40,14 @@ export async function bulkCreate(data: LoadTestRouteSpecificData[]): Promise<voi
 }
 
 export async function getRoutes(swarmId: number): Promise<string[]> {
-    const results = await db(TABLE_NAME)
+    const query = db(TABLE_NAME)
         .distinct(`${TABLE_NAME}.route_id`)
         .select("route.route")
         .where({ swarm_id: swarmId })
         .join("route", "route.id", `${TABLE_NAME}.route_id`)
         .orderBy(`${TABLE_NAME}.route_id`);
+    console.log(query.toString());
+    const results = await query;
     return results.map(r => r.route);
 }
 
