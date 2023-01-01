@@ -6,6 +6,7 @@ import * as LoadTest from "../../../models/LoadTest";
 import * as LoadTestError from "../../../models/LoadTestError";
 import * as User from "../../../models/User";
 import * as SiteOwnership from "../../../models/SiteOwnership";
+import * as SwarmRouteCache from "../../../models/SwarmRouteCache";
 import { RoboRequest, RoboResponse, RoboError } from "../../../interfaces/shared.interface";
 import { canCreateSwarm } from "../../../lib/authorization";
 import * as multer from "multer";
@@ -263,9 +264,16 @@ router.route("/:id/time-remaining")
 router.route("/:id/routes")
     .get(async (req: RoboRequest, res: SwarmRouteResponse) => {
         const id: number = parseInt(req.params.id, 10);
-        const routes = await getRoutes(id);
-        res.status(200);
-        res.json(routes);
+        const routeCache = await SwarmRouteCache.get(id);
+        if (routeCache) {
+            res.status(200);
+            res.json(routeCache.routes);
+        } else {
+            const routes = await getRoutes(id);
+            await SwarmRouteCache.create(id, routes);
+            res.status(200);
+            res.json(routes);
+        }
     });
 
 router.route("/:id")

@@ -20,7 +20,8 @@ export enum SwarmSetupStep {
 
 export enum DeprovisionEventType {
     MACHINE,
-    SSH_KEY
+    SSH_KEY,
+    CACHE_ROUTES
 }
 
 export enum WorkerEventType {

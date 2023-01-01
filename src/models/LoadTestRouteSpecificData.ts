@@ -46,7 +46,6 @@ export async function getRoutes(swarmId: number): Promise<string[]> {
         .where({ swarm_id: swarmId })
         .join("route", "route.id", `${TABLE_NAME}.route_id`)
         .orderBy(`${TABLE_NAME}.route_id`);
-    console.log(query.toString());
     const results = await query;
     return results.map(r => r.route);
 }

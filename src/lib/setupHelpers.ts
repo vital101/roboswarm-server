@@ -3,6 +3,8 @@ import * as Machine from "../models/Machine";
 import * as SSHKey from "../models/SSHKey";
 import * as Swarm from "../models/Swarm";
 import * as SwarmMachine from "../models/SwarmMachine";
+import * as LoadTestRouteSpecificData from "../models/LoadTestRouteSpecificData";
+import * as SwarmRouteCache from "../models/SwarmRouteCache";
 import {
     SwarmProvisionEvent,
     MachineProvisionEvent,
@@ -32,6 +34,19 @@ export async function processDeprovisionEvent(event: DeprovisionEvent): Promise<
             if (event.deprovisionType === DeprovisionEventType.SSH_KEY) {
                 console.log(`Destroying SSH key: ${event.id}`);
                 await SSHKey.destroy(event.id);
+                return;
+            }
+
+            if (event.deprovisionType === DeprovisionEventType.CACHE_ROUTES) {
+                console.log(`Caching routes for swarm ${event.id}`);
+                const routes = await LoadTestRouteSpecificData.getRoutes(event.id);
+                const existingRoutes = await SwarmRouteCache.get(event.id);
+                if (existingRoutes && existingRoutes?.routes.length >= 0) {
+                    // Update
+                    await SwarmRouteCache.update(event.id, routes);
+                } else {
+                    await SwarmRouteCache.create(event.id, routes);
+                }
                 return;
             }
 
