@@ -251,6 +251,19 @@ export async function destroyById(id: number, group_id: number): Promise<Swarm> 
     console.log("Deprovision SSH Key", sshKeyDestroyEvent);
     await events.enqueue(sshKeyDestroyEvent);
 
+    // Cache the routes list
+    const cacheRoutesEvent: DeprovisionEvent = {
+        id: destroyedSwarm[0].id,
+        eventType: WorkerEventType.DEPROVISION,
+        deprovisionType: DeprovisionEventType.CACHE_ROUTES,
+        maxRetries: 10,
+        currentTry: 0,
+        lastActionTime: new Date(),
+        errors: []
+    };
+    console.log("Deprovision cache routes", cacheRoutesEvent);
+    await events.enqueue(cacheRoutesEvent);
+
     // Send an email for first swarm if needed.
     const theSwarm: Swarm = destroyedSwarm[0];
     const isFirstSwarm: boolean = await isFirstCompleteSwarm(theSwarm.user_id);
