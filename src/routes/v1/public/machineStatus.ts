@@ -216,39 +216,41 @@ router.route("/:id/route-specific-metrics")
         const swarmId = await SwarmMachine.getSwarmIdByMachineId(Number(req.params.id));
         const dataToInsert: LoadTestRouteSpecificData.LoadTestRouteSpecificData[] = [];
         for (const row of req.body) {
-            const method = await HttpMethod.getByName(row[0]);
-            let routeEntry = await Route.getByName(row[1]);
-            if (!routeEntry) {
-                routeEntry = await Route.create(row[1]);
-            }
-            try {
-                dataToInsert.push({
-                    swarm_id: swarmId,
-                    created_at: new Date(),
-                    user_count: 0,
-                    method_id: method.id,
-                    route_id: routeEntry.id,
-                    requests: parseFloat(row[2]),
-                    failures: parseFloat(row[3]),
-                    median_response_time: parseFloat(row[4]),
-                    average_response_time: parseFloat(row[5]),
-                    min_response_time: parseFloat(row[6]),
-                    max_response_time: parseFloat(row[7]),
-                    avg_content_size: parseFloat(row[8]),
-                    requests_per_second: parseFloat(row[9]),
-                    failures_per_second: parseFloat(row[10]),
-                    "50_percent": parseFloat(row[11]),
-                    "66_percent": parseFloat(row[12]),
-                    "75_percent": parseFloat(row[13]),
-                    "80_percent": parseFloat(row[14]),
-                    "90_percent": parseFloat(row[15]),
-                    "95_percent": parseFloat(row[16]),
-                    "98_percent": parseFloat(row[17]),
-                    "99_percent": parseFloat(row[18]),
-                    "100_percent": parseFloat(row[21])
-                });
-            } catch (err) {
-                console.log("LoadTestRouteSpecificData Parse Error: ", err);
+            if (row[0]?.trim() !== "") {
+                const method = await HttpMethod.getByName(row[0]);
+                let routeEntry = await Route.getByName(row[1]);
+                if (!routeEntry) {
+                    routeEntry = await Route.create(row[1]);
+                }
+                try {
+                    dataToInsert.push({
+                        swarm_id: swarmId,
+                        created_at: new Date(),
+                        user_count: 0,
+                        method_id: method.id,
+                        route_id: routeEntry.id,
+                        requests: parseFloat(row[2]),
+                        failures: parseFloat(row[3]),
+                        median_response_time: parseFloat(row[4]),
+                        average_response_time: parseFloat(row[5]),
+                        min_response_time: parseFloat(row[6]),
+                        max_response_time: parseFloat(row[7]),
+                        avg_content_size: parseFloat(row[8]),
+                        requests_per_second: parseFloat(row[9]),
+                        failures_per_second: parseFloat(row[10]),
+                        "50_percent": parseFloat(row[11]),
+                        "66_percent": parseFloat(row[12]),
+                        "75_percent": parseFloat(row[13]),
+                        "80_percent": parseFloat(row[14]),
+                        "90_percent": parseFloat(row[15]),
+                        "95_percent": parseFloat(row[16]),
+                        "98_percent": parseFloat(row[17]),
+                        "99_percent": parseFloat(row[18]),
+                        "100_percent": parseFloat(row[21])
+                    });
+                } catch (err) {
+                    console.log("LoadTestRouteSpecificData Parse Error: ", err);
+                }
             }
         }
         await LoadTestRouteSpecificData.bulkCreate(dataToInsert);
