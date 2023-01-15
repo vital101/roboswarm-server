@@ -4,8 +4,9 @@ import * as stripeHelpers from "./stripe";
 import * as Stripe from "stripe";
 import * as Swarm from "../models/Swarm";
 import { getPlan } from "./config";
-import { RoboError } from "../interfaces/shared.interface";
+import { RoboError, RoboRequest, RoboResponse } from "../interfaces/shared.interface";
 import * as SiteOwnership from "../models/SiteOwnership";
+import { NextFunction } from "express";
 
 export const unlimitedMaxDurationUsers: string[] = ["tom@convesio.com"];
 
@@ -22,6 +23,15 @@ export interface ResourceAvailability {
     maxDurationMinutes: number;
     maxLoadTests: number;
     maxMachineSeconds: number;
+}
+
+export function serviceKeyValidation(req: RoboRequest, res: RoboResponse, next: NextFunction) {
+    if (req.headers?.authorization === process.env.SERVICE_KEY) {
+        next();
+    } else {
+        res.status(401);
+        res.send("Unauthorized.");
+    }
 }
 
 export async function getAuthorizationDateRange(user: User): Promise<DateRange> {

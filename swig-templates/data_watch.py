@@ -8,6 +8,7 @@ if len(sys.argv) != 4:
 base_url = sys.argv[1] # "https://roboswarm.ngrok.io" for dev
 machine_id = sys.argv[2] # 48 for dev
 base_path = sys.argv[3] # /Users/jackslingerland/Desktop/roboswarm_env/ for dev
+service_key = sys.argv[4] # populated via environment variable
 
 # if "ngrok" in base_url:
 #     print("Using development configuration")
@@ -30,9 +31,16 @@ def roboswarm_http_request(method, route, data = None):
             route
         )
         if method == "GET":
-            return requests.get(url).json()
+            headers = {
+                'Authorization': service_key
+            }
+            return requests.get(url, headers=headers).json()
         elif method == "POST":
-            headers = {'Content-type': 'application/json', 'Accept': 'text/plain'}
+            headers = {
+                'Content-type': 'application/json',
+                'Accept': 'text/plain',
+                'Authorization': service_key
+            }
             requests.post(url, data=json.dumps(data), headers=headers)
     except Exception as e:
         print("Error in 'roboswarm_http_request': ")
@@ -116,10 +124,6 @@ while True:
             print("Updating Roboswarm 'can deprovision' == True")
             kill_data_watch()
         else:
-            # I think is_swarm_ready isn't working?
-            # Or maybe the path to the data files is wrong.
-            # Need to run this manually on master and see
-            # whats up.
             if is_swarm_ready():
                 print("Swarm not shutting down.")
                 capture_aggregate_data()

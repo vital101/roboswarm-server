@@ -25,6 +25,9 @@ import marketingRoutes from "./routes/v1/public/marketing";
 import userRoutes from "./routes/v1/public/user";
 import machineStatusRoutes from "./routes/v1/public/machineStatus";
 
+// Lib
+import { serviceKeyValidation } from "./lib/authorization";
+
 // Cron config.
 if (process.env.RUN_CRON) {
     // Swarm cleanup
@@ -94,7 +97,7 @@ app.use("/app", appRoutes);
 
 // Public API
 app.use("/api/v1/public/user", userRoutes);
-app.use("/api/v1/public/machine", machineStatusRoutes);
+app.use("/api/v1/public/machine", serviceKeyValidation, machineStatusRoutes);
 
 // Private API
 app.use("/api/v1/site-ownership", jwt(jwtConfig), _siteOwnershipRoutes);

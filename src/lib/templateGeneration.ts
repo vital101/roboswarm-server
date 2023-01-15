@@ -214,7 +214,8 @@ export async function generateVmConfigurationScript(machine_id: number): Promise
         runTime,
         expectSlaveCount: expectSlaveCount > 0 ? expectSlaveCount : 1,
         hostUrl,
-        basePath: process.env.BASE_PATH ? process.env.BASE_PATH : "/root/"
+        basePath: process.env.BASE_PATH ? process.env.BASE_PATH : "/root/",
+        serviceKey: process.env.SERVICE_KEY
     };
     const renderedTemplate = vmConfigTemplateCompiler(renderContext);
     return renderedTemplate;

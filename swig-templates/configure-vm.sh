@@ -18,7 +18,7 @@ ISREADYBODY=$(cat <<-END
 END
 )
 echo "Setting ready and IP: ${MYIP}"
-curl -X POST {{baseUrl}}/api/v1/public/machine/{{machineId}}/status -H 'Content-Type: application/json' -d "$ISREADYBODY" > /dev/null
+curl -X POST {{baseUrl}}/api/v1/public/machine/{{machineId}}/status -H 'Authorization: {{serviceKey}}' -H 'Content-Type: application/json' -d "$ISREADYBODY" > /dev/null
 
 # Enable the firewall
 echo "y" | ufw enable
@@ -32,7 +32,7 @@ echo "Opening firewall for Locust"
 ufw allow 8000:65535/tcp
 ufw allow 5557/tcp
 ufw allow 5558/tcp
-curl -X POST {{baseUrl}}/api/v1/public/machine/{{machineId}}/status -H 'Content-Type: application/json' -d '{"action":"port_open_complete"}' > /dev/null
+curl -X POST {{baseUrl}}/api/v1/public/machine/{{machineId}}/status -H 'Authorization: {{serviceKey}}' -H 'Content-Type: application/json' -d '{"action":"port_open_complete"}' > /dev/null
 
 # Increase open file limit.
 ulimit -n 200000
@@ -50,46 +50,46 @@ export DEBIAN_FRONTEND=noninteractive && apt-get install -y python3-pip wget unz
 
 # Download the template file and unzip
 echo "Downloading and unzipping load test template"
-wget {{baseUrl}}/api/v1/public/machine/{{machineId}}/template
+wget --header="Authorization: {{serviceKey}}" {{baseUrl}}/api/v1/public/machine/{{machineId}}/template
 unzip template
-curl -X POST {{baseUrl}}/api/v1/public/machine/{{machineId}}/status -H 'Content-Type: application/json' -d '{"action":"file_transfer_complete"}'
+curl -X POST {{baseUrl}}/api/v1/public/machine/{{machineId}}/status -H 'Authorization: {{serviceKey}}' -H 'Content-Type: application/json' -d '{"action":"file_transfer_complete"}'
 
 # Update dependency install flag
 echo "Updating dependency_install_complete"
-curl -X POST {{baseUrl}}/api/v1/public/machine/{{machineId}}/status -H 'Content-Type: application/json' -d '{"action":"dependency_install_complete"}' > /dev/null
+curl -X POST {{baseUrl}}/api/v1/public/machine/{{machineId}}/status -H 'Authorization: {{serviceKey}}' -H 'Content-Type: application/json' -d '{"action":"dependency_install_complete"}' > /dev/null
 
 # Master Group
 echo "Checking if this machine is master"
-ISMASTER=$(curl {{baseUrl}}/api/v1/public/machine/{{machineId}}/is-master)
+ISMASTER=$(curl {{baseUrl}}/api/v1/public/machine/{{machineId}}/is-master -H 'Authorization: {{serviceKey}}')
 if [ "$ISMASTER" = "true" ]; then
    # Download the data watch script
    echo "Downloading data watch script"
-   wget {{baseUrl}}/api/v1/public/machine/{{machineId}}/data-watch
+   wget --header="Authorization: {{serviceKey}}" {{baseUrl}}/api/v1/public/machine/{{machineId}}/data-watch
    mv data-watch data_watch.py
 
    # Start master
    echo "Starting master"
    ulimit -n 200000 && PYTHONWARNINGS="ignore:Unverified HTTPS request" nohup locust --master --csv=status --host={{hostUrl}} --users={{users}} --spawn-rate={{rate}} --run-time={{runTime}} --headless --expect-workers={{expectSlaveCount}} &
-   curl -X POST {{baseUrl}}/api/v1/public/machine/{{machineId}}/status -H 'Content-Type: application/json' -d '{"action":"master_started_complete"}' > /dev/null
-   curl -X POST {{baseUrl}}/api/v1/public/machine/{{machineId}}/status -H 'Content-Type: application/json' -d '{"action":"setup_complete"}' > /dev/null
+   curl -X POST {{baseUrl}}/api/v1/public/machine/{{machineId}}/status -H 'Authorization: {{serviceKey}}' -H 'Content-Type: application/json' -d '{"action":"master_started_complete"}' > /dev/null
+   curl -X POST {{baseUrl}}/api/v1/public/machine/{{machineId}}/status -H 'Authorization: {{serviceKey}}' -H 'Content-Type: application/json' -d '{"action":"setup_complete"}' > /dev/null
 
    # Start data watch
    echo "Start data watch"
-   PYTHONWARNINGS="ignore:Unverified HTTPS request" nohup python3 data_watch.py {{baseUrl}} {{machineId}} {{basePath}} &
+   PYTHONWARNINGS="ignore:Unverified HTTPS request" nohup python3 data_watch.py {{baseUrl}} {{machineId}} {{basePath}} {{serviceKey}} &
 fi
 
 # Slave Group
 if [ "$ISMASTER" = "false" ]; then
 
    # Wait for master to be ready.
-   while [ $(curl {{baseUrl}}/api/v1/public/machine/{{machineId}}/is-master-started) = "false" ]; do
+   while [ $(curl {{baseUrl}}/api/v1/public/machine/{{machineId}}/is-master-started -H 'Authorization: {{serviceKey}}') = "false" ]; do
       sleep 2
       echo "Master not started. Waiting 2 seconds."
    done
 
    # Get the master IP
    echo "Master started. Starting Locust worker."
-   MASTERIP=$(curl {{baseUrl}}/api/v1/public/machine/{{machineId}}/master-ip)
+   MASTERIP=$(curl {{baseUrl}}/api/v1/public/machine/{{machineId}}/master-ip -H 'Authorization: {{serviceKey}}')
 
    # Start 2 workers per machine.
    for VARIABLE in 1 2
@@ -99,7 +99,7 @@ if [ "$ISMASTER" = "false" ]; then
 
    # Mark machine as ready.
    echo "Updating setup_complete for: ${MYIP}"
-   curl -X POST {{baseUrl}}/api/v1/public/machine/{{machineId}}/status -H 'Content-Type: application/json' -d '{"action":"setup_complete"}' > /dev/null
+   curl -X POST {{baseUrl}}/api/v1/public/machine/{{machineId}}/status -H 'Authorization: {{serviceKey}}' -H 'Content-Type: application/json' -d '{"action":"setup_complete"}' > /dev/null
 fi
 
 echo "Done with initialization."
