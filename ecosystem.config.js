@@ -54,7 +54,6 @@ const postDeployCommands = [
         ref  : 'origin/home-server',
         repo : 'git@bitbucket.org:roboswarm/roboswarm-server.git',
         path : '/home/jack/repos/roboswarm',
-        'pre-setup': 'apt-get install -y build-essential',
         'post-deploy' : postDeployCommands.join(" && ")
       }
     }
