@@ -51,7 +51,7 @@ const postDeployCommands = [
       production : {
         user : 'jack',
         host : ['192.168.1.65'],
-        ref  : 'origin/master',
+        ref  : 'origin/home-server',
         repo : 'git@bitbucket.org:roboswarm/roboswarm-server.git',
         path : '/home/jack/repos/roboswarm',
         'pre-setup': 'apt-get install -y build-essential',
