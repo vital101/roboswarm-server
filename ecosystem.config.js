@@ -30,7 +30,6 @@ const postDeployCommands = [
       max_memory_restart: '256M',
       env: { },
       env_production,
-      'pre-setup': 'apt-get install -y build-essential',
       'post-deploy': postDeployCommands.join(" && ")
     },
     {
@@ -43,7 +42,6 @@ const postDeployCommands = [
       kill_timeout: 60000,
       env: { },
       env_production,
-      'pre-setup': 'apt-get install -y build-essential',
       'post-deploy': postDeployCommands.join(" && ")
     }],
 
@@ -53,7 +51,7 @@ const postDeployCommands = [
         host : ['192.168.1.65'],
         ref  : 'origin/home-server',
         repo : 'git@bitbucket.org:roboswarm/roboswarm-server.git',
-        path : '/home/jack/repos/roboswarm',
+        path : '/home/jack/repos/roboswarm-server',
         'post-deploy' : postDeployCommands.join(" && ")
       }
     }
