@@ -24,7 +24,7 @@ swig.setFilter("increment", input => {
     return input + 1;
 });
 
-const appRoot = process.env.APP_ROOT || "/Users/jackslingerland/repos/roboswarm";
+const appRoot = process.envROBOSWARM__APP_ROOT || "/Users/jackslingerland/repos/roboswarm";
 
 // VM Configuration Compiler
 const templatePath = `${appRoot}/swig-templates/configure-vm.sh`;
@@ -207,14 +207,14 @@ export async function generateVmConfigurationScript(machine_id: number): Promise
     }
 
     const renderContext = {
-        baseUrl: process.env.BASE_URL ? process.env.BASE_URL : "https://roboswarm.dev",
+        baseUrl: process.env.ROBOSWARM__BASE_URL ? process.env.ROBOSWARM__BASE_URL : "https://roboswarm.dev",
         machineId: machine_id,
         users,
         rate,
         runTime,
         expectSlaveCount: expectSlaveCount > 0 ? expectSlaveCount : 1,
         hostUrl,
-        basePath: process.env.BASE_PATH ? process.env.BASE_PATH : "/root/"
+        basePath: process.env.ROBOSWARM__BASE_PATH ? process.env.ROBOSWARM__BASE_PATH : "/root/"
     };
     const renderedTemplate = vmConfigTemplateCompiler(renderContext);
     return renderedTemplate;

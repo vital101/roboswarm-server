@@ -1,16 +1,16 @@
 import * as Knex from "knex";
 
 let connection: any = {
-    host: process.env.DB_HOST || "10.0.2.2",
-    user: process.env.DB_USER || "postgres",
-    password: process.env.DB_PASSWORD || undefined,
-    port: process.env.DB_PORT || 5432,
+    host: process.envROBOSWARM__DB_HOST || "10.0.2.2",
+    user: process.envROBOSWARM__DB_USER || "postgres",
+    password: process.envROBOSWARM__DB_PASSWORD || undefined,
+    port: process.envROBOSWARM__DB_PORT || 5432,
     database: "roboswarm",
     timezone: "utc",
 };
 
 if (process.env.NODE_ENV === "production") {
-    const [ userPassword, hostPortDatabase ] = process.env.DATABASE_URL.replace("postgresql://", "").split("@");
+    const [ userPassword, hostPortDatabase ] = process.env.DATAROBOSWARM__BASE_URL.replace("postgresql://", "").split("@");
     const [ user, password ] = userPassword.split(":");
     const [ host, portDatabase ] = hostPortDatabase.split(":");
     const [ port, database ] = portDatabase.replace("?sslmode=require", "").split("/");

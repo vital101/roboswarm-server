@@ -17,7 +17,7 @@ const postDeployCommands = [
     DB_PORT: '5432',
 
     // Redis
-    REDIS_URL: 'redis://localhost:6379'
+    ROBOSWARM__REDIS_URL: 'redis://localhost:6379'
   };
 
   module.exports = {

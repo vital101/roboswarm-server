@@ -13,7 +13,7 @@ function log(type: string) {
 // Make Redis connection
 const url = ["development", "test"].includes(process.env.NODE_ENV) ?
     "redis://localhost" :
-    process.env.REDIS_URL;
+    process.env.ROBOSWARM__REDIS_URL;
 const options: RedisClientOptions = {
     url,
     socket: {

@@ -52,7 +52,7 @@ function getPlanId(planName: string): string {
 }
 
 export async function createStripeCustomer(user: User.User): Promise<void> {
-    const stripe = new Stripe(process.env.STRIPE_API_SECRET, config);
+    const stripe = new Stripe(process.envROBOSWARM__STRIPE_API_SECRET, config);
     const customerOptions: Stripe.CustomerCreateParams = {
         email: user.email,
         description: `${user.first_name} ${user.last_name}`
@@ -62,7 +62,7 @@ export async function createStripeCustomer(user: User.User): Promise<void> {
 }
 
 export async function getUserSubscription(user: User.User): Promise<Stripe.Subscription> {
-    const stripe = new Stripe(process.env.STRIPE_API_SECRET, config);
+    const stripe = new Stripe(process.envROBOSWARM__STRIPE_API_SECRET, config);
     const subscriptionListOptions: Stripe.SubscriptionListParams = {
         customer: user.stripe_id
     };
@@ -71,7 +71,7 @@ export async function getUserSubscription(user: User.User): Promise<Stripe.Subsc
 }
 
 export async function setStripePlan(userId: number, planName: string): Promise<void> {
-    const stripe = new Stripe(process.env.STRIPE_API_SECRET, config);
+    const stripe = new Stripe(process.envROBOSWARM__STRIPE_API_SECRET, config);
     const user: User.User = await User.getById(userId);
     const subscriptionListOptions: Stripe.SubscriptionListParams = {
         customer: user.stripe_id
@@ -107,7 +107,7 @@ export async function setStripePlan(userId: number, planName: string): Promise<v
 }
 
 export async function addCardToCustomer(userId: number, token: string, cardId: string): Promise<void> {
-    const stripe = new Stripe(process.env.STRIPE_API_SECRET, config);
+    const stripe = new Stripe(process.envROBOSWARM__STRIPE_API_SECRET, config);
     const user: User.User = await User.getById(userId);
     const options: Stripe.CustomerUpdateParams = { source: token };
     await stripe.customers.update(user.stripe_id, options);
@@ -115,19 +115,19 @@ export async function addCardToCustomer(userId: number, token: string, cardId: s
 }
 
 export async function deleteCardFromCustomer(userId: number): Promise<void> {
-    const stripe = new Stripe(process.env.STRIPE_API_SECRET, config);
+    const stripe = new Stripe(process.envROBOSWARM__STRIPE_API_SECRET, config);
     const user: User.User = await User.getById(userId);
     await stripe.customers.deleteSource(user.stripe_id, user.stripe_card_id);
 }
 
 export async function getCustomer(userId: number): Promise<Stripe.Customer|Stripe.DeletedCustomer> {
-    const stripe = new Stripe(process.env.STRIPE_API_SECRET, config);
+    const stripe = new Stripe(process.envROBOSWARM__STRIPE_API_SECRET, config);
     const user: User.User = await User.getById(userId);
     return await stripe.customers.retrieve(user.stripe_id);
 }
 
 export async function getInvoices(userId: number): Promise<Stripe.ApiList<Stripe.Invoice>> {
-    const stripe = new Stripe(process.env.STRIPE_API_SECRET, config);
+    const stripe = new Stripe(process.envROBOSWARM__STRIPE_API_SECRET, config);
     const user: User.User = await User.getById(userId);
     return await stripe.invoices.list({
         customer: user.stripe_id,
@@ -136,6 +136,6 @@ export async function getInvoices(userId: number): Promise<Stripe.ApiList<Stripe
 }
 
 export async function payInvoice(invoiceId: string): Promise<Stripe.Invoice> {
-    const stripe = new Stripe(process.env.STRIPE_API_SECRET, config);
+    const stripe = new Stripe(process.envROBOSWARM__STRIPE_API_SECRET, config);
     return await stripe.invoices.pay(invoiceId);
 }

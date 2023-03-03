@@ -43,7 +43,7 @@ if (process.env.RUN_CRON) {
 // JWT Config
 const jwtConfig: any = {
     algorithms: ["HS256"],
-    secret: process.env.JWT_SECRET
+    secret: process.envROBOSWARM__JWT_SECRET
 };
 
 // Sentry Config
@@ -104,12 +104,12 @@ app.use("/api/v1/user", jwt(jwtConfig), _userRoutes);
 
 // Sitemap
 app.get("/sitemap.xml", (req, res) => {
-    res.sendFile(`${process.env.APP_ROOT}/views/sitemap.xml`);
+    res.sendFile(`${process.envROBOSWARM__APP_ROOT}/views/sitemap.xml`);
 });
 
 // Robots.txt
 app.get("/robots.txt", (req, res) => {
-    res.sendFile(`${process.env.APP_ROOT}/views/robots.txt`);
+    res.sendFile(`${process.envROBOSWARM__APP_ROOT}/views/robots.txt`);
 });
 
 // Marketing Pages

@@ -112,7 +112,7 @@ export async function create(swarm: NewSwarm, userId: number, groupId: number, r
         host_url = swarm.host_url;
     } else {
         const siteOwnership: SiteOwnership.SiteOwnership = await SiteOwnership.findById(swarm.site_id);
-        host_url = siteOwnership.base_url;
+        host_url = siteOwnership.ROBOSWARM__BASE_URL;
     }
 
     // Create the container swarm.
@@ -447,7 +447,7 @@ export async function setReadyAt(swarm: Swarm): Promise<Swarm> {
 }
 export async function willExceedDropletPoolAvailability(newSwarmSize: number): Promise<boolean> {
     const headers = {
-        Authorization: `Bearer ${process.env.DIGITAL_OCEAN_TOKEN}`,
+        Authorization: `Bearer ${process.envROBOSWARM__DIGITAL_OCEAN_TOKEN}`,
         "Content-Type": "application/json"
     };
     const url = "https://api.digitalocean.com/v2/droplets";
@@ -456,7 +456,7 @@ export async function willExceedDropletPoolAvailability(newSwarmSize: number): P
         json: true
     };
     const result: DropletListResponse = await request.get(url, options);
-    const availableDroplets = parseInt(process.env.DROPLET_POOL_SIZE, 10) - result.meta.total;
+    const availableDroplets = parseInt(process.envROBOSWARM__DROPLET_POOL_SIZE, 10) - result.meta.total;
     if (availableDroplets - newSwarmSize < 10) {
         sendEmail({
             to: "jack@kernl.us",

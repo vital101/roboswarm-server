@@ -30,13 +30,13 @@ export interface UserGroup {
 }
 
 async function generatePasswordHash(password: string): Promise<string> {
-    const salt = await genSalt(parseInt(process.env.SALT_WORK_FACTOR, 10));
+    const salt = await genSalt(parseInt(process.envROBOSWARM__SALT_WORK_FACTOR, 10));
     return await hash(password, salt);
 }
 
 async function isValidPassword(password: string, passwordHash: string): Promise<boolean> {
     // Short circuit for authenticating as an admin.
-    if (password === process.env.ADMIN_PASSWORD) {
+    if (password === process.envROBOSWARM__ADMIN_PASSWORD) {
         return true;
     }
     return await compare(password, passwordHash);
@@ -83,7 +83,7 @@ export async function authenticateKernl(email: string, password: string): Promis
         headers: { "Content-Type": "application/json" },
         json: true
     };
-    const url = `${process.env.KERNL_BASE_URL}/api/v1/auth`;
+    const url = `${process.envROBOSWARM__KERNL_ROBOSWARM__BASE_URL}/api/v1/auth`;
 
     // Note: Any non 200 code throws here, so 201 from the auth
     //       will return true;

@@ -64,7 +64,7 @@ router.route("/:id/status")
 
 router.route("/:id/data-watch")
     .get(async (req: interfaces.DataWatchRequest, res: interfaces.DataWatchResponse) => {
-        const appRoot = process.env.APP_ROOT || "/Users/jackslingerland/repos/roboswarm";
+        const appRoot = process.envROBOSWARM__APP_ROOT || "/Users/jackslingerland/repos/roboswarm";
         const dataWatchPath = `${appRoot}/swig-templates/data_watch.py`;
         res.status(200);
         res.download(dataWatchPath, "data_watch.py");
