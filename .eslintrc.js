@@ -10,7 +10,6 @@ module.exports = {
         "sourceType": "module"
     },
     "plugins": [
-        "eslint-plugin-jsdoc",
         "@typescript-eslint",
         "@typescript-eslint/tslint"
     ],
@@ -47,9 +46,6 @@ module.exports = {
             "error",
             "1tbs"
         ],
-        "jsdoc/check-alignment": "error",
-        "jsdoc/check-indentation": "error",
-        "jsdoc/newline-after-description": "error",
         "no-trailing-spaces": "error",
         "no-var": "error",
         "prefer-const": "error",
