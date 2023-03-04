@@ -84,7 +84,7 @@ export async function createExternalMachine(id: number, region: string, external
 
 export async function checkStatus(machine: Machine): Promise<DropletResponse> {
     const headers = {
-        Authorization: `Bearer ${process.envROBOSWARM__DIGITAL_OCEAN_TOKEN}`,
+        Authorization: `Bearer ${process.env.ROBOSWARM__DIGITAL_OCEAN_TOKEN}`,
         "Content-Type": "application/json"
     };
     const url = `https://api.digitalocean.com/v2/droplets/${machine.external_id}`;
@@ -99,7 +99,7 @@ export async function checkStatus(machine: Machine): Promise<DropletResponse> {
 // in conjunction with creating a machine on RoboSwarm.
 async function createDigitalOceanMachine(machineId: number, region: string, digitalOceanSSHKeyId: number): Promise<RequestPromise|boolean> {
     const headers = {
-        Authorization: `Bearer ${process.envROBOSWARM__DIGITAL_OCEAN_TOKEN}`,
+        Authorization: `Bearer ${process.env.ROBOSWARM__DIGITAL_OCEAN_TOKEN}`,
         "Content-Type": "application/json"
     };
     const data = {
@@ -130,7 +130,7 @@ async function createDigitalOceanMachine(machineId: number, region: string, digi
 export async function destroy(machineId: number): Promise<void> {
     const machine = await findById(machineId);
     const headers = {
-        Authorization: `Bearer ${process.envROBOSWARM__DIGITAL_OCEAN_TOKEN}`,
+        Authorization: `Bearer ${process.env.ROBOSWARM__DIGITAL_OCEAN_TOKEN}`,
         "Content-Type": "application/json"
     };
     const url = `https://api.digitalocean.com/v2/droplets/${machine.external_id}`;

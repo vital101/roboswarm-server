@@ -63,7 +63,7 @@ async function generateKeys(): Promise<KeyPair> {
 async function createDigitalOceanSSHKey(keys: KeyPair): Promise<RequestPromise> {
     // Query digital ocean.
     const headers = {
-        Authorization: `Bearer ${process.envROBOSWARM__DIGITAL_OCEAN_TOKEN}`,
+        Authorization: `Bearer ${process.env.ROBOSWARM__DIGITAL_OCEAN_TOKEN}`,
         "Content-Type": "application/json"
     };
     const data = {
@@ -103,7 +103,7 @@ export async function destroy(id: number): Promise<void> {
 
     // Delete from Digital Ocean.
     const headers = {
-        Authorization: `Bearer ${process.envROBOSWARM__DIGITAL_OCEAN_TOKEN}`,
+        Authorization: `Bearer ${process.env.ROBOSWARM__DIGITAL_OCEAN_TOKEN}`,
         "Content-Type": "application/json"
     };
     const url = `https://api.digitalocean.com/v2/account/keys/${destroyedSSHKey[0].external_id}`;

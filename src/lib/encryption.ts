@@ -1,5 +1,5 @@
 import { createEncryptor } from "simple-encryptor";
-const ENCRYPTION_KEY = process.envROBOSWARM__ENCRYPTION_KEY ? process.envROBOSWARM__ENCRYPTION_KEY : "test-key12341526u4354341234";
+const ENCRYPTION_KEY = process.env.ROBOSWARM__ENCRYPTION_KEY ? process.env.ROBOSWARM__ENCRYPTION_KEY : "test-key12341526u4354341234";
 const encryptor = createEncryptor({
     key: ENCRYPTION_KEY,
     hmac: false, debug:

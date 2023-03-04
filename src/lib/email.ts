@@ -10,7 +10,7 @@ export interface Message {
 }
 
 export async function sendEmail(message: Message): Promise<void> {
-    sgMail.setApiKey(process.envROBOSWARM__SENDGRID_API_KEY);
+    sgMail.setApiKey(process.env.ROBOSWARM__SENDGRID_API_KEY);
     await sgMail.send(message);
 }
 
@@ -27,7 +27,7 @@ export function sendRegistrationEmail(user: User): void {
             name: user.first_name
         },
     };
-    sgMail.setApiKey(process.envROBOSWARM__SENDGRID_API_KEY);
+    sgMail.setApiKey(process.env.ROBOSWARM__SENDGRID_API_KEY);
     sgMail.send(msg);
 }
 
@@ -46,7 +46,7 @@ export function sendFirstTestCompleteEmail(user: User, simulated_users: number, 
             duration_in_minutes
         },
     };
-    sgMail.setApiKey(process.envROBOSWARM__SENDGRID_API_KEY);
+    sgMail.setApiKey(process.env.ROBOSWARM__SENDGRID_API_KEY);
     sgMail.send(msg);
 }
 
@@ -67,7 +67,7 @@ export function sendLoadTestCompleteEmail(user: User, swarm: Swarm): void {
             swarm_id: swarm.id
         },
     };
-    sgMail.setApiKey(process.envROBOSWARM__SENDGRID_API_KEY);
+    sgMail.setApiKey(process.env.ROBOSWARM__SENDGRID_API_KEY);
     sgMail.send(msg);
 }
 
@@ -84,7 +84,7 @@ export function sendPasswordResetEmail(email: string, uuid: string): void {
             uuid,
         },
     };
-    sgMail.setApiKey(process.envROBOSWARM__SENDGRID_API_KEY);
+    sgMail.setApiKey(process.env.ROBOSWARM__SENDGRID_API_KEY);
     sgMail.send(msg);
 }
 
@@ -103,6 +103,6 @@ export function sendWooCommerceTemplateRequestEmail(user: User): void {
             email: user.email
         },
     };
-    sgMail.setApiKey(process.envROBOSWARM__SENDGRID_API_KEY);
+    sgMail.setApiKey(process.env.ROBOSWARM__SENDGRID_API_KEY);
     sgMail.send(msg);
 }

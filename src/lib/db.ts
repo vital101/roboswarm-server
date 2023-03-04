@@ -1,10 +1,10 @@
 import * as Knex from "knex";
 
 let connection: any = {
-    host: process.envROBOSWARM__DB_HOST || "10.0.2.2",
-    user: process.envROBOSWARM__DB_USER || "postgres",
-    password: process.envROBOSWARM__DB_PASSWORD || undefined,
-    port: process.envROBOSWARM__DB_PORT || 5432,
+    host: process.env.ROBOSWARM__DB_HOST || "10.0.2.2",
+    user: process.env.ROBOSWARM__DB_USER || "postgres",
+    password: process.env.ROBOSWARM__DB_PASSWORD || undefined,
+    port: process.env.ROBOSWARM__DB_PORT || 5432,
     database: "roboswarm",
     timezone: "utc",
 };

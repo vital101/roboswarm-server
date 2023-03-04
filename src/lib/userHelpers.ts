@@ -23,7 +23,7 @@ export function getUserToken(data: TokenData): string {
         id: data.id,
         email: data.email,
         groupId: data.groupId
-    }, process.envROBOSWARM__JWT_SECRET);
+    }, process.env.ROBOSWARM__JWT_SECRET);
 }
 
 export function canSelectPlan(user: User, plan: string): boolean {
