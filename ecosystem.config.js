@@ -1,5 +1,4 @@
 const postDeployCommands = [
-    'npm config set -g production false',
     'npm install',
     'npm run migrate',
     'npm run build',
