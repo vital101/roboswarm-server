@@ -50,7 +50,7 @@ const postDeployCommands = [
         user : 'jack',
         host : ['192.168.1.65'],
         ref  : 'origin/home-server',
-        repo : 'git@bitbucket.org:roboswarm/roboswarm-server.git',
+        repo : 'git@github.com:vital101/roboswarm-server.git',
         path : '/home/jack/repos/roboswarm-server',
         'post-deploy' : postDeployCommands.join(" && ")
       }
