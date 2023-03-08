@@ -28,6 +28,7 @@ const appRoot = process.env.ROBOSWARM__APP_ROOT || "/Users/jackslingerland/repos
 
 // VM Configuration Compiler
 const templatePath = `${appRoot}/swig-templates/configure-vm.sh`;
+console.log({ templatePath });
 const templateString = readFileSync(templatePath).toString();
 const vmConfigTemplateCompiler = Handlebars.compile(templateString);
 
