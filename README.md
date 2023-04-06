@@ -1,3 +1,14 @@
+Start the processes with PM2
+============================
+
+## If none exist
+cd /home/jack/repos/roboswarm-server && npm run build && pm2 start npm --instances 2 --name "Roboswarm: API" -- run serve
+pm2 start /home/jack/repos/roboswarm-server/dist -i 2 --max-memory-restart 400M --node-args="--trace-warnings --max_old_space_size=390"
+sudo env PATH=$PATH:/usr/local/bin pm2 startup -u root
+pm2 save
+
+## If they need to be restarted
+
 To Create a New Image
 =====================
 
