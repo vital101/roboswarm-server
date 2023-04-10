@@ -15,7 +15,5 @@ pm2 restart all
 
 # Clear Nginx static assets cache
 echo "Clearing Nginx static asset cache."
-sudo su
-cd /var/cache/nginx
-rm -rf *
+sudo su -c 'cd /var/cache/nginx && rm -rf *'
 echo "Done deploying Roboswarm Server"
