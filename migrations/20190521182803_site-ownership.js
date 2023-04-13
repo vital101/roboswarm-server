@@ -4,7 +4,7 @@ exports.up = async function (knex, Promise) {
 
         table.integer("group_id");
         table.integer("user_id");
-        table.text("ROBOSWARM__BASE_URL");
+        table.text("base_url");
         table.uuid("uuid");
         table.boolean("verified").defaultTo(false);
 

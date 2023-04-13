@@ -83,7 +83,7 @@ export async function authenticateKernl(email: string, password: string): Promis
         headers: { "Content-Type": "application/json" },
         json: true
     };
-    const url = `${process.env.ROBOSWARM__KERNL_ROBOSWARM__BASE_URL}/api/v1/auth`;
+    const url = `${process.env.ROBOSWARM__KERNL_BASE_URL}/api/v1/auth`;
 
     // Note: Any non 200 code throws here, so 201 from the auth
     //       will return true;

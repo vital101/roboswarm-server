@@ -8,7 +8,7 @@ export interface SiteOwnership {
     id?: number;
     group_id: number;
     user_id: number;
-    ROBOSWARM__BASE_URL: string;
+    base_url: string;
     uuid?: string;
     verified: boolean;
     created_at: Date;
@@ -66,7 +66,7 @@ function resolveTxtWrapper(domain: string): Promise<any> {
 }
 
 export async function verify(siteToVerify: SiteOwnership): Promise<SiteOwnership> {
-    const domain: string = siteToVerify.ROBOSWARM__BASE_URL
+    const domain: string = siteToVerify.base_url
         .replace("https://", "")
         .replace("http://", "")
         .replace("/", "");
@@ -90,7 +90,7 @@ export async function verify(siteToVerify: SiteOwnership): Promise<SiteOwnership
 
     try {
         // Second attempt to verify via <meta> tags.
-        const resultHTML: string = await request.get(siteToVerify.ROBOSWARM__BASE_URL, { strictSSL: false });
+        const resultHTML: string = await request.get(siteToVerify.base_url, { strictSSL: false });
         const $ = cheerio.load(resultHTML);
         const metaTags = $('meta[name ="roboswarm-verify"]');
         if (metaTags.length > 0) {
@@ -109,9 +109,9 @@ export async function verify(siteToVerify: SiteOwnership): Promise<SiteOwnership
     return siteToVerify;
 }
 
-export async function getSiteIdByBaseUrl(ROBOSWARM__BASE_URL: string, user_id: number, group_id: number): Promise<number|boolean> {
+export async function getSiteIdByBaseUrl(base_url: string, user_id: number, group_id: number): Promise<number|boolean> {
     const site: SiteOwnership = await db("site_ownership")
-        .where({ ROBOSWARM__BASE_URL, user_id, group_id })
+        .where({ base_url, user_id, group_id })
         .first();
     return site ? site.id : false;
 }

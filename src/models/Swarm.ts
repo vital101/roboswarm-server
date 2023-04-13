@@ -112,7 +112,7 @@ export async function create(swarm: NewSwarm, userId: number, groupId: number, r
         host_url = swarm.host_url;
     } else {
         const siteOwnership: SiteOwnership.SiteOwnership = await SiteOwnership.findById(swarm.site_id);
-        host_url = siteOwnership.ROBOSWARM__BASE_URL;
+        host_url = siteOwnership.base_url;
     }
 
     // Create the container swarm.

@@ -1,11 +1,11 @@
 exports.up = async function (knex, Promise) {
     await knex.schema.table("site_ownership", table => {
-        table.unique("ROBOSWARM__BASE_URL");
+        table.unique("base_url");
     });
 };
 
 exports.down = async function (knex, Promise) {
     await knex.schema.table("site_ownership", table => {
-        table.dropUnique("ROBOSWARM__BASE_URL");
+        table.dropUnique("base_url");
     });
 };
