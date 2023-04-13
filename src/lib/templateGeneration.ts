@@ -220,5 +220,6 @@ export async function generateVmConfigurationScript(machine_id: number): Promise
         basePath: process.env.ROBOSWARM__BASE_PATH ? process.env.ROBOSWARM__BASE_PATH : "/root/"
     };
     const renderedTemplate = vmConfigTemplateCompiler(renderContext);
+    console.log(renderedTemplate);
     return renderedTemplate;
 }
