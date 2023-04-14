@@ -189,8 +189,6 @@ export async function generateAndSaveTemplate(swarm_id: number, template_id: num
 export async function generateVmConfigurationScript(machine_id: number): Promise<string> {
     const swarmId = await SwarmMachine.getSwarmIdByMachineId(machine_id);
     const swarm = await Swarm.getById(swarmId);
-    console.info("===== SWARM =====");
-    console.log(swarm);
     const users = swarm.simulated_users;
     const rate = swarm.spawn_rate;
     const runTime = `${swarm.duration}m`;
@@ -221,5 +219,6 @@ export async function generateVmConfigurationScript(machine_id: number): Promise
     };
     const renderedTemplate = vmConfigTemplateCompiler(renderContext);
     console.log(renderedTemplate);
+    console.log(process.env);
     return renderedTemplate;
 }
