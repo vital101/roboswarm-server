@@ -219,6 +219,5 @@ export async function generateVmConfigurationScript(machine_id: number): Promise
     };
     const renderedTemplate = vmConfigTemplateCompiler(renderContext);
     console.log(renderedTemplate);
-    console.log(process.env);
     return renderedTemplate;
 }

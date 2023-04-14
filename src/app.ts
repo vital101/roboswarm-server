@@ -1,8 +1,6 @@
 // Environment variables
 require("dotenv").config();
 
-console.log(process.env);
-
 // 3rd Party modules
 import * as express from "express";
 import * as bodyParser from "body-parser";
