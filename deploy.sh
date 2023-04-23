@@ -12,6 +12,7 @@ npm run migrate
 # Restart API and Worker
 echo "Restarting API and worker."
 pm2 restart all --update-env
+pm2 save
 
 # Clear Nginx static assets cache
 echo "Clearing Nginx static asset cache."
