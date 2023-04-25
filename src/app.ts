@@ -8,7 +8,6 @@ import { expressjwt as jwt } from "express-jwt";
 import * as cors from "cors";
 import * as Sentry from "@sentry/node";
 import * as morgan from "morgan";
-import * as cron from "node-cron";
 import { swarmCleanup } from "./cron/swarm_cleanup";
 import { checkUserDelinquency } from "./cron/check_user_delinquency";
 import { connect as connectToRedis } from "./lib/events";
@@ -24,21 +23,6 @@ import appRoutes from "./routes/v1/public/app";
 import marketingRoutes from "./routes/v1/public/marketing";
 import userRoutes from "./routes/v1/public/user";
 import machineStatusRoutes from "./routes/v1/public/machineStatus";
-
-// Cron config.
-if (process.env.RUN_CRON) {
-    // Swarm cleanup
-    cron.schedule("0 2 * * *", () => {
-        console.log("Running swarm cleanup.");
-        swarmCleanup();
-    });
-
-    // Remove old data
-    cron.schedule("0 4 * * *", () => {
-        console.log("Running check user delinquency");
-        checkUserDelinquency();
-    });
-}
 
 // JWT Config
 const jwtConfig: any = {
