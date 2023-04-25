@@ -8,7 +8,6 @@ import { expressjwt as jwt } from "express-jwt";
 import * as cors from "cors";
 import * as Sentry from "@sentry/node";
 import * as morgan from "morgan";
-import * as cron from "node-cron";
 import { swarmCleanup } from "./cron/swarm_cleanup";
 import { checkUserDelinquency } from "./cron/check_user_delinquency";
 import { connect as connectToRedis } from "./lib/events";
@@ -25,25 +24,10 @@ import marketingRoutes from "./routes/v1/public/marketing";
 import userRoutes from "./routes/v1/public/user";
 import machineStatusRoutes from "./routes/v1/public/machineStatus";
 
-// Cron config.
-if (process.env.RUN_CRON) {
-    // Swarm cleanup
-    cron.schedule("0 2 * * *", () => {
-        console.log("Running swarm cleanup.");
-        swarmCleanup();
-    });
-
-    // Remove old data
-    cron.schedule("0 4 * * *", () => {
-        console.log("Running check user delinquency");
-        checkUserDelinquency();
-    });
-}
-
 // JWT Config
 const jwtConfig: any = {
     algorithms: ["HS256"],
-    secret: process.env.JWT_SECRET
+    secret: process.env.ROBOSWARM__JWT_SECRET
 };
 
 // Sentry Config
@@ -104,12 +88,12 @@ app.use("/api/v1/user", jwt(jwtConfig), _userRoutes);
 
 // Sitemap
 app.get("/sitemap.xml", (req, res) => {
-    res.sendFile(`${process.env.APP_ROOT}/views/sitemap.xml`);
+    res.sendFile(`${process.env.ROBOSWARM__APP_ROOT}/views/sitemap.xml`);
 });
 
 // Robots.txt
 app.get("/robots.txt", (req, res) => {
-    res.sendFile(`${process.env.APP_ROOT}/views/robots.txt`);
+    res.sendFile(`${process.env.ROBOSWARM__APP_ROOT}/views/robots.txt`);
 });
 
 // Marketing Pages

@@ -1,3 +1,21 @@
+Start the processes with PM2
+============================
+
+## If none exist
+cd /home/jack/repos/roboswarm-server && npm run build && pm2 start npm --instances 1 --name "Roboswarm: API" -- run serve
+cd /home/jack/repos/roboswarm-server && pm2 start npm --instances 1 --name "Roboswarm: Worker" -- run worker
+sudo env PATH=$PATH:/usr/local/bin pm2 startup -u root
+pm2 save
+
+## If they need to be restarted
+pm2 restart all
+
+Flush the Nginx static asset cache
+==================================
+sudo su
+cd /var/cache/nginx
+rm -rf *
+
 To Create a New Image
 =====================
 

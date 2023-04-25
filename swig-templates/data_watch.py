@@ -3,29 +3,29 @@ from csv import reader
 import json, os, requests, sys
 
 if len(sys.argv) != 4:
-    raise ValueError('Usage: python data_watch.py <base_url> <machine_id> <base_path>')
+    raise ValueError('Usage: python data_watch.py <ROBOSWARM__BASE_URL> <machine_id> <ROBOSWARM__BASE_PATH>')
 
-base_url = sys.argv[1] # "https://roboswarm.ngrok.io" for dev
+ROBOSWARM__BASE_URL = sys.argv[1] # "https://roboswarm.ngrok.io" for dev
 machine_id = sys.argv[2] # 48 for dev
-base_path = sys.argv[3] # /Users/jackslingerland/Desktop/roboswarm_env/ for dev
+ROBOSWARM__BASE_PATH = sys.argv[3] # /Users/jackslingerland/Desktop/roboswarm_env/ for dev
 
-# if "ngrok" in base_url:
+# if "ngrok" in ROBOSWARM__BASE_URL:
 #     print("Using development configuration")
-#     final_data_path = "{0}_stats.csv".format(base_path)
-#     aggregate_data_path = "{0}_stats_history.csv".format(base_path)
-#     failure_data_path = "{0}_failures.csv".format(base_path)
-#     route_specific_data_path = "{0}_stats.csv".format(base_path)
+#     final_data_path = "{0}_stats.csv".format(ROBOSWARM__BASE_PATH)
+#     aggregate_data_path = "{0}_stats_history.csv".format(ROBOSWARM__BASE_PATH)
+#     failure_data_path = "{0}_failures.csv".format(ROBOSWARM__BASE_PATH)
+#     route_specific_data_path = "{0}_stats.csv".format(ROBOSWARM__BASE_PATH)
 # else:
 print("Using production configuration")
-final_data_path = "{0}status_stats.csv".format(base_path)
-aggregate_data_path= "{0}status_stats_history.csv".format(base_path)
-failure_data_path = "{0}status_failures.csv".format(base_path)
-route_specific_data_path = "{0}status_stats.csv".format(base_path)
+final_data_path = "{0}status_stats.csv".format(ROBOSWARM__BASE_PATH)
+aggregate_data_path= "{0}status_stats_history.csv".format(ROBOSWARM__BASE_PATH)
+failure_data_path = "{0}status_failures.csv".format(ROBOSWARM__BASE_PATH)
+route_specific_data_path = "{0}status_stats.csv".format(ROBOSWARM__BASE_PATH)
 
 def roboswarm_http_request(method, route, data = None):
     try:
         url = "{0}/api/v1/public/machine/{1}/{2}".format(
-            base_url,
+            ROBOSWARM__BASE_URL,
             machine_id,
             route
         )
