@@ -4,11 +4,10 @@ import { DropletListResponse } from "../interfaces/digitalOcean.interface";
 import * as Machine from "./Machine";
 import { getSwarmMachineIds, getSwarmMachines, getSwarmIdByMachineId } from "./SwarmMachine";
 import * as SSHKey from "./SSHKey";
-import * as request from "request-promise";
-import { RequestPromiseOptions } from "request-promise";
 import * as events from "../lib/events";
 import * as LoadTest from "./LoadTest";
 import * as moment from "moment";
+import { httpRequest, RequestOptions } from "../lib/http";
 import {
     sendEmail,
     sendFirstTestCompleteEmail,
@@ -451,11 +450,12 @@ export async function willExceedDropletPoolAvailability(newSwarmSize: number): P
         "Content-Type": "application/json"
     };
     const url = "https://api.digitalocean.com/v2/droplets";
-    const options: RequestPromiseOptions = {
-        headers,
-        json: true
+    const options: RequestOptions = {
+        url,
+        method: "GET",
+        headers
     };
-    const result: DropletListResponse = await request.get(url, options);
+    const result: DropletListResponse = await httpRequest<DropletListResponse>(options);
     const availableDroplets = parseInt(process.env.ROBOSWARM__DROPLET_POOL_SIZE, 10) - result.meta.total;
     if (availableDroplets - newSwarmSize < 10) {
         sendEmail({

@@ -1,8 +1,8 @@
 import { resolveTxt } from "dns";
 import { db } from "../lib/db";
 import { v4 as generateUUID } from "uuid";
-import * as request from "request-promise";
 import * as cheerio from "cheerio";
+import { httpRequest, RequestOptions } from "../lib/http";
 
 export interface SiteOwnership {
     id?: number;
@@ -90,7 +90,12 @@ export async function verify(siteToVerify: SiteOwnership): Promise<SiteOwnership
 
     try {
         // Second attempt to verify via <meta> tags.
-        const resultHTML: string = await request.get(siteToVerify.base_url, { strictSSL: false });
+        const options: RequestOptions = {
+            method: "GET",
+            url: siteToVerify.base_url,
+            responseType: "HTML"
+        }
+        const resultHTML: string = await httpRequest(options);
         const $ = cheerio.load(resultHTML);
         const metaTags = $('meta[name ="roboswarm-verify"]');
         if (metaTags.length > 0) {

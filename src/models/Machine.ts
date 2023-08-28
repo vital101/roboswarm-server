@@ -1,5 +1,3 @@
-import * as request from "request-promise";
-import { RequestPromise, RequestPromiseOptions } from "request-promise";
 import { DropletResponse, NetworkInterface } from "../interfaces/digitalOcean.interface";
 import { db } from "../lib/db";
 import { Swarm } from "./Swarm";
@@ -9,6 +7,7 @@ import { enqueue } from "../lib/events";
 import { MachineProvisionEvent, WorkerEventType, MachineSetupStep } from "../interfaces/provisioning.interface";
 import * as moment from "moment";
 import { generateVmConfigurationScript } from "../lib/templateGeneration";
+import { httpRequest, RequestOptions } from "../lib/http";
 
 export interface Machine {
     id: number;
@@ -69,17 +68,19 @@ export async function create(machine: NewMachine, swarm: Swarm, key: SSHKey): Pr
 }
 
 export async function createExternalMachine(id: number, region: string, externalSshKeyId: number): Promise<DropletResponse|boolean> {
-    // Fire off an api request.
-    const DOMachine: DropletResponse = await createDigitalOceanMachine(id, region, externalSshKeyId);
+    try {
+        // Fire off an api request.
+        const DOMachine: DropletResponse = await createDigitalOceanMachine(id, region, externalSshKeyId);
 
-    if (DOMachine) {
         // Store the external id.
         await db("machine")
             .update({ external_id: DOMachine.droplet.id })
             .where("id", id)
             .returning("*");
+        return DOMachine;
+    } catch (err) {
+        return false;
     }
-    return DOMachine;
 }
 
 export async function checkStatus(machine: Machine): Promise<DropletResponse> {
@@ -88,21 +89,22 @@ export async function checkStatus(machine: Machine): Promise<DropletResponse> {
         "Content-Type": "application/json"
     };
     const url = `https://api.digitalocean.com/v2/droplets/${machine.external_id}`;
-    const options: RequestPromiseOptions = {
-        headers,
-        json: true
+    const options: RequestOptions = {
+        method: "GET",
+        url,
+        headers
     };
-    return request.get(url, options);
+    return httpRequest<DropletResponse>(options);
 }
 
 // Starts the creation of machine on Digital Ocean. Should only ever be used
 // in conjunction with creating a machine on RoboSwarm.
-async function createDigitalOceanMachine(machineId: number, region: string, digitalOceanSSHKeyId: number): Promise<RequestPromise|boolean> {
+async function createDigitalOceanMachine(machineId: number, region: string, digitalOceanSSHKeyId: number): Promise<DropletResponse> {
     const headers = {
         Authorization: `Bearer ${process.env.ROBOSWARM__DIGITAL_OCEAN_TOKEN}`,
         "Content-Type": "application/json"
     };
-    const data = {
+    const body = {
         name: `${machineId}`,
         region,
         size: "s-2vcpu-2gb",
@@ -115,16 +117,13 @@ async function createDigitalOceanMachine(machineId: number, region: string, digi
         ssh_keys: [ digitalOceanSSHKeyId, 129160 ] // Extra is for jack's testing.
     };
     const url = "https://api.digitalocean.com/v2/droplets";
-    const options: RequestPromiseOptions = {
-        body: data,
+    const options: RequestOptions = {
+        method: 'POST',
+        url,
+        body,
         headers,
-        json: true
     };
-    try {
-        return request.post(url, options);
-    } catch (err) {
-        return false;
-    }
+    return httpRequest<DropletResponse>(options);
 }
 
 export async function destroy(machineId: number): Promise<void> {
@@ -134,10 +133,12 @@ export async function destroy(machineId: number): Promise<void> {
         "Content-Type": "application/json"
     };
     const url = `https://api.digitalocean.com/v2/droplets/${machine.external_id}`;
-    const options: RequestPromiseOptions = {
-        headers
+    const options: RequestOptions = {
+        headers,
+        url,
+        method: 'DELETE'
     };
-    await request.delete(url, options);
+    await httpRequest(options);
     await db("machine")
         .update({ destroyed_at: db.fn.now() })
         .where("id", machine.id)
@@ -210,7 +211,7 @@ export async function isReady(id: number): Promise<boolean> {
 
 export async function setIsMaster(machine: Machine): Promise<void> {
     const swarmId = await SwarmMachine.getSwarmIdByMachineId(machine.id);
-    await db.transaction(async (trx) => {
+    await db.transaction(async (trx: any) => {
         const swarmMachines: SwarmMachine.SwarmMachine[] = await db("swarm_machine")
             .where({ swarm_id: swarmId })
             .transacting(trx);
