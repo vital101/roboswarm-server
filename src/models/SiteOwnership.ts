@@ -97,7 +97,7 @@ export async function verify(siteToVerify: SiteOwnership): Promise<SiteOwnership
         }
         const resultHTML: string = await httpRequest(options);
         const $ = cheerio.load(resultHTML);
-        const metaTags = $('meta[name ="roboswarm-verify"]');
+        const metaTags: any = $('meta[name ="roboswarm-verify"]');
         if (metaTags.length > 0) {
             const code: string = metaTags[0].attribs.content;
             if (code === siteToVerify.uuid) {
