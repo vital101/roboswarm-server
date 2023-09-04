@@ -13,6 +13,9 @@ export interface RoboRequest extends Request {
 }
 
 export interface RoboResponse extends Response {
+    // json: (value: object) => any;
+    // send: (value: string) => any;
+    // status: (value: number) => any;
 }
 
 export interface TokenizedUser {

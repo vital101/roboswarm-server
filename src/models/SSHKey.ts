@@ -1,10 +1,9 @@
-import * as request from "request-promise";
-import { RequestPromise, RequestPromiseOptions } from "request-promise";
 import { db } from "../lib/db";
 import { v1 as generateUUID } from "uuid";
 import { readFile } from "fs";
 import { SSHKeyResponse } from "../interfaces/digitalOcean.interface";
 import { execSync } from "child_process";
+import { httpRequest, RequestOptions } from "../lib/http";
 
 export interface SSHKey {
     id?: number;
@@ -60,7 +59,7 @@ async function generateKeys(): Promise<KeyPair> {
     };
 }
 
-async function createDigitalOceanSSHKey(keys: KeyPair): Promise<RequestPromise> {
+async function createDigitalOceanSSHKey(keys: KeyPair): Promise<SSHKeyResponse> {
     // Query digital ocean.
     const headers = {
         Authorization: `Bearer ${process.env.ROBOSWARM__DIGITAL_OCEAN_TOKEN}`,
@@ -71,12 +70,14 @@ async function createDigitalOceanSSHKey(keys: KeyPair): Promise<RequestPromise> 
         public_key: keys.public
     };
     const url = "https://api.digitalocean.com/v2/account/keys";
-    const options: RequestPromiseOptions = {
+    const options: RequestOptions = {
         body: data,
         headers,
-        json: true
+        url,
+        responseType: "JSON",
+        method: "POST"
     };
-    return await request.post(url, options);
+    return httpRequest<SSHKeyResponse>(options);
 }
 
 export async function create(): Promise<SSHKey> {
@@ -107,11 +108,12 @@ export async function destroy(id: number): Promise<void> {
         "Content-Type": "application/json"
     };
     const url = `https://api.digitalocean.com/v2/account/keys/${destroyedSSHKey[0].external_id}`;
-    const options: RequestPromiseOptions = {
+    const options: RequestOptions = {
+        url,
+        method: "DELETE",
         headers,
-        json: true
     };
-    await request.delete(url, options);
+    await httpRequest(options);
 }
 
 export async function getById(id: number): Promise<SSHKey> {
