@@ -121,7 +121,7 @@ async function createDigitalOceanMachine(machineId: number, region: string, digi
         method: 'POST',
         url,
         body,
-        headers,
+        headers
     };
     return httpRequest<DropletResponse>(options);
 }

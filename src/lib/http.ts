@@ -18,7 +18,7 @@ export interface RequestOptions {
  * @param {string} options.url The full URL to which the request should be made.
  * @param {Object} [options.headers] Any additional headers to include in the request.
  * @param {any} [options.body] Data to be sent in the body of the request (used for POST requests).
- * @param {('HTML' | 'JSON)} options.responseType The expected response type. If JSON, will return JSON object.
+ * @param {('HTML' | 'JSON)} options.responseType The expected response type. If JSON, will return JSON object. Returns JSON by default.
  *
  * @returns {Promise<T>} A promise that resolves with the response data or rejects with an error.
  *
@@ -27,7 +27,6 @@ export interface RequestOptions {
  *     method: 'GET',
  *     url: 'https://api.example.com/data'
  * });
- * console.log(data.name);
  */
 export function httpRequest<T>(options: RequestOptions): Promise<T> {
     const url = new URL(options.url);
@@ -46,6 +45,11 @@ export function httpRequest<T>(options: RequestOptions): Promise<T> {
             httpOptions.headers["Content-Type"] = "application/json";
         }
 
+        const returnJSON = (
+            options?.responseType &&
+            options.responseType === "JSON"
+        ) || !(options?.responseType);
+
         const req = request(httpOptions, res => {
             let data = "";
 
@@ -55,7 +59,7 @@ export function httpRequest<T>(options: RequestOptions): Promise<T> {
 
             res.on("end", () => {
                 if (res.statusCode && res.statusCode >= 200 && res.statusCode < 300) {
-                    if (options.responseType === "JSON") {
+                    if (data && returnJSON) {
                         resolve(JSON.parse(data));
                     } else {
                         resolve(data as any);

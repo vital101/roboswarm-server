@@ -453,7 +453,8 @@ export async function willExceedDropletPoolAvailability(newSwarmSize: number): P
     const options: RequestOptions = {
         url,
         method: "GET",
-        headers
+        headers,
+        responseType: "JSON"
     };
     const result: DropletListResponse = await httpRequest<DropletListResponse>(options);
     const availableDroplets = parseInt(process.env.ROBOSWARM__DROPLET_POOL_SIZE, 10) - result.meta.total;
