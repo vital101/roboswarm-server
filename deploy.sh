@@ -4,6 +4,8 @@
 cd /home/jack/repos/roboswarm-server
 echo "Fetching latest code..."
 git pull
+echo "Installing dependencies"
+npm i
 echo "Building Roboswarm."
 npm run build
 echo "Running database migrations"
