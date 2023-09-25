@@ -51,7 +51,7 @@ export DEBIAN_FRONTEND=noninteractive && apt-get install -y python3-pip wget unz
 # Download the template file and unzip
 echo "Downloading and unzipping load test template"
 wget {{baseUrl}}/api/v1/public/machine/{{machineId}}/template
-unzip template
+unzip -o template
 curl -X POST {{baseUrl}}/api/v1/public/machine/{{machineId}}/status -H 'Content-Type: application/json' -d '{"action":"file_transfer_complete"}'
 
 # Update dependency install flag
