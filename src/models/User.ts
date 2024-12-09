@@ -1,6 +1,5 @@
 import { db } from "../lib/db";
 import { compare, genSalt, hash } from "bcrypt";
-import { httpRequest, RequestOptions } from "../lib/http";
 
 export interface User {
     id?: number;
@@ -75,25 +74,6 @@ export async function authenticate(email: string, password: string): Promise<boo
     }
     const user = foundUser[0];
     return await isValidPassword(password, user.password);
-}
-
-export async function authenticateKernl(email: string, password: string): Promise<boolean> {
-    const url = `${process.env.ROBOSWARM__KERNL_BASE_URL}/api/v1/auth`;
-    const options: RequestOptions = {
-        body: { email, password },
-        headers: { "Content-Type": "application/json" },
-        url,
-        method: "POST"
-    };
-
-    // Note: Any non 200 code throws here, so 201 from the auth
-    //       will return true;
-    try {
-        await httpRequest(options);
-        return true;
-    } catch (err) {
-        return false;
-    }
 }
 
 export async function getByEmail(email: string): Promise<User> {

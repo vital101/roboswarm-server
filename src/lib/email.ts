@@ -18,7 +18,7 @@ export function sendRegistrationEmail(user: User): void {
     const templateId = "d-3bcf1df68e6c4c9b8686a0b9215e86ec";
     const msg = {
         to: user.email,
-        from: "jack@kernl.us",
+        from: process.env.ROBOSWARM__ADMIN_EMAIL,
         templateId,
         asm: {
             groupId: 13686
@@ -35,7 +35,7 @@ export function sendFirstTestCompleteEmail(user: User, simulated_users: number, 
     const templateId = "d-3a8c3bacca664b4fafb13bf2eb217d63";
     const msg = {
         to: user.email,
-        from: "jack@kernl.us",
+        from: process.env.ROBOSWARM__ADMIN_EMAIL,
         templateId,
         asm: {
             groupId: 13686
@@ -54,7 +54,7 @@ export function sendLoadTestCompleteEmail(user: User, swarm: Swarm): void {
     const templateId = "d-d20c9ddc3d3f46e69676e8ceee0f24c8";
     const msg = {
         to: user.email,
-        from: "jack@kernl.us",
+        from: process.env.ROBOSWARM__ADMIN_EMAIL,
         templateId,
         asm: {
             groupId: 13686
@@ -75,7 +75,7 @@ export function sendPasswordResetEmail(email: string, uuid: string): void {
     const templateId = "d-ef854018ef2c43d7934f9e87b8ec72ff";
     const msg = {
         to: email,
-        from: "jack@kernl.us",
+        from: process.env.ROBOSWARM__ADMIN_EMAIL,
         templateId,
         asm: {
             groupId: 13686
@@ -91,8 +91,8 @@ export function sendPasswordResetEmail(email: string, uuid: string): void {
 export function sendWooCommerceTemplateRequestEmail(user: User): void {
     const templateId = "d-92c66f525e704c0daa0273928cb94c68";
     const msg = {
-        to: "jack@kernl.us",
-        from: "jack@kernl.us",
+        to: process.env.ROBOSWARM__ADMIN_EMAIL,
+        from: process.env.ROBOSWARM__ADMIN_EMAIL,
         templateId,
         asm: {
             groupId: 13686

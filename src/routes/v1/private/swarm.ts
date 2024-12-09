@@ -83,18 +83,6 @@ interface SwarmRouteResponse extends RoboResponse {
 
 const router = Router();
 
-// Note: This is still used by Kernl. DO NOT REMOVE.
-const dest = "/tmp";
-const upload = multer({ dest });
-router.route("/file-upload")
-    .post(upload.single("loadTestData"),
-        (req: RoboRequest, res: RoboResponse) => {
-            res.status(201);
-            res.json({
-                filePath: req.file.path
-            });
-        });
-
 router.route("/:id/metrics/final")
     .get(async (req: LoadTestMetricsRequest, res: LoadTestMetricsResponse) => {
         const id: number = parseInt(req.params.id, 10);

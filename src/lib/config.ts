@@ -14,12 +14,6 @@ export interface Settings {
     free: Plan;
     startup: Plan;
     enterprise: Plan;
-    "kernl-startup": Plan;
-    "kernl-agency": Plan;
-    "kernl-enterprise": Plan;
-    "kernl-startup-2020": Plan;
-    "kernl-agency-2020": Plan;
-    "kernl-unlimited-2020": Plan;
     "2020-roboswarm-free": Plan;
     "2020-roboswarm-startup": Plan;
     "2020-roboswarm-enterprise": Plan;
@@ -33,18 +27,6 @@ export function getPlan(user: User): Plan {
             return settings.startup;
         case "enterprise":
             return settings.enterprise;
-        case "kernl-startup-2020":
-            return settings["kernl-startup-2020"];
-        case "kernl-agency-2020":
-            return settings["kernl-agency-2020"];
-        case "kernl-unlimited-2020":
-            return settings["kernl-unlimited-2020"];
-        case "kernl-startup":
-            return settings["kernl-startup"];
-        case "kernl-agency":
-            return settings["kernl-agency"];
-        case "kernl-enterprise":
-            return settings["kernl-enterprise"];
         case "2020-roboswarm-free":
             return settings["2020-roboswarm-free"];
         case "2020-roboswarm-startup":
@@ -83,60 +65,6 @@ export const settings: Settings = {
         maxReliabilityTestUsers: 25,
         dataRetentionDays: 365,
         maxUsers: 40000
-    },
-    "kernl-startup": {
-        maxMachineHours: 5,
-        maxLoadTests: 10,
-        maxLoadTestDurationMinutes: 60,
-        maxReliabilityTestMinutes: 600,
-        maxReliabilityTestUsers: 25,
-        dataRetentionDays: 30,
-        maxUsers: 2000
-    },
-    "kernl-agency": {
-        maxMachineHours: 30,
-        maxLoadTests: 30,
-        maxLoadTestDurationMinutes: 120,
-        maxReliabilityTestMinutes: 1200,
-        maxReliabilityTestUsers: 25,
-        dataRetentionDays: 90,
-        maxUsers: 10000
-    },
-    "kernl-enterprise": {
-        maxMachineHours: 100,
-        maxLoadTests: 150,
-        maxLoadTestDurationMinutes: 300,
-        maxReliabilityTestMinutes: 3000,
-        maxReliabilityTestUsers: 25,
-        dataRetentionDays: 365,
-        maxUsers: 25000
-    },
-    "kernl-startup-2020": {
-        maxMachineHours: 5,
-        maxLoadTests: 10,
-        maxLoadTestDurationMinutes: 60,
-        maxReliabilityTestMinutes: 600,
-        maxReliabilityTestUsers: 25,
-        dataRetentionDays: 30,
-        maxUsers: 2000
-    },
-    "kernl-agency-2020": {
-        maxMachineHours: 100,
-        maxLoadTests: 100,
-        maxLoadTestDurationMinutes: 120,
-        maxReliabilityTestMinutes: 1200,
-        maxReliabilityTestUsers: 25,
-        dataRetentionDays: 90,
-        maxUsers: 25000
-    },
-    "kernl-unlimited-2020": {
-        maxMachineHours: 500,
-        maxLoadTests: 200,
-        maxLoadTestDurationMinutes: 300,
-        maxReliabilityTestMinutes: 3000,
-        maxReliabilityTestUsers: 25,
-        dataRetentionDays: 365,
-        maxUsers: 50000
     },
     "2020-roboswarm-free": {
         maxMachineHours: 100000,

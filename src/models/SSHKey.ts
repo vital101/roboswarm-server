@@ -42,7 +42,7 @@ async function generateKeys(): Promise<KeyPair> {
     const ssh_public_path = `/tmp/${sshUUID}.pub`;
 
     // Generate the SSH key
-    executeShell(`ssh-keygen -m PEM -C kernl.us -t rsa -N "" -f /tmp/${sshUUID}`);
+    executeShell(`ssh-keygen -m PEM -C roboswarm.dev -t rsa -N "" -f /tmp/${sshUUID}`);
 
     // Read the SSH keys
     const privateKey = await readFileAsync(ssh_private_path);

@@ -68,8 +68,8 @@ router.route("/")
             await Stripe.setStripePlan(newUser.id, "2020-roboswarm-free");
             if (!kernlUser) {
                 sendEmail({
-                    to: "jack@kernl.us",
-                    from: "jack@kernl.us",
+                    to: process.env.ROBOSWARM__ADMIN_EMAIL,
+                    from: process.env.ROBOSWARM__ADMIN_EMAIL,
                     subject: `A new RoboSwarm user has signed up: ${newUser.email}`,
                     text: `${newUser.first_name} ${newUser.last_name} (${newUser.email})`
                 });
@@ -97,9 +97,8 @@ router.route("/auth")
             return;
         }
 
-        const roboswarmValid = await User.authenticate(req.body.email, req.body.password);
-        const kernlValid = await User.authenticateKernl(req.body.email, req.body.password);
-        if (!roboswarmValid && !kernlValid) {
+        const isValid = await User.authenticate(req.body.email, req.body.password);
+        if (!isValid) {
             res.status(400);
             res.send("Invalid email or password.");
         } else {

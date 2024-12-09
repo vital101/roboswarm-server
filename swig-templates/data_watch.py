@@ -116,10 +116,6 @@ while True:
             print("Updating Roboswarm 'can deprovision' == True")
             kill_data_watch()
         else:
-            # I think is_swarm_ready isn't working?
-            # Or maybe the path to the data files is wrong.
-            # Need to run this manually on master and see
-            # whats up.
             if is_swarm_ready():
                 print("Swarm not shutting down.")
                 capture_aggregate_data()

@@ -70,18 +70,7 @@ export function willExceedMaxUsers(user: User, requestedUsers: number, isReliabi
 }
 
 export async function isValidSite(user: User, swarm: Swarm.NewSwarm): Promise<boolean> {
-
-    // Legacy Kernl testing hooks.
-    if (swarm.kernl_test && swarm.host_url) {
-        return true;
-    }
-
-    // Automatic pass for 5 users or less
-    if (swarm.simulated_users <= 5) {
-        return true;
-    }
-
-    // Now check site id against current user.
+    // Check site id against current user.
     if (!swarm.site_id) return false;
     const siteOwnership: SiteOwnership.SiteOwnership = await SiteOwnership.findById(swarm.site_id);
     if (siteOwnership.user_id !== user.id) {
@@ -149,7 +138,7 @@ export async function canCreateSwarm(user: User, swarm: Swarm.NewSwarm, isReliab
         return true;
     } catch (err) {
         return {
-            err: "There was error verifying your account status. Please reach out to jack@kernl.us",
+            err: "There was error verifying your account status.",
             status: 500
         };
     }

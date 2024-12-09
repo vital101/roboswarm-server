@@ -17,7 +17,7 @@ describe("lib/email", () => {
             const setApiKeyStub = sandbox.stub(sgMail, "setApiKey").returns();
             const sendStub = sandbox.stub(sgMail, "send").resolves();
             const message: Message = {
-                to: "jack@kernl.us",
+                to: process.env.ROBOSWARM__ADMIN_EMAIL,
                 from: "no-reply@kernl.us",
                 subject: "A Test Message",
                 text: "A test message test body"
