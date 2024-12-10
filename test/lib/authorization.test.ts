@@ -135,14 +135,6 @@ describe("lib/authorization", () => {
     });
 
     describe("isValidSite", () => {
-        test("returns true for Kernl initiated tests", async () => {
-            const swarm: any = {
-                kernl_test: true,
-                host_url: "https://some.test.url"
-            };
-            expect(await authorization.isValidSite(user, swarm)).toBe(true);
-
-        });
 
         test("returns false if the current user does not own the site", async () => {
             const findByIdStub: sinon.SinonStub = sandbox.stub(SiteOwnership, "findById").resolves({

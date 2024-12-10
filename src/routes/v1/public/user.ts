@@ -39,7 +39,6 @@ const router = express.Router();
 
 router.route("/")
     .post(async (req: RegistrationRequest, res: express.Response) => {
-        const kernlUser: boolean = req.body.is_kernl_user ? true : false;
         delete req.body.is_kernl_user;
         const newUserData: User.User = {
             ...req.body,
@@ -66,15 +65,13 @@ router.route("/")
             };
             await Stripe.createStripeCustomer(newUser);
             await Stripe.setStripePlan(newUser.id, "2020-roboswarm-free");
-            if (!kernlUser) {
-                sendEmail({
-                    to: process.env.ROBOSWARM__ADMIN_EMAIL,
-                    from: process.env.ROBOSWARM__ADMIN_EMAIL,
-                    subject: `A new RoboSwarm user has signed up: ${newUser.email}`,
-                    text: `${newUser.first_name} ${newUser.last_name} (${newUser.email})`
-                });
-                sendRegistrationEmail(newUser);
-            }
+            sendEmail({
+                to: process.env.ROBOSWARM__ADMIN_EMAIL,
+                from: process.env.ROBOSWARM__ADMIN_EMAIL,
+                subject: `A new RoboSwarm user has signed up: ${newUser.email}`,
+                text: `${newUser.first_name} ${newUser.last_name} (${newUser.email})`
+            });
+            sendRegistrationEmail(newUser);
             res.status(201);
             res.json({
                 token: getUserToken(tokenUser),

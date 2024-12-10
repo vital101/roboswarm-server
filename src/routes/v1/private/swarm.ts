@@ -194,9 +194,6 @@ router.route("/:id/repeat")
             return;
         }
         const newSwarm: Swarm.NewSwarm = await Swarm.createRepeatSwarmRequest(id);
-        if (req.body && req.body.kernl_test) {
-            newSwarm.kernl_test = req.body.kernl_test;
-        }
         const user: User.User = await User.getById(req.auth.id);
         const isReliabilityTest = !!(newSwarm.simulated_users <= 25 && newSwarm.duration > 120);
         newSwarm.site_id = await SiteOwnership.getSiteIdByBaseUrl(newSwarm.host_url, user.id, user.group.id) as number;

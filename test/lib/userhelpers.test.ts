@@ -26,12 +26,6 @@ describe("lib/userHelpers", () => {
             expect(canSelectPlan).toBe(true);
         });
 
-        test("it returns true if the user is not on a RoboSwarm plan", () => {
-            const u: any = { stripe_card_id: undefined };
-            const canSelectPlan = userHelpers.canSelectPlan(u as User, "2020-kernl");
-            expect(canSelectPlan).toBe(true);
-        });
-
         test("it returns true if the user is a beta tester", () => {
             const u: any = { stripe_card_id: undefined, is_beta: true };
             const canSelectPlan = userHelpers.canSelectPlan(u as User, "2020-roboswarm-startup");

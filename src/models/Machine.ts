@@ -108,14 +108,15 @@ async function createDigitalOceanMachine(machineId: number, region: string, digi
         name: `${machineId}`,
         region,
         size: "s-2vcpu-2gb",
-        image: 141188558, // roboswarm-v6
-        // image: 107963363, // roboswarm-v5
-        // image: 90250818, // roboswarm-v4
+        image: process.env.ROBOSWARM__DIGITALOCEAN_SNAPSHOT_ID,
         backups: false,
         ipv6: true,
         tags: [ "roboswarm" ],
         user_data: await generateVmConfigurationScript(machineId),
-        ssh_keys: [ digitalOceanSSHKeyId, 129160 ] // Extra is for jack's testing.
+        ssh_keys: [
+            digitalOceanSSHKeyId,
+            // You can add extra DigitalOcean SSH Key ids here for debugging
+        ]
     };
     const url = "https://api.digitalocean.com/v2/droplets";
     const options: RequestOptions = {

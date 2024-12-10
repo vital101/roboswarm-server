@@ -24,7 +24,7 @@ swig.setFilter("increment", input => {
     return input + 1;
 });
 
-const appRoot = process.env.ROBOSWARM__APP_ROOT || "/Users/jackslingerland/repos/roboswarm";
+const appRoot = process.env.ROBOSWARM__APP_ROOT;
 
 // VM Configuration Compiler
 const templatePath = `${appRoot}/swig-templates/configure-vm.sh`;

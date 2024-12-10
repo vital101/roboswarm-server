@@ -83,7 +83,7 @@ export async function getByEmail(email: string): Promise<User> {
     const user = foundUser[0];
     user.password = undefined;
     user.group = foundGroup[0];
-    user.is_kernl_user = user.stripe_plan_description.includes("kernl");
+    user.is_kernl_user = false;
     return user;
 }
 
@@ -94,7 +94,7 @@ export async function getById(id: number): Promise<User> {
     const user = foundUser[0];
     user.password = undefined;
     user.group = foundGroup[0];
-    user.is_kernl_user = user.stripe_plan_description.includes("kernl");
+    user.is_kernl_user = false;
     return user;
 }
 
@@ -109,7 +109,7 @@ export async function getAll(): Promise<User[]> {
     return users.map(u => {
         return {
             ...u,
-            is_kernl_user: u.stripe_plan_description.includes("kernl")
+            is_kernl_user: false
         };
     });
 }
